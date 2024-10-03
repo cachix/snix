@@ -8,6 +8,7 @@ opts:
 let
   src = if isAttrs opts then opts.src else opts;
   headline = if isAttrs opts then opts.headline else null;
+  configFile = opts.configFile or ./config.el;
 
   bn = builtins.baseNameOf src;
   filename = elemAt (splitString "." bn) 0;
@@ -37,7 +38,7 @@ runCommand outName { inherit src; } ''
   buildFile() {
     cp "$1" file.org
     ${pkgs.emacs}/bin/emacs --batch \
-      --load ${./config.el} \
+      --load ${configFile} \
       --visit file.org \
       --eval "(progn
         ${escapeDoubleQuotes navToHeadline}
