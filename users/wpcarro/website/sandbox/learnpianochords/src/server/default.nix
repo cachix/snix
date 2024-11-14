@@ -13,6 +13,7 @@ depot.users.wpcarro.buildHaskell.program {
     "TypeApplications"
   ];
   deps = hpkgs: with hpkgs; [
+    string-conversions
     servant-server
     aeson
     wai-cors

@@ -19,7 +19,7 @@ yew-router = "0.17"
 wasm-bindgen-futures = "0.4"
 
 # needs to be in sync with nixpkgs
-wasm-bindgen = "= 0.2.93"
+wasm-bindgen = "= 0.2.95"
 uuid = { version = "1.3.3", features = ["v4", "serde"] }
 
 [dependencies.serde]
