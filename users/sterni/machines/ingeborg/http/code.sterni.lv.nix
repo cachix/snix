@@ -119,10 +119,13 @@ let
     enable-commit-graph=1
 
     root-title=code.sterni.lv
+    root-desc=
     css=/cgit.css
     head-include=${cgitHead}
 
     mimetype-file=${pkgs.mime-types}/etc/mime.types
+
+    noplainemail=1
 
     about-filter=${depot.tools.cheddar.about-filter}/bin/cheddar-about
     source-filter=${depot.tools.cheddar}/bin/cheddar
@@ -175,8 +178,6 @@ in
         user = "http";
         group = "http";
       };
-      # Default value doesn't work as documented
-      # https://github.com/NixOS/nixpkgs/pull/318599/files#r1673885083
       socket = {
         user = "http";
         group = "http";
