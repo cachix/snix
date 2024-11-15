@@ -18,6 +18,7 @@
         "sd_mod"
         "xhci_pci"
         "e1000e"
+        "usbhid"
       ];
       kernelModules = [
         "dm-snapshot"
