@@ -18,6 +18,13 @@ in
       initrd.network = {
         enable = true;
         ssh = {
+          # ssh_config:
+          # Host ingeborg-unlock
+          #     User root
+          #     HostName ingeborg.sterni.lv
+          #     AddressFamily inet # kernel commandline only gives ipv4
+          #     Port 22
+          #     UserKnownHostsFile /home/lukas/.ssh/initrd_known_hosts
           enable = true;
           authorizedKeys = depot.users.sterni.keys.all;
           hostKeys = [
