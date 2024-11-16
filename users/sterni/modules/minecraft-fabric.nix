@@ -186,6 +186,21 @@ let
       url = "https://piston-data.mojang.com/v1/objects/8dd1a28015f51b1803213892b50b7b4fc76e594d/server.jar";
       sha256 = "0qykf9a3nacklqsyb30kg9m79nw462la6rf92gsdssdakprscgy0";
     };
+    # https://www.minecraft.net/en-us/article/minecraft-java-edition-1-21
+    # Has a known exploit, fixed in 1.21.1
+    "1.21" = fetchJar {
+      pname = "server";
+      version = "1.21";
+      url = "https://piston-data.mojang.com/v1/objects/450698d1863ab5180c25d7c804ef0fe6369dd1ba/server.jar";
+      sha256 = "0gzmpifl6l1cq11lpjd5gadw50095wgyxlm2gkpzkngrhvd98qy9";
+    };
+    # https://www.minecraft.net/en-us/article/minecraft-java-edition-1-21-1
+    "1.21.1" = fetchJar {
+      pname = "server";
+      version = "1.21.1";
+      url = "https://piston-data.mojang.com/v1/objects/59353fb40c36d304f2035d51e7d6e6baa98dc05c/server.jar";
+      sha256 = "1fxl66938ixks6imz8c5bry69z0kh6iawq1fiwca1kck7rlmbg73";
+    };
   };
 
   #

@@ -2,13 +2,13 @@
 
 let
   carpet = pkgs.fetchurl {
-    url = "https://github.com/gnembon/fabric-carpet/releases/download/1.4.128/fabric-carpet-1.20.3-1.4.128+v231205.jar";
-    sha256 = "1jh2pb9pjwyfv1ianzykmja21nqlv175a8rg926xg3w4hhhwzrfq";
+    url = "https://github.com/gnembon/fabric-carpet/releases/download/1.4.147/fabric-carpet-1.21-1.4.147+v240613.jar";
+    sha256 = "1n8r1zznl2xvkzqqwzg18d0rhfzrb675ik7z22q29svkw2jci7q7";
   };
 
   carpet-extra = pkgs.fetchurl {
-    url = "https://github.com/gnembon/carpet-extra/releases/download/1.4.128/carpet-extra-1.20.3-1.4.128.jar";
-    sha256 = "0gxwm5ayr0y5dri0kxlnrrgy9pyaim34rl6km1j42fkyvc4r8p6x";
+    url = "https://github.com/gnembon/carpet-extra/releases/download/1.4.148/carpet-extra-1.21-1.4.148.jar";
+    sha256 = "1yyqv1c08vml3sxyjbs5qk0z3yqiylzq8qa8vxbwiyw49dx5yhnq";
   };
 
   userGroup = "minecraft";
@@ -31,10 +31,12 @@ let
     difficulty = "hard";
     function-permission-level = 4;
     snooper-enabled = false;
+    # TODO(sterni): replaced (?) by simulation-distance which defaults to 1
     view-distance = 12;
     sync-chunk-writes = "false"; # the single biggest performance fix
     max-tick-time = 6000000; # TODO(sterni): disable watchdog via carpet
     enforce-secure-profile = false;
+    # TODO(sterni): set disable pause-when-empty-seconds? we don't have anything in spawn though.
   };
 in
 
@@ -72,7 +74,7 @@ in
     services.minecraft-fabric-server = {
       creative = {
         enable = false; # not actively used
-        version = "1.20.4";
+        version = "1.21.1";
         mods = [
           carpet
           carpet-extra
@@ -98,7 +100,7 @@ in
 
       carpet = {
         enable = true;
-        version = "1.20.4";
+        version = "1.21.1";
         mods = [
           carpet
           carpet-extra
