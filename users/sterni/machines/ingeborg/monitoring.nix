@@ -6,15 +6,11 @@ let
     builtins.replaceStrings [ ":" ] [ "" ]
       config.services.depot.irccat.config.tcp.listen;
 
-  mkIrcMessager =
-    { name
-    , msgExpr
-    }:
-    pkgs.writeShellScript name ''
-      set -euo pipefail
-      printf '%s %s\n' ${lib.escapeShellArg ircChannel} ${msgExpr} | \
-        ${lib.getBin pkgs.netcat-openbsd}/bin/nc -N localhost ${irccatPort}
-    '';
+  send-irc-msg = pkgs.writeShellScript "send-irc-msg" ''
+    set -euo pipefail
+    printf '%s %s\n' ${lib.escapeShellArg ircChannel} "$1" | \
+      ${lib.getBin pkgs.netcat-openbsd}/bin/nc -N localhost ${irccatPort}
+  '';
 
   netdataPort = 19999;
 in
@@ -32,11 +28,9 @@ in
     # Since we have irccat we can wire up mdadm --monitor
     boot.swraid.mdadmConf = ''
       PROGRAM ${
-        mkIrcMessager {
-          name = "mdmonitor-to-irc";
-          # prog EVENT MD_DEVICE COMPONENT_DEVICE
-          msgExpr = ''"mdmonitor: $1($2''${3:+, $3})"'';
-        }
+        pkgs.writeShellScript "mdmonitor-to-irc" ''
+          ${send-irc-msg} "mdmonitor: $1($2''${3:+, $3})"
+        ''
       }
     '';
 
@@ -137,12 +131,7 @@ in
               esac
 
               echo "$0: INFO: sending message: $MSG" >&2
-              ${
-                mkIrcMessager {
-                  name = "trivial-send-to-irc";
-                  msgExpr = "\"$1\"";
-                }
-              } "$MSG"
+              ${send-irc-msg} "$MSG"
             '';
           };
         };
