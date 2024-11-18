@@ -12,4 +12,5 @@ in
   "warteraum-salt.age".publicKeys = nonremote ++ ingeborg;
   "warteraum-tokens.age".publicKeys = nonremote ++ ingeborg;
   "minecraft-rcon.age".publicKeys = nonremote ++ ingeborg;
+  "netdata-htpasswd.age".publicKeys = nonremote ++ ingeborg;
 }

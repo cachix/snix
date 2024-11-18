@@ -1,4 +1,4 @@
-{ pkgs, lib, config, ... }:
+{ pkgs, lib, config, depot, ... }:
 
 let
   ircChannel = "#sterni.lv";
@@ -136,6 +136,34 @@ in
           };
         };
       };
+
+      # https://learn.netdata.cloud/docs/netdata-agent/configuration/running-the-netdata-agent-behind-a-reverse-proxy/nginx
+      nginx.virtualHosts."monitoring.sterni.lv" = {
+        forceSSL = true;
+        enableACME = true;
+        extraConfig = ''
+          auth_basic "netdata";
+          auth_basic_user_file ${config.age.secretsDir}/netdata-htpasswd;
+
+          location / {
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Server $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_pass http://127.0.0.1:${toString netdataPort};
+            proxy_http_version 1.1;
+            proxy_pass_request_headers on;
+            proxy_set_header Connection "keep-alive";
+            proxy_store off;
+          }
+        '';
+      };
+    };
+
+    age.secrets.netdata-htpasswd = {
+      file = depot.users.sterni.secrets."netdata-htpasswd.age";
+      inherit (config.services.nginx) group;
+      owner = config.services.nginx.user;
+      mode = "700";
     };
   };
 }
