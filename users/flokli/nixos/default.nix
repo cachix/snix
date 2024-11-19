@@ -21,6 +21,14 @@ depot.nix.readTree.drvTargets rec {
 
   deploy-archeology-ec2 = (deployScript "archeology-ec2" archeologyEc2System);
 
+  nixosTvixCacheSystem = (depot.ops.nixos.nixosFor ({ ... }: {
+    imports = [
+      ./nixos-tvix-cache/configuration.nix
+    ];
+  })).config.system.build.toplevel;
+
+  deploy-nixos-tvix-cache = (deployScript "root@nixos.tvix.store" nixosTvixCacheSystem);
+
   deps = (depot.nix.lazy-deps {
     deploy-archeology-ec2.attr = "users.flokli.nixos.deploy-archeology-ec2";
     aws.attr = "third_party.nixpkgs.awscli";
