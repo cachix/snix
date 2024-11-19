@@ -34,3 +34,4 @@ expect-test = { workspace = true }
 [features]
 default = []
 tracy = ["tvix-tracing/tracy"]
+xp-store-composition-cli = ["tvix-store/xp-composition-cli"]

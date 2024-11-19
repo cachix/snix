@@ -6982,8 +6982,9 @@ rec {
         features = {
           "default" = [ "otlp" ];
           "otlp" = [ "tvix-tracing/otlp" ];
+          "xp-store-composition-cli" = [ "tvix-store/xp-composition-cli" ];
         };
-        resolvedDefaultFeatures = [ "default" "otlp" ];
+        resolvedDefaultFeatures = [ "default" "otlp" "xp-store-composition-cli" ];
       };
       "nibble_vec" = rec {
         crateName = "nibble_vec";
@@ -15709,8 +15710,9 @@ rec {
         ];
         features = {
           "tracy" = [ "tvix-tracing/tracy" ];
+          "xp-store-composition-cli" = [ "tvix-store/xp-composition-cli" ];
         };
-        resolvedDefaultFeatures = [ "default" "tracy" ];
+        resolvedDefaultFeatures = [ "default" "tracy" "xp-store-composition-cli" ];
       };
       "tvix-eval" = rec {
         crateName = "tvix-eval";

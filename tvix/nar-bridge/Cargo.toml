@@ -39,6 +39,7 @@ tonic-build = { workspace = true }
 [features]
 default = ["otlp"]
 otlp = ["tvix-tracing/otlp"]
+xp-store-composition-cli = ["tvix-store/xp-composition-cli"]
 
 [dev-dependencies]
 hex-literal = { workspace = true }

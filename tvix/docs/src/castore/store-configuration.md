@@ -54,7 +54,7 @@ today, using the existing CLI entrypoints, you can enable the
 
 With `cargo`, this can be enabled by passing
 `--features tvix-store/xp-composition-cli` to a `cargo build` / `cargo run`
-invocation.
+invocation. [^1]
 
 If enabled, CLI entrypoints get a `--experimental-store-composition` arg, which
 accepts a TOML file describing a composition for all three stores (causing the
@@ -171,3 +171,6 @@ public_keys = ["cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="]
 blob_service = "root"
 directory_service = "root"
 ```
+
+
+[^1]: In some leaf binary crates, this can also be controlled via the `xp-store-composition-cli` feature in the leaf crate itself.
