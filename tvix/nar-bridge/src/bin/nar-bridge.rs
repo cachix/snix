@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         #[cfg(feature = "otlp")]
         {
             if cli.otlp {
-                builder = builder.enable_otlp("tvix.store");
+                builder = builder.enable_otlp("nar-bridge");
             }
         }
         builder.build()?
