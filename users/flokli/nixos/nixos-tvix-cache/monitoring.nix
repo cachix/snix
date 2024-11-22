@@ -34,6 +34,32 @@ in
     };
   };
 
+  services.alloy.enable = true;
+
+  environment.etc."alloy/config.alloy".text = ''
+    prometheus.exporter.unix "main" { }
+
+    prometheus.scrape "main" {
+      targets    = prometheus.exporter.unix.main.targets
+      forward_to = [otelcol.receiver.prometheus.default.receiver]
+    }
+
+    otelcol.receiver.prometheus "default" {
+      output {
+        metrics = [otelcol.exporter.otlp.default.input]
+      }
+    }
+
+    otelcol.exporter.otlp "default" {
+      client {
+        endpoint = "127.0.0.1:4317"
+        tls {
+          insecure = true
+        }
+      }
+    }
+  '';
+
   services.opentelemetry-collector = {
     enable = true;
     settings = {
