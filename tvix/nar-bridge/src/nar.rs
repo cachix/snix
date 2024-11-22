@@ -21,7 +21,7 @@ pub(crate) struct GetNARParams {
     nar_size: u64,
 }
 
-#[instrument(skip(blob_service, directory_service))]
+#[instrument(skip_all)]
 pub async fn get_head(
     method: axum::http::Method,
     ranges: Option<TypedHeader<Range>>,
@@ -145,7 +145,7 @@ pub async fn head_root_nodes(
     }
 }
 
-#[instrument(skip(blob_service, directory_service, request))]
+#[instrument(skip_all)]
 pub async fn put(
     axum::extract::Path(nar_str): axum::extract::Path<String>,
     axum::extract::State(AppState {

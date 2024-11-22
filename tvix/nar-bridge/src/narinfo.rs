@@ -15,7 +15,7 @@ use crate::AppState;
 /// The size limit for NARInfo uploads nar-bridge receives
 const NARINFO_LIMIT: usize = 2 * 1024 * 1024;
 
-#[instrument(skip(path_info_service))]
+#[instrument(skip_all, fields(path_info.name=%narinfo_str))]
 pub async fn head(
     axum::extract::Path(narinfo_str): axum::extract::Path<String>,
     axum::extract::State(AppState {
@@ -41,7 +41,7 @@ pub async fn head(
     }
 }
 
-#[instrument(skip(path_info_service))]
+#[instrument(skip_all, fields(path_info.name=%narinfo_str))]
 pub async fn get(
     axum::extract::Path(narinfo_str): axum::extract::Path<String>,
     axum::extract::State(AppState {
@@ -78,7 +78,7 @@ pub async fn get(
     ))
 }
 
-#[instrument(skip(path_info_service, root_nodes, request))]
+#[instrument(skip_all, fields(path_info.name=%narinfo_str))]
 pub async fn put(
     axum::extract::Path(narinfo_str): axum::extract::Path<String>,
     axum::extract::State(AppState {
