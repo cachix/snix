@@ -4,25 +4,9 @@
 
   # Microbenchmark
   # hyperfine --warmup 1 'rm -rf /tmp/cache; nix copy --from https://nixos.tvix.store/ --to "file:///tmp/cache?compression=none" /nix/store/jlkypcf54nrh4n6r0l62ryx93z752hb2-firefox-132.0'
-  # From a different hetzner machine with 1Gbps uplink:
-  # - with zstd: 13.384s
-  # - with gzip: 11.130s
-  # - with brotli: ~18s
-  # - without compression: 15.6s
-
-  # From a 1Gbit link in TUM:
-  # - with zstd: 32.292s
-  # - with gzip: 51s
-  # - cache.nixos.org from the same connection: 36.559s
   services.nginx = {
-    package = pkgs.nginxStable.override {
-      modules = [ pkgs.nginxModules.zstd ];
-    };
+    package = pkgs.nginxStable;
     virtualHosts.${config.machine.domain} = {
-      # when using http2 we actually see worse throughput,
-      # because it only uses a single tcp connection,
-      # which pins nginx to a single core.
-      http2 = false;
       locations."=/" = {
         tryFiles = "$uri $uri/index.html =404";
         root = pkgs.runCommand "index"
@@ -42,6 +26,10 @@
             # nar bridge allows to upload nars via PUT
             deny all;
           }
+
+          # Propagate content-encoding to the backend
+          proxy_set_header Accept-Encoding $http_accept_encoding;
+
           # Enable proxy cache
           proxy_cache nar-bridge;
           proxy_cache_key "$scheme$proxy_host$request_uri";
@@ -49,9 +37,6 @@
           proxy_cache_valid 404 1m;  # Cache 404 responses for 1 minute
           proxy_cache_min_uses 2;  # Cache only if the object is requested at least twice
           proxy_cache_use_stale error timeout updating;
-
-          zstd on;
-          zstd_types application/x-nix-nar;
         '';
       };
     };
