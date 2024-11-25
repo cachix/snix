@@ -97,6 +97,12 @@ in
         link = "https://cl.tvl.fyi/$1";
       };
 
+      # Auto-link links to monotonically increasing revisions/commits
+      commentlink.revision = {
+        match = "r/(\\d+)";
+        link = "https://code.tvl.fyi/commit/?h=refs/r/$1";
+      };
+
       # Configures integration with Keycloak, which then integrates with a
       # variety of backends.
       auth.type = "OAUTH";
