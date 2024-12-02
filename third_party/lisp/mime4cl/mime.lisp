@@ -761,11 +761,11 @@ returns a MIME-MESSAGE object."
   (with-open-file (in msg :element-type '(unsigned-byte 8))
     (mime-message in)))
 
+(defmethod mime-message ((msg stream))
+  (mime-message (make-flexi-stream msg)))
+
 (defmethod mime-message ((msg flexi-stream))
   (read-mime-message msg))
-
-(defmethod mime-message ((msg stream))
-  (read-mime-message (make-flexi-stream msg)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
