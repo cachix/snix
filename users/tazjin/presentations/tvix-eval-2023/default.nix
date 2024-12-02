@@ -16,7 +16,10 @@ let
       listings
       xetex
       minted
-      ms
+      count1to
+      multitoc
+      prelim2e
+      ragged2e
       pgfopts
       scheme-basic
       translator;

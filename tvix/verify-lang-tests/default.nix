@@ -11,7 +11,7 @@ let
 
   inherit (pkgs.nixVersions) nix_2_3;
   # The latest Nix version we've verified to work for our testing suite.
-  nix_latest_verified = pkgs.nixVersions.nix_2_24;
+  nix_latest_verified = pkgs.nixVersions.nix_2_25;
 
   parseTest = dir: baseName:
     let
