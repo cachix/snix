@@ -73,7 +73,7 @@ redactedGetTorrentFile dat = inSpan' "Redacted Get Torrent File" $ \span -> do
   httpTorrent span req
 
 mkRedactedTorrentLink :: Arg "torrentGroupId" Int -> Text
-mkRedactedTorrentLink torrentId = [fmt|https://redacted.ch/torrents.php?id={torrentId.unArg}|]
+mkRedactedTorrentLink torrentId = [fmt|https://redacted.sh/torrents.php?id={torrentId.unArg}|]
 
 exampleSearch :: (MonadThrow m, MonadLogger m, MonadPostgres m, MonadOtel m, MonadRedacted m) => m (Transaction m ())
 exampleSearch = do
@@ -495,7 +495,7 @@ mkRedactedApiRequest ::
 mkRedactedApiRequest dat = do
   authKey <- getRedactedApiKey
   pure $
-    [fmt|https://redacted.ch/ajax.php|]
+    [fmt|https://redacted.sh/ajax.php|]
       & Http.setRequestMethod "GET"
       & Http.setQueryString (("action", Just dat.action) : dat.actionArgs)
       & Http.setRequestHeader "Authorization" [authKey]
