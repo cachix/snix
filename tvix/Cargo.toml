@@ -144,8 +144,7 @@ tonic-health = { version = "0.12.2", default-features = false }
 tonic-reflection = "0.12.2"
 tower = "0.4.13"
 tower-http = "0.5.2"
-# https://github.com/francoposa/tower-otel-http-metrics/pull/13
-tower-otel-http-metrics = { git = "https://github.com/francoposa/tower-otel-http-metrics", rev = "2023a58e7287a691872f8e75f433179d29d1b439"}
+tower-otel-http-metrics = "0.10.0"
 tracing = "0.1.40"
 tracing-indicatif = "0.3.6"
 tracing-opentelemetry = "0.28.0"

@@ -1054,6 +1054,11 @@ rec {
             packageId = "axum-core";
           }
           {
+            name = "axum-macros";
+            packageId = "axum-macros";
+            optional = true;
+          }
+          {
             name = "bytes";
             packageId = "bytes";
           }
@@ -1168,6 +1173,11 @@ rec {
         ];
         devDependencies = [
           {
+            name = "axum-macros";
+            packageId = "axum-macros";
+            features = [ "__private" ];
+          }
+          {
             name = "serde";
             packageId = "serde";
             features = [ "derive" ];
@@ -1208,7 +1218,7 @@ rec {
           "tracing" = [ "dep:tracing" "axum-core/tracing" ];
           "ws" = [ "dep:hyper" "tokio" "dep:tokio-tungstenite" "dep:sha1" "dep:base64" ];
         };
-        resolvedDefaultFeatures = [ "default" "form" "http1" "http2" "json" "matched-path" "original-uri" "query" "tokio" "tower-log" "tracing" ];
+        resolvedDefaultFeatures = [ "default" "form" "http1" "http2" "json" "macros" "matched-path" "original-uri" "query" "tokio" "tower-log" "tracing" ];
       };
       "axum-core" = rec {
         crateName = "axum-core";
@@ -1400,6 +1410,40 @@ rec {
           "typed-routing" = [ "dep:axum-macros" "dep:percent-encoding" "dep:serde_html_form" "dep:form_urlencoded" ];
         };
         resolvedDefaultFeatures = [ "default" "tracing" "typed-header" ];
+      };
+      "axum-macros" = rec {
+        crateName = "axum-macros";
+        version = "0.4.2";
+        edition = "2021";
+        sha256 = "1klv77c889jm05bzayaaiinalarhvh2crc2w4nvp3l581xaj7lap";
+        procMacro = true;
+        libName = "axum_macros";
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn 2.0.79";
+            features = [ "full" "parsing" "extra-traits" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "syn";
+            packageId = "syn 2.0.79";
+            features = [ "full" "extra-traits" ];
+          }
+        ];
+        features = {
+          "__private" = [ "syn/visit-mut" ];
+        };
+        resolvedDefaultFeatures = [ "default" ];
       };
       "axum-range" = rec {
         crateName = "axum-range";
@@ -7018,6 +7062,7 @@ rec {
             name = "tower-otel-http-metrics";
             packageId = "tower-otel-http-metrics";
             optional = true;
+            features = [ "axum" ];
           }
           {
             name = "tracing";
@@ -14544,20 +14589,17 @@ rec {
       };
       "tower-otel-http-metrics" = rec {
         crateName = "tower-otel-http-metrics";
-        version = "0.8.0";
+        version = "0.10.0";
         edition = "2021";
-        workspace_member = null;
-        src = pkgs.fetchgit {
-          url = "https://github.com/francoposa/tower-otel-http-metrics";
-          rev = "2023a58e7287a691872f8e75f433179d29d1b439";
-          sha256 = "1jiclkybx0fbgd6x2xfhzbq1xm3wba3vbixshqjy765c86jjffcg";
-        };
+        sha256 = "17zqz5cl3jy01cdjmqvx92jqzjy1lcghja6w2bazbh1yf61sj2zd";
         libName = "tower_otel_http_metrics";
         dependencies = [
           {
-            name = "futures-core";
-            packageId = "futures-core";
+            name = "axum";
+            packageId = "axum";
+            optional = true;
             usesDefaultFeatures = false;
+            features = [ "matched-path" "macros" ];
           }
           {
             name = "futures-util";
@@ -14600,7 +14642,7 @@ rec {
         features = {
           "axum" = [ "dep:axum" ];
         };
-        resolvedDefaultFeatures = [ "default" ];
+        resolvedDefaultFeatures = [ "axum" "default" ];
       };
       "tower-service" = rec {
         crateName = "tower-service";

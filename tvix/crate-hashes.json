@@ -1,7 +1,6 @@
 {
   "git+https://github.com/TrueLayer/reqwest-middleware?rev=8a494c165734e24c62823714843e1c9347027e8a#0.4.0": "10gaxsvqld8dfwnm0nk93sqbbd2mjl7zfdf6vglp6waka7h87mba",
   "git+https://github.com/TrueLayer/reqwest-middleware?rev=8a494c165734e24c62823714843e1c9347027e8a#reqwest-tracing@0.5.4": "10gaxsvqld8dfwnm0nk93sqbbd2mjl7zfdf6vglp6waka7h87mba",
-  "git+https://github.com/francoposa/tower-otel-http-metrics?rev=2023a58e7287a691872f8e75f433179d29d1b439#0.8.0": "1jiclkybx0fbgd6x2xfhzbq1xm3wba3vbixshqjy765c86jjffcg",
   "git+https://github.com/liufuyang/bigtable_rs?rev=1818355a5373a5bc2c84287e3a4e3807154ac8ef#0.2.10": "0mn6iw1z7gdxbarsqiwscbdr25nplwlvzs0rs51vgnnjfsnbgl6q",
   "git+https://github.com/tvlfyi/wu-manber.git#wu-manber@0.1.0": "1zhk83lbq99xzyjwphv2qrb8f8qgfqwa5bbbvyzm0z0bljsjv0pd"
 }
