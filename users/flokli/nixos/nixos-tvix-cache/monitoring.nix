@@ -39,7 +39,7 @@ in
   services.alloy.enable = true;
 
   environment.etc."alloy/config.alloy".text = ''
-    // Accept OTLP. Forward metrics to victoriametrics, and traces to tempo.
+    // Accept OTLP. Forward metrics to mimir, and traces to tempo.
     otelcol.receiver.otlp "main" {
       grpc {
         endpoint = "[::1]:4317"
@@ -50,7 +50,7 @@ in
       }
 
       output {
-        metrics = [otelcol.exporter.otlphttp.victoriametrics.input]
+        metrics = [otelcol.exporter.otlphttp.mimir.input]
         traces = [otelcol.exporter.otlp.tempo.input]
       }
     }
@@ -65,10 +65,10 @@ in
       }
     }
 
-    // We push to VictoriaMetrics over otlp-http.
-    otelcol.exporter.otlphttp "victoriametrics" {
+    // We push to Mimir over otlp-http.
+    otelcol.exporter.otlphttp "mimir" {
       client {
-        endpoint = "http://localhost:8428/opentelemetry"
+        endpoint = "http://localhost:9009/otlp"
       }
     }
 
@@ -84,13 +84,29 @@ in
     // Convert Prometheus metrics to OTLP and export them.
     otelcol.receiver.prometheus "default" {
       output {
-        metrics = [otelcol.exporter.otlphttp.victoriametrics.input]
+        metrics = [otelcol.exporter.otlphttp.mimir.input]
       }
     }
   '';
 
-  services.victoriametrics.enable = true;
+  services.mimir.enable = true;
+  services.mimir.configuration = {
+    server.grpc_listen_address = "127.0.0.1";
+    server.grpc_listen_port = 9096; # default 9095 conflicts with tempo
+    server.http_listen_address = "127.0.0.1";
+    server.http_listen_port = 9009;
 
+    multitenancy_enabled = false;
+
+    # https://github.com/grafana/mimir/discussions/8773
+    compactor.sharding_ring.instance_addr = "127.0.0.1";
+    distributor.ring.instance_addr = "127.0.0.1";
+    store_gateway.sharding_ring.instance_addr = "127.0.0.1";
+    ingester.ring.instance_addr = "127.0.0.1";
+    ingester.ring.replication_factor = 1;
+
+    memberlist.advertise_addr = "127.0.0.1";
+  };
 
   services.grafana = {
     enable = true;
@@ -145,10 +161,10 @@ in
           };
         }
         {
-          name = "prometheus";
+          name = "mimir";
           type = "prometheus";
-          uid = "metrics";
-          url = "http://localhost:8428/";
+          uid = "mimir";
+          url = "http://localhost:9009/prometheus";
         }
       ];
     };
