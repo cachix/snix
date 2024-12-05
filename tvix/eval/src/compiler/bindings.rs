@@ -716,7 +716,7 @@ impl Compiler<'_, '_> {
         match self.scope_mut().resolve_local(ident) {
             LocalPosition::Unknown => {
                 // Are we possibly dealing with an upvalue?
-                if let Some(idx) = self.resolve_upvalue(self.contexts.len() - 1, ident) {
+                if let Some(idx) = self.resolve_upvalue_for_use(self.contexts.len() - 1, ident) {
                     self.push_op(Op::GetUpvalue, node);
                     self.push_uvarint(idx.0 as u64);
                     return;
@@ -751,6 +751,8 @@ impl Compiler<'_, '_> {
             }
 
             LocalPosition::Known(idx) => {
+                self.scope_mut().mark_used(idx);
+
                 let stack_idx = self.scope().stack_index(idx);
                 self.push_op(Op::GetLocal, node);
                 self.push_uvarint(stack_idx.0 as u64);
@@ -758,12 +760,15 @@ impl Compiler<'_, '_> {
 
             // This identifier is referring to a value from the same scope which
             // is not yet defined. This identifier access must be thunked.
-            LocalPosition::Recursive(idx) => self.thunk(slot, node, move |compiler, _| {
-                let upvalue_idx =
-                    compiler.add_upvalue(compiler.contexts.len() - 1, UpvalueKind::Local(idx));
-                compiler.push_op(Op::GetUpvalue, node);
-                compiler.push_uvarint(upvalue_idx.0 as u64);
-            }),
+            LocalPosition::Recursive(idx) => {
+                self.scope_mut().mark_used(idx);
+                self.thunk(slot, node, move |compiler, _| {
+                    let upvalue_idx =
+                        compiler.add_upvalue(compiler.contexts.len() - 1, UpvalueKind::Local(idx));
+                    compiler.push_op(Op::GetUpvalue, node);
+                    compiler.push_uvarint(upvalue_idx.0 as u64);
+                })
+            }
         };
     }
 
@@ -775,7 +780,8 @@ impl Compiler<'_, '_> {
 
 /// Private compiler helpers related to bindings.
 impl Compiler<'_, '_> {
-    fn resolve_upvalue(&mut self, ctx_idx: usize, name: &str) -> Option<UpvalueIdx> {
+    // ATTN: Also marks local backing the upvalue as used if any
+    fn resolve_upvalue_for_use(&mut self, ctx_idx: usize, name: &str) -> Option<UpvalueIdx> {
         if ctx_idx == 0 {
             // There can not be any upvalue at the outermost context.
             return None;
@@ -788,7 +794,8 @@ impl Compiler<'_, '_> {
             // stack (i.e. in the right position) *during* their runtime
             // construction
             LocalPosition::Known(idx) | LocalPosition::Recursive(idx) => {
-                return Some(self.add_upvalue(ctx_idx, UpvalueKind::Local(idx)))
+                self.contexts[ctx_idx - 1].scope.mark_used(idx);
+                return Some(self.add_upvalue(ctx_idx, UpvalueKind::Local(idx)));
             }
 
             LocalPosition::Unknown => { /* continue below */ }
@@ -796,7 +803,7 @@ impl Compiler<'_, '_> {
 
         // If the upvalue comes from even further up, we need to recurse to make
         // sure that the upvalues are created at each level.
-        if let Some(idx) = self.resolve_upvalue(ctx_idx - 1, name) {
+        if let Some(idx) = self.resolve_upvalue_for_use(ctx_idx - 1, name) {
             return Some(self.add_upvalue(ctx_idx, UpvalueKind::Upvalue(idx)));
         }
 

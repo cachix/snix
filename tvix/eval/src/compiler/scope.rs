@@ -211,15 +211,10 @@ impl Scope {
     }
 
     /// Resolve the stack index of a statically known local.
-    pub fn resolve_local(&mut self, name: &str) -> LocalPosition {
+    pub fn resolve_local(&self, name: &str) -> LocalPosition {
         if let Some(by_name) = self.by_name.get(name) {
             let idx = by_name.index();
-            let local = self
-                .locals
-                .get_mut(idx.0)
-                .expect("invalid compiler state: indexed local missing");
-
-            local.used = true;
+            let local = &self.locals[idx.0];
 
             // This local is still being initialised, meaning that
             // we know its final runtime stack position, but it is
@@ -307,6 +302,10 @@ impl Scope {
     /// Mark local as initialised after compiling its expression.
     pub fn mark_initialised(&mut self, idx: LocalIdx) {
         self.locals[idx.0].initialised = true;
+    }
+
+    pub fn mark_used(&mut self, idx: LocalIdx) {
+        self.locals[idx.0].used = true;
     }
 
     /// Mark local as needing a finaliser.
