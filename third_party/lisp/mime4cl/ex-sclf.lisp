@@ -63,8 +63,6 @@
    #:save-file-excursion
    #:read-file
 
-   #:file-size
-
    #:promise
    #:make-promise
    #:lazy
@@ -266,16 +264,6 @@ ELEMENT-TYPE."
           (read-sequence seq in)
           seq)
         default)))
-
-;; FILES
-
-;; FILE-LENGTH is a bit idiosyncratic in this respect.  Besides, Unix
-;; allows to get to know the file size without being able to open a
-;; file; just ask politely.
-(defun file-size (pathname)
-  #+sbcl (sb-posix:stat-size (sb-posix:stat pathname))
-  #+ccl (ccl:file-data-size pathname)
-  #-(or sbcl ccl) (error "nyi"))
 
 ;; LAZY
 

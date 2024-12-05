@@ -44,11 +44,9 @@
            #:mime-application
            #:mime-video
            #:mime-description
-           #:mime-part-size
            #:mime-subtype
            #:mime-body
            #:mime-body-stream
-           #:mime-body-length
            #:mime-parts
            #:mime-part-p
            #:mime-type

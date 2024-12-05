@@ -204,24 +204,6 @@ because they are stored in dedicated slots in MIME-PART.")
 (defun mime-body-stream (mime-part)
   (make-input-adapter (mime-body mime-part)))
 
-(defun mime-body-length (mime-part)
-  (let ((body (mime-body mime-part)))
-    ;; here the stream type is missing on purpose, because we may not
-    ;; be able to size the length of a stream
-    (etypecase body
-      (string
-       (length body))
-      (vector
-       (length body))
-      (pathname
-       (file-size body))
-      (file-portion
-       (with-open-stream (in (open-decoded-file-portion body))
-         (loop
-            for byte = (read-byte in nil)
-            while byte
-            count byte))))))
-
 (defmacro with-input-from-mime-body-stream ((stream part) &body forms)
   `(with-open-stream (,stream (mime-body-stream ,part))
      ,@forms))
@@ -385,10 +367,6 @@ that may change this.")
     (:application mime-application)
     (:multipart mime-multipart)
     (:message mime-message)))
-
-(defgeneric mime-part-size (part)
-  (:documentation
-   "Return the size in bytes of the body of a MIME part."))
 
 (defgeneric print-mime-part (part stream)
   (:documentation
@@ -847,31 +825,6 @@ returns a MIME-MESSAGE object."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; fall back method
-(defmethod mime-part-size ((part mime-part))
-  (let ((body (mime-body part)))
-    (typecase body
-      (pathname
-       (file-size body))
-      (string
-       (length body))
-      (vector
-       (length body))
-      (t nil))))
-
-(defmethod mime-part-size ((part mime-multipart))
-  (loop
-     for p in (mime-parts part)
-     for size = (mime-part-size p)
-     unless size
-     return nil
-     sum size))
-
-(defmethod mime-part-size ((part mime-message))
-  (mime-part-size (mime-body part)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (defmethod print-mime-part ((part mime-multipart) (out stream))
   (case (mime-subtype part)
     (:alternative
@@ -916,8 +869,8 @@ returns a MIME-MESSAGE object."
     (print-mime-part (mime-body part) out)))
 
 (defmethod print-mime-part ((part mime-part) (out stream))
-  (format out "~&[ ~A subtype=~A ~@[description=~S ~]~@[size=~A~] ]~%"
-          (type-of part) (mime-subtype part) (mime-description part) (mime-part-size part)))
+  (format out "~&[ ~A subtype=~A ~@[description=~S ~]]~%"
+          (type-of part) (mime-subtype part) (mime-description part)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

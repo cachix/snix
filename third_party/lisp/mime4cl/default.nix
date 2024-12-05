@@ -42,9 +42,4 @@ depot.nix.buildLisp.library {
 
     expression = "(rtest:do-tests)";
   };
-
-  # limited by sclf
-  brokenOn = [
-    "ecl"
-  ];
 }
