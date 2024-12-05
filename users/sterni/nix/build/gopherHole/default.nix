@@ -6,9 +6,7 @@ let
     writeText
     ;
 
-  inherit (depot.users.sterni.nix.build)
-    buildGopherHole
-    ;
+  buildGopherHole = depot.users.sterni.nix.build.gopherHole;
 
   fileTypes = {
     # RFC1436
