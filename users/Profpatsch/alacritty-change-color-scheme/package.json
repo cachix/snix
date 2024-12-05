@@ -1,0 +1,15 @@
+{
+  "name": "alacritty-change-color-scheme",
+  "version": "1.0.0",
+  "main": "alacritty-change-color-scheme.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": "alacritty-change-color-scheme.js",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dbus-native": "^0.4.0"
+  }
+}

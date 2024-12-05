@@ -186,7 +186,7 @@ let
           ([
             {
               name = "bin/terminal-emulator";
-              path = depot.users.Profpatsch.alacritty;
+              path = depot.users.Profpatsch.alacritty.alacritty;
             }
           ]);
 
