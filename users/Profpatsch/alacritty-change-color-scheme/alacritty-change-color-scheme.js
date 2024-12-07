@@ -3,6 +3,9 @@ const dbus = require('dbus-native');
 const fs = require('fs');
 const assert = require('assert');
 
+// NB: this code is like 80% copilot generated, and seriously missing error handling.
+// It might break at any time, but for now it seems to work lol.
+
 const programName = process.argv[1];
 let themeDir = process.argv[2];
 // read the dark alacritty theme file as first argument
@@ -74,8 +77,10 @@ function getColorScheme() {
   });
 }
 
-// Define the callback function
-function onColorSchemeChanged(cs) {
+/** write respective alacritty config if the colorscheme changes.
+ * Colorscheme changes are only tracked in-between calls to this function in-memory.
+ */
+function writeAlacrittyColorConfigIfDifferent(cs) {
   // only change the color scheme if it's different from the previous one
   let previous = null;
   if (previous === cs) {
@@ -88,6 +93,7 @@ function onColorSchemeChanged(cs) {
   writeAlacrittyColorConfig(cs, cs === 'prefer-dark' ? darkTheme : lightTheme);
 }
 
+/** Listen on the freedesktop SettingChanged dbus interface for the color-scheme setting to change. */
 function listenForColorschemeChange() {
   return new Promise((resolve, reject) => {
     bus
@@ -106,7 +112,7 @@ function listenForColorschemeChange() {
               interfaceName === 'org.gnome.desktop.interface' &&
               key == 'color-scheme'
             ) {
-              onColorSchemeChanged(newValue);
+              writeAlacrittyColorConfigIfDifferent(newValue);
             }
           });
 
@@ -116,16 +122,55 @@ function listenForColorschemeChange() {
   });
 }
 
+/** Create a dbus service that binds against the interface de.profpatsch.alacritty.ColorScheme and implements the method SetColorScheme */
+function exportColorSchemeDbusInterface() {
+  console.log('Exporting color scheme interface de.profpatsch.alacritty.ColorScheme');
+  const ifaceName = 'de.profpatsch.alacritty.ColorScheme';
+  const iface = {
+    name: 'de.profpatsch.alacritty.ColorScheme',
+    methods: {
+      SetColorScheme: ['s', ''],
+    },
+  };
+
+  const ifaceImpl = {
+    SetColorScheme: function (cs) {
+      console.log(`SetColorScheme called with ${cs}`);
+      writeAlacrittyColorConfigIfDifferent(cs);
+    },
+  };
+
+  try {
+    bus.requestName(ifaceName, 0, (err, retCode) => {
+      if (err) {
+        console.error(
+          'Error requesting name for interface de.profpatsch.alacritty.ColorScheme',
+        );
+        console.error(err);
+      }
+      console.log(
+        `Request name returned ${retCode} for interface de.profpatsch.alacritty.ColorScheme`,
+      );
+    });
+    bus.exportInterface(ifaceImpl, '/de/profpatsch/alacritty/ColorScheme', iface);
+    console.log('Exported interface de.profpatsch.alacritty.ColorScheme');
+  } catch (err) {
+    console.log('Error exporting interface de.profpatsch.alacritty.ColorScheme');
+    console.error(err);
+  }
+}
+
 async function main() {
+  // TODO: proper error handling, through proper callback promises for dbus function.
+
+  exportColorSchemeDbusInterface();
+
   // get the current color scheme
   const currentColorScheme = await getColorScheme();
   console.log(`Current color scheme: ${currentColorScheme}`);
 
   // write the color scheme
-  writeAlacrittyColorConfig(
-    currentColorScheme,
-    currentColorScheme === 'prefer-dark' ? darkTheme : lightTheme,
-  );
+  writeAlacrittyColorConfig(currentColorScheme);
 
   // listen for color scheme changes
   await listenForColorschemeChange();
