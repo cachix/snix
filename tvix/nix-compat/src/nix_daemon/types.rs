@@ -237,7 +237,7 @@ pub struct UnkeyedValidPathInfo {
     pub ca: Option<CAHash>,
 }
 
-/// Request tupe for [super::worker_protocol::Operation::QueryValidPaths]
+/// Request tuple for [super::worker_protocol::Operation::QueryValidPaths]
 #[derive(NixDeserialize)]
 pub struct QueryValidPaths {
     // Paths to query
