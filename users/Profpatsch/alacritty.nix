@@ -1,7 +1,8 @@
 { depot, pkgs, lib, ... }:
 
 let
-  bins = depot.nix.getBins pkgs.alacritty [ "alacritty" ];
+  bins = depot.nix.getBins pkgs.alacritty [ "alacritty" ]
+    // depot.nix.getBins pkgs.coreutils [ "mkdir" "cp" "install" ];
 
   # https://github.com/alacritty/alacritty-theme
   themes = {
@@ -37,14 +38,51 @@ let
     ]
   );
 
-  alacritty-themes = pkgs.fetchFromGitHub {
+  alacritty-themes-upstream = pkgs.fetchFromGitHub {
     owner = "alacritty";
     repo = "alacritty-theme";
     rev = "95a7d695605863ede5b7430eb80d9e80f5f504bc";
     sha256 = "sha256-D37MQtNS20ESny5UhW1u6ELo9czP4l+q0S8neH7Wdbc=";
   };
 
+  alacritty-themes-modes-ef = pkgs.fetchFromGitHub {
+    owner = "anhsirk0";
+    repo = "alacritty-themes";
+    rev = "5a2c194a682ec75d46553f9a9d6c43fbf39c689d";
+    sha256 = "sha256-x5QrtSXNc05DNexM+ZtRzd8T9FdthZUzjW/2uEBdRCk=";
+  };
 
+  alacritty-themes = depot.nix.runExecline "alacritty-themes-merged" { } [
+    "importas"
+    "out"
+    "out"
+    "if"
+    [ bins.mkdir "-p" "$\{out}/themes" ]
+    "if"
+    [
+      "elglob"
+      "-0"
+      "themes"
+      "${alacritty-themes-upstream}/themes/*"
+      bins.install
+      "-m644"
+      "-t"
+      "\${out}/themes"
+      "$themes"
+    ]
+    "if"
+    [
+      "elglob"
+      "-0"
+      "themes"
+      "${alacritty-themes-modes-ef}/themes/*"
+      bins.install
+      "-m644"
+      "-t"
+      "\${out}/themes"
+      "$themes"
+    ]
+  ];
 in
 {
   inherit

@@ -449,6 +449,7 @@ async function exportColorSchemeDbusInterface() {
       }
       const themePath = await getThemePath(theme);
       if (themePath === null) {
+        console.warn(`Theme ${theme} not found`);
         return;
       }
       if (cs === 'dark') {
