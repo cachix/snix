@@ -3,12 +3,26 @@
 (require 'use-package)
 (package-initialize)
 
-;; Set default font and fallback font via set-fontset-font
-(let ((mono-font "Bitstream Vera Sans Mono-12")
-      (emoji-font "Noto Color Emoji-12"))
-  (setq default-frame-alist `((font . ,mono-font)))
-  (set-frame-font mono-font t t)
-  (set-fontset-font t nil emoji-font))
+;; By default, Emacs only uses the default font for ASCII and then falls back to
+;; fontset-default which uses random fonts (the documentation describes this
+;; accurately). Emacs would be better off if it used the fallback order defined
+;; by fontconfig instead of implementing its own scheme for this…
+;; In any case, I've found that after setting the default font via methods like
+;; (add-to-list 'default-frame-alist …), (set-face-attribute 'default …) etc.
+;; it is impossible to change the fontset this font becomes part of (for ascii).
+;; Specifically, the following snippet from the Emacs manual just does not seem
+;; to work (https://www.gnu.org/software/emacs/manual/html_node/emacs/Modifying-Fontsets.html):
+;;
+;;     (set-fontset-font "fontset-startup" nil "DejaVu Sans Mono"
+;;                       nil 'append)
+;;
+;; This may very well be my ignorace, but I've found that just setting the ascii
+;; and unicode charsets of fontset-startup to a generic Monospace-11 (remember
+;; if we use set-face-attribute to change the font height, everything breaks!)
+;; works fine.
+(let ((font "Monospace-11"))
+  (set-fontset-font "fontset-startup" 'ascii font)
+  (set-fontset-font "fontset-startup" 'unicode font))
 
 (setq inhibit-startup-message t
       display-time-24hr-format t
