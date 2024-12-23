@@ -160,25 +160,4 @@ depot.nix.readTree.drvTargets {
   #
   # temporarily restore the old name to make things work again.
   utillinux = self.util-linux;
-
-  # Override niri to a version with interactive move until a new release is cut upstream.
-  niri =
-    let
-      src = self.fetchFromGitHub {
-        owner = "yalter";
-        repo = "niri";
-        rev = "0866990b7d706cdb3af2e9f0008bb9e7281a0e26";
-        hash = "sha256:088yb86pryrcklwggx072dhswhjvx9ylkzdhrfkpfc56a85mp6vk";
-      };
-    in
-    super.niri.overrideAttrs (old: {
-      inherit src;
-      cargoDeps = self.rustPlatform.importCargoLock {
-        lockFile = "${src}/Cargo.lock";
-        outputHashes = {
-          "smithay-0.3.0" = "sha256:10ihl9hvvi8aw30qv8ihv888ngr7wf7p9nwabf2jvhlc9443jq35";
-          "libspa-0.8.0" = "sha256:1n8ngihd75i3vgbfnfhpj8mi6shlrhbhvwfyms14m03613jp37lj";
-        };
-      };
-    });
 }
