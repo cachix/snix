@@ -201,8 +201,25 @@ because they are stored in dedicated slots in MIME-PART.")
                :test #'string=)
        (mime= (mime-body part1) (mime-body part2))))
 
-(defun mime-body-stream (mime-part)
-  (make-input-adapter (mime-body mime-part)))
+(defgeneric mime-body-stream (mime-part)
+  (:documentation
+   "Returns stream that allows reading the decoded body of the given part.
+STREAM-ELEMENT-TYPE depends on part type."))
+
+;; TODO(sterni): Allow accessing underlying binary stream?
+;;               Would need matching behavior with :7bit
+(defmethod mime-body-stream ((part mime-text))
+  (let ((underlying-stream (call-next-method)))
+    (if (eq (stream-element-type underlying-stream) 'character)
+        underlying-stream
+        (make-flexi-stream underlying-stream
+                           :external-format
+                           ;; TODO(sterni): sanitize charset before interning
+                           (intern (string-upcase (mime-text-charset part))
+                                   'keyword)))))
+
+(defmethod mime-body-stream ((part mime-part))
+  (make-input-adapter (mime-body part)))
 
 (defmacro with-input-from-mime-body-stream ((stream part) &body forms)
   `(with-open-stream (,stream (mime-body-stream ,part))

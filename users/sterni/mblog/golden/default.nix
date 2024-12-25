@@ -6,8 +6,11 @@ let
   maildir = pkgs.runCommandNoCC "mblog-golden-example-maildir" { } ''
     mkdir -p "$out/cur"
     cp --reflink=auto \
-      "${depot.path.origSrc + "/third_party/lisp/mime4cl/test/samples/mail-note.msg"}" \
+      "${depot.path.origSrc + "/third_party/lisp/mime4cl/test/samples/mail-note-from-notes-app.msg"}" \
       "$out/cur/1732277542.274467_1.wolfgang,U=1:2,S"
+    cp --reflink=auto \
+      "${depot.path.origSrc + "/third_party/lisp/mime4cl/test/samples/mail-note-from-notemap.msg"}" \
+      "$out/cur/1735167350.823243_1.wolfgang,U=32:2,S"
   '';
 
   # Make golden test based on the given mblog derivation and add subtarget

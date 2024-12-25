@@ -656,6 +656,7 @@ sequence, a charset string indicating the original coding."
              (cons (flexi-streams:octets-to-string
                     (car part)
                     :external-format (flexi-streams:make-external-format
+                                      ;; TODO(sterni): sanitize charset before interning
                                       (intern (string-upcase (cdr part)) 'keyword))))
              (string part))))
     (apply #'concatenate
