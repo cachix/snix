@@ -5,9 +5,7 @@ use nix_compat::{
     nix_http, nixbase32,
     store_path::StorePath,
 };
-use prost::Message;
 use tracing::{instrument, warn, Span};
-use tvix_castore::proto::{self as castorepb};
 use tvix_store::pathinfoservice::PathInfo;
 
 use crate::AppState;
@@ -61,20 +59,9 @@ pub async fn get(
         })?
         .ok_or(StatusCode::NOT_FOUND)?;
 
-    let url = format!(
-        "nar/tvix-castore/{}?narsize={}",
-        data_encoding::BASE64URL_NOPAD.encode(
-            &castorepb::Node::from_name_and_node("".into(), path_info.node.clone()).encode_to_vec()
-        ),
-        path_info.nar_size,
-    );
-
-    let mut narinfo = path_info.to_narinfo();
-    narinfo.url = &url;
-
     Ok((
         [("content-type", nix_http::MIME_TYPE_NARINFO)],
-        narinfo.to_string(),
+        gen_narinfo_str(&path_info),
     ))
 }
 
@@ -150,4 +137,21 @@ pub async fn put(
             Err(StatusCode::BAD_REQUEST)
         }
     }
+}
+
+/// Constructs a String in NARInfo format for the given [PathInfo].
+fn gen_narinfo_str(path_info: &PathInfo) -> String {
+    use prost::Message;
+
+    let mut narinfo = path_info.to_narinfo();
+    let url = format!(
+        "nar/tvix-castore/{}?narsize={}",
+        data_encoding::BASE64URL_NOPAD.encode(
+            &tvix_castore::proto::Node::from_name_and_node("".into(), path_info.node.to_owned())
+                .encode_to_vec()
+        ),
+        path_info.nar_size,
+    );
+    narinfo.url = &url;
+    narinfo.to_string()
 }
