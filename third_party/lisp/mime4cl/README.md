@@ -9,8 +9,11 @@ website](http://wcp.sdf-eu.org/software/#mime4cl) can still be accessed.
 The depot version has since diverged from upstream. Main aims were to improve
 performance and reduce code size by relying on third party libraries like
 flexi-streams. It is planned to improve encoding handling in the long term.
-Currently, the library is being worked on intermittently and not very well
-tested—**it may not work as expected**.
+Work towards this happens intermittently.
+
+WARNING:
+mime4cl currently doesn't have a _comprehensive_ test suite
+and decidedly lacks performance.
 
 ## Differences from the original version
 
