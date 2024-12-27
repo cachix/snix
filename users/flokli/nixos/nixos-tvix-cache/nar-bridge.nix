@@ -118,12 +118,12 @@
     unitConfig = {
       # Keep most data on the SSD which is at /var/lib/nar-bridge, but bind-mount the blobs in
       RequiresMountsFor = "/tank";
-      BindPaths = [
-        "/tank/nar-bridge/blobs.object_store:/var/lib/nar-bridge/blobs.object_store"
-      ];
     };
 
     # twice the normal allowed limit, same as nix-daemon
     serviceConfig.LimitNOFILE = "1048576";
+    serviceConfig.BindPaths = [
+      "/tank/nar-bridge/blobs.object_store:/var/lib/nar-bridge/blobs.object_store"
+    ];
   };
 }
