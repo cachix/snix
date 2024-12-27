@@ -67,7 +67,7 @@
       blobservices = {
         root = {
           type = "objectstore";
-          object_store_url = "file:///var/lib/nar-bridge/blobs.object_store";
+          object_store_url = "file:///tank/nar-bridge/blobs.object_store";
           object_store_options = { };
         };
       };
@@ -122,8 +122,5 @@
 
     # twice the normal allowed limit, same as nix-daemon
     serviceConfig.LimitNOFILE = "1048576";
-    serviceConfig.BindPaths = [
-      "/tank/nar-bridge/blobs.object_store:/var/lib/nar-bridge/blobs.object_store"
-    ];
   };
 }
