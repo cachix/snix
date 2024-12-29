@@ -31,7 +31,7 @@
 pkgs.mkShell {
   name = "tvix-rust-dev-env";
   packages = [
-    pkgs.buf-language-server
+    pkgs.buf
     pkgs.cargo
     pkgs.cargo-machete
     pkgs.cargo-expand
