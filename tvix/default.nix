@@ -18,8 +18,6 @@ let
         (k:
           (lib.nameValuePair "${crates.internal.crates.${k}.crateName}-${crates.internal.crates.${k}.version}" crates.internal.crates.${k}.src.outputHash)
         ) [
-        "reqwest-middleware"
-        "reqwest-tracing"
         "wu-manber"
       ]);
   };

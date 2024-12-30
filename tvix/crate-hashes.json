@@ -1,5 +1,3 @@
 {
-  "git+https://github.com/TrueLayer/reqwest-middleware?rev=8a494c165734e24c62823714843e1c9347027e8a#0.4.0": "10gaxsvqld8dfwnm0nk93sqbbd2mjl7zfdf6vglp6waka7h87mba",
-  "git+https://github.com/TrueLayer/reqwest-middleware?rev=8a494c165734e24c62823714843e1c9347027e8a#reqwest-tracing@0.5.4": "10gaxsvqld8dfwnm0nk93sqbbd2mjl7zfdf6vglp6waka7h87mba",
   "git+https://github.com/tvlfyi/wu-manber.git#wu-manber@0.1.0": "1zhk83lbq99xzyjwphv2qrb8f8qgfqwa5bbbvyzm0z0bljsjv0pd"
 }

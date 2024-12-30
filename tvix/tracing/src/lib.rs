@@ -296,9 +296,7 @@ fn gen_tracer_provider(
 
     let tracer_provider = TracerProvider::builder()
         .with_batch_exporter(exporter, runtime::Tokio)
-        .with_config(
-            opentelemetry_sdk::trace::Config::default().with_resource(gen_resources(service_name)),
-        )
+        .with_resource(gen_resources(service_name))
         .build();
 
     // Unclear how to configure this
