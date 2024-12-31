@@ -134,3 +134,8 @@ binds {
 
     Mod+Shift+E { quit; }
 }
+
+// tverskoy screen fix
+output "AU Optronics 0x5A2D Unknown" {
+    scale 1.0
+}
