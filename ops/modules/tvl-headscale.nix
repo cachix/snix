@@ -14,6 +14,12 @@
 #   tailscale up --login-server https://net.tvl.fyi --accept-dns=false
 { config, pkgs, ... }:
 
+let
+  acl = with builtins; toFile "headscale-acl.json" (toJSON {
+    groups."group:builders" = [ "tvl" "tvl-builders" ];
+    tagOwners."tag:builders" = [ "group:builders" ];
+  });
+in
 {
   # TODO(tazjin): run embedded DERP server
   services.headscale = {
@@ -23,6 +29,7 @@
     settings = {
       server_url = "https://net.tvl.fyi";
       dns.magic_dns = false;
+      policy.path = acl;
 
       # TLS is handled by nginx
       tls_cert_path = null;
