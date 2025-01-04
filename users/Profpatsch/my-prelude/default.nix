@@ -8,6 +8,7 @@ pkgs.haskellPackages.mkDerivation {
     ./my-prelude.cabal
     ./src/Aeson.hs
     ./src/Comparison.hs
+    ./src/Debug.hs
     ./src/Json.hs
     ./src/Json/Enc.hs
     ./src/Arg.hs

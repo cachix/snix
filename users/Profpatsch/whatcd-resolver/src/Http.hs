@@ -19,6 +19,7 @@ module Http
 where
 
 import AppT
+import Data.Aeson qualified as Json
 import Data.Aeson.BetterErrors qualified as Json
 import Data.CaseInsensitive (CI (original))
 import Data.Char qualified as Char
@@ -93,12 +94,18 @@ httpJson opts parser req = inSpan' "HTTP Request (JSON)" $ \span -> do
                 Left [fmt|Server returned a body with unspecified content type|]
             | code <- statusCode -> Left $ AppExceptionPretty [[fmt|Server returned an non-200 error code, code {code}:|], pretty resp]
       )
-    >>= assertM
-      span
-      ( \body ->
-          Json.parseStrict parser body
-            & first (AppExceptionTree . Json.parseErrorTree "could not parse HTTP response")
-      )
+    >>= \body -> do
+      val <-
+        Json.eitherDecodeStrict body
+          & first (\err -> AppExceptionTree $ nestedError "HTTP response was not valid JSON" (err & stringToText & newError & singleError))
+          & orAppThrow span
+
+      let res = Json.parseValue parser val
+      case res of
+        Left e -> do
+          let prettyErr = Json.parseErrorTreeValCtx "could not parse HTTP response" val e
+          appThrow span (AppExceptionTree prettyErr)
+        Right a -> pure a
 
 doRequestJson ::
   (MonadOtel m) =>

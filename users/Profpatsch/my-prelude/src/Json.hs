@@ -6,6 +6,8 @@ module Json where
 import Data.Aeson (FromJSON (parseJSON), ToJSON (toEncoding, toJSON), Value (..), withObject)
 import Data.Aeson qualified as Json
 import Data.Aeson.BetterErrors qualified as Json
+import Data.Aeson.Key qualified as Key
+import Data.Aeson.KeyMap qualified as KeyMap
 import Data.Aeson.Types qualified
 import Data.Error.Tree
 import Data.Map.Strict qualified as Map
@@ -18,7 +20,8 @@ import Data.Vector qualified as Vector
 import FieldParser (FieldParser)
 import FieldParser qualified as Field
 import Label
-import PossehlAnalyticsPrelude
+import MyPrelude
+import Pretty
 
 -- | Use a "Data.Aeson.BetterErrors" parser to implement 'FromJSON'’s 'parseJSON' method.
 --
@@ -67,6 +70,51 @@ parseErrorTree contextMsg errs =
     -- @
     & singleError
     & nestedError contextMsg
+
+-- | Convert a 'Json.ParseError' to a corresponding 'ErrorTree'
+--
+-- This version shows some of the value at the path where the error occurred.
+parseErrorTreeValCtx :: Error -> Json.Value -> Json.ParseError ErrorTree -> ErrorTree
+parseErrorTreeValCtx contextMsg origValue errs = do
+  let ctxPath = case errs of
+        Json.BadSchema path _spec -> Just path
+        _ -> Nothing
+  let getSubset (Json.Object o) (Json.ObjectKey k) = o & KeyMap.lookup (Key.fromText k)
+      getSubset (Json.Array a) (Json.ArrayIndex k) = a Vector.!? k
+      getSubset _ _ = Nothing
+  let go v = \case
+        IsEmpty -> v
+        IsNonEmpty (p :| path) -> case getSubset v p of
+          Nothing -> v
+          Just v' -> go v' path
+
+  ( ( errs
+        & Json.displayError prettyErrorTree
+        & Text.intercalate "\n"
+        & newError
+    )
+      :| ( maybe
+             []
+             ( \ctx ->
+                 [ go origValue ctx
+                     & Pretty.showPrettyJson
+                     & newError
+                 ]
+             )
+             ctxPath
+         )
+    )
+    -- We nest this here because the json errors is multiline, so the result looks like
+    --
+    -- @
+    -- contextMsg
+    -- \|
+    -- `- At the path: ["foo"]["bar"]
+    --   Type mismatch:
+    --   Expected a value of type object
+    --   Got: true
+    -- @
+    & errorTree contextMsg
 
 -- | Lift the parser error to an error tree
 asErrorTree :: (Functor m) => Json.ParseT Error m a -> Json.ParseT ErrorTree m a
