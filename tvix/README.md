@@ -16,14 +16,18 @@ For more information about Tvix, feel free to reach out. We are interested in
 people who would like to help us review designs, brainstorm and describe
 requirements that we may not yet have considered.
 
-Most of the discussion around development happens in our dedicated IRC channel,
-[`#tvix-dev`][tvix-dev-irc] on [hackint][],
-which is also reachable [via XMPP][hackint-xmpp]
-at [`#tvix-dev@irc.hackint.org`][tvix-dev-xmpp] (sic!)
-and [via Matrix][hackint-matrix] at [`#tvix-dev:hackint.org`][tvix-dev-matrix].
+Development discussion is focused around two IRC channels, which are also
+available [via XMPP][hackint-xmpp] and [via Matrix][hackint-matrix].
 
-There's also the IRC channel of the [wider TVL community][tvl-getting-in-touch],
-less on-topic, or our [mailing list][].
+1. TVL runs the [`#tvl` channel][tvl-getting-in-touch] on [hackint][].
+   Tvix-related discussion in this channel is focused on eval, and on (almost)
+   1:1 replacements of C++ Nix with Rust components.
+
+2. The separate [`#tvix-dev`][tvix-dev-irc] channel ([on
+   Matrix][tvix-dev-matrix]) focuses on the content-addressed store model,
+   innovating on the plain files approach used in C++ Nix.
+
+There is also a low-traffic [mailing list][] with occasional design discussions.
 
 Contributions to Tvix follow the TVL [review flow][review-docs] and
 [contribution guidelines][contributing].
@@ -50,7 +54,7 @@ should be considered stable in any way.
 
 WARNING: Any other instances of this project or repository are
 [`josh`-mirrors][josh]. We do not accept code contributions or issues outside of
-the tooling and communication methods outlined above.
+the methods outlined above.
 
 [josh]: https://github.com/josh-project/josh
 
