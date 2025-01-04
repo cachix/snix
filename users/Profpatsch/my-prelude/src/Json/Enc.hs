@@ -127,6 +127,12 @@ nullOr inner = \case
 list :: (a -> Enc) -> [a] -> Enc
 list f = Enc . AesonEnc.list (\a -> (f a).unEnc)
 
+tuple2 :: (a -> Enc) -> (b -> Enc) -> (a, b) -> Enc
+tuple2 f g (a, b) = list id [f a, g b]
+
+tuple3 :: (a -> Enc) -> (b -> Enc) -> (c -> Enc) -> (a, b, c) -> Enc
+tuple3 f g h (a, b, c) = list id [f a, g b, h c]
+
 -- | Encode a 'NonEmpty' as a json list.
 nonEmpty :: (a -> Enc) -> NonEmpty a -> Enc
 nonEmpty f = list f . toList

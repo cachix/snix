@@ -14,14 +14,16 @@ import Data.Text qualified as Text
 import Database.PostgreSQL.Simple qualified as Postgres
 import FieldParser (FieldParser)
 import FieldParser qualified as Field
+import GHC.Records (getField)
 import GHC.Stack qualified
+import GHC.TypeLits
 import Json.Enc
 import Json.Enc qualified as Enc
 import Label
+import MyPrelude
 import OpenTelemetry.Trace qualified as Otel hiding (getTracer, inSpan, inSpan')
 import OpenTelemetry.Trace.Core qualified as Otel hiding (inSpan, inSpan')
 import OpenTelemetry.Trace.Monad qualified as Otel
-import PossehlAnalyticsPrelude
 import Postgres.MonadPostgres
 import Pretty qualified
 import System.IO qualified as IO
@@ -205,3 +207,55 @@ runPGTransaction (Transaction transaction) = do
   withRunInIO $ \unliftIO ->
     withPGTransaction pool $ \conn -> do
       unliftIO $ runReaderT transaction conn
+
+toOtelJsonAttr :: (ToOtelJsonAttr a) => a -> Otel.Attribute
+toOtelJsonAttr = toOtelJsonAttrImpl >>> Enc.encToTextPretty >>> Otel.toAttribute
+
+-- | Best effort to convert a value to a JSON string that can be put in an Otel attribute.
+class ToOtelJsonAttr a where
+  toOtelJsonAttrImpl :: a -> Enc
+
+-- | Bytes are leniently converted to Text, because they are often used as UTF-8 encoded strings.
+instance ToOtelJsonAttr ByteString where
+  toOtelJsonAttrImpl = Enc.text . bytesToTextUtf8Lenient
+
+instance ToOtelJsonAttr Text where
+  toOtelJsonAttrImpl = Enc.text
+
+instance ToOtelJsonAttr Int where
+  toOtelJsonAttrImpl = Enc.int
+
+instance ToOtelJsonAttr Natural where
+  toOtelJsonAttrImpl = Enc.natural
+
+instance ToOtelJsonAttr Bool where
+  toOtelJsonAttrImpl = Enc.bool
+
+instance (ToOtelJsonAttr a) => ToOtelJsonAttr (Maybe a) where
+  toOtelJsonAttrImpl = \case
+    Nothing -> Enc.null
+    Just a -> toOtelJsonAttrImpl a
+
+instance (ToOtelJsonAttr a) => ToOtelJsonAttr [a] where
+  toOtelJsonAttrImpl = Enc.list toOtelJsonAttrImpl
+
+instance (ToOtelJsonAttr t1, ToOtelJsonAttr t2, KnownSymbol l1, KnownSymbol l2) => ToOtelJsonAttr (T2 l1 t1 l2 t2) where
+  toOtelJsonAttrImpl (T2 a b) =
+    Enc.object
+      [ (symbolText @l1, a & getField @l1 & toOtelJsonAttrImpl),
+        (symbolText @l2, b & getField @l2 & toOtelJsonAttrImpl)
+      ]
+
+instance (ToOtelJsonAttr t1, ToOtelJsonAttr t2, ToOtelJsonAttr t3, KnownSymbol l1, KnownSymbol l2, KnownSymbol l3) => ToOtelJsonAttr (T3 l1 t1 l2 t2 l3 t3) where
+  toOtelJsonAttrImpl (T3 a b c) =
+    Enc.object
+      [ (symbolText @l1, a & getField @l1 & toOtelJsonAttrImpl),
+        (symbolText @l2, b & getField @l2 & toOtelJsonAttrImpl),
+        (symbolText @l3, c & getField @l3 & toOtelJsonAttrImpl)
+      ]
+
+instance (ToOtelJsonAttr t1, ToOtelJsonAttr t2) => ToOtelJsonAttr (t1, t2) where
+  toOtelJsonAttrImpl t = Enc.tuple2 toOtelJsonAttrImpl toOtelJsonAttrImpl t
+
+instance (ToOtelJsonAttr t1, ToOtelJsonAttr t2, ToOtelJsonAttr t3) => ToOtelJsonAttr (t1, t2, t3) where
+  toOtelJsonAttrImpl t = Enc.tuple3 toOtelJsonAttrImpl toOtelJsonAttrImpl toOtelJsonAttrImpl t

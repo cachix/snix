@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MagicHash #-}
@@ -161,6 +162,7 @@ module MyPrelude
     -- * Error handling
     HasCallStack,
     module Data.Error,
+    symbolText,
   )
 where
 
@@ -223,9 +225,9 @@ import Data.Word (Word8)
 import GHC.Exception (errorCallWithCallStackException)
 import GHC.Exts (Any, RuntimeRep, TYPE, raise#)
 import GHC.Generics (Generic)
-import GHC.Natural (Natural)
 import GHC.Records (HasField)
 import GHC.Stack (HasCallStack)
+import GHC.TypeLits
 import GHC.Utils.Encoding qualified as GHC
 import Language.Haskell.TH.Syntax (Lift)
 import PyF (fmt)
@@ -774,3 +776,9 @@ ifTrue pred' m = if pred' then m else mempty
 
 ifExists :: (Monoid (f b), Applicative f) => (a -> b) -> Maybe a -> f b
 ifExists f m = m & foldMap @Maybe (pure . f)
+
+-- | Get the text of a symbol via TypeApplications
+symbolText :: forall sym. (KnownSymbol sym) => Text
+symbolText = do
+  symbolVal (Proxy :: Proxy sym)
+    & stringToText

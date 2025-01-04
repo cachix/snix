@@ -40,8 +40,9 @@ redactedSearch ::
   Json.Parse ErrorTree a ->
   m a
 redactedSearch advanced parser =
-  inSpan "Redacted API Search" $
+  inSpan' "Redacted API Search" $ \span ->
     redactedApiRequestJson
+      span
       ( T2
           (label @"action" "browse")
           (label @"actionArgs" ((advanced <&> second Just)))
@@ -571,10 +572,11 @@ redactedApiRequestJson ::
     MonadOtel m,
     MonadRedacted m
   ) =>
+  Otel.Span ->
   p ->
   Json.Parse ErrorTree a ->
   m a
-redactedApiRequestJson dat parser =
-  do
-    mkRedactedApiRequest dat
+redactedApiRequestJson span dat parser = do
+  addAttribute span "redacted.request" (toOtelJsonAttr (T2 (getLabel @"action" dat) (getLabel @"actionArgs" dat)))
+  mkRedactedApiRequest dat
     >>= Http.httpJson defaults parser
