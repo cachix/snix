@@ -1,7 +1,0 @@
-*.ll
-*.o
-
-functions
-simple
-externs
-units

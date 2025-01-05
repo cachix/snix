@@ -1,2 +1,0 @@
-#!/usr/bin/env execlineb
-caddy run --config ./caddyfile

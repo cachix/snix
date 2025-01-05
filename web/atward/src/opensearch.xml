@@ -1,8 +1,0 @@
-<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
-  <ShortName>TVL</ShortName>
-  <Description>The Virus Lounge Search</Description>
-  <InputEncoding>UTF-8</InputEncoding>
-  <Url type="text/html" template="https://at.tvl.fyi/">
-    <Param name="q" value="{searchTerms}"/>
-  </Url>
-</OpenSearchDescription>

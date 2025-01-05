@@ -1,6 +1,0 @@
-#%rec:emFpPlugin%#
-
-FileTypes = { ".qoi" }
-Priority = 1.0
-Library = "PlQoi"
-Function = "PlQoiFpPluginFunc"

@@ -1,2 +1,0 @@
-This directory contains things I'm eventually planning on contributing upstream
-to nixpkgs

@@ -1,7 +1,0 @@
-# key: exec
-# name: op.get_bind.execute
-# --
-op.get_bind().execute(
-    """
-    `(progn (sqlup-mode) "")`$1
-    """)

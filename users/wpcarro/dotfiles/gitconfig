@@ -1,9 +1,0 @@
-[user]
-	name = "William Carroll"
-	email = "wpcarro@gmail.com"
-[diff]
-  external = difft
-[push]
-	default = current
-[rebase]
-	autoStash = true

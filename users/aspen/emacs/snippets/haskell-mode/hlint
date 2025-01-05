@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: hlint
-# uuid: hlint
-# expand-env: ((yas-indent-line 'fixed))
-# key: hlint
-# condition: t
-# --
-{-# ANN module ("Hlint: ignore $1" :: String) #- }

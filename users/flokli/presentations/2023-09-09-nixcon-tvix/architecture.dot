@@ -1,5 +1,0 @@
-digraph {
-    Builder
-    Store
-    Evaluator
-}

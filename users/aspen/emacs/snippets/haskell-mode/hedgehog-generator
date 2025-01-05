@@ -1,8 +1,0 @@
-# key: gen
-# name: Hedgehog Generator
-# expand-env: ((yas-indent-line (quote fixed)))
-# --
-gen${1:Foo} :: Gen $1
-gen$1 = do
-  $2
-  pure $1{..}

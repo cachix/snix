@@ -1,7 +1,0 @@
-PRAGMA foreign_keys = on;
-.read src/init.sql
-.mode csv
-.import data/accounts.csv Accounts
-.import data/trips.csv Trips
-.mode column
-.headers on

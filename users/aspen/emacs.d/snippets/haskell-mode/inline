@@ -1,5 +1,0 @@
-# key: inline
-# name: inline
-# expand-env: ((yas-indent-line 'fixed))
-# --
-{-# INLINE $1 #-}

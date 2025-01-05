@@ -1,6 +1,0 @@
-# key: desc
-# name: describe
-# --
-describe('$1', () => {
-  $2
-})

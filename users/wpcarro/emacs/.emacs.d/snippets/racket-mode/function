@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: Function
-# key: fn
-# --
-(define ($1) $2)

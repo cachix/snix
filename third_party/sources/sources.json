@@ -36,31 +36,6 @@
         "url": "https://github.com/hercules-ci/gitignore.nix/archive/637db329424fd7e46cf4185293b9cc8c88c95394.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "home-manager": {
-        "branch": "master",
-        "description": "Manage a user environment using Nix  [maintainer=@rycee] ",
-        "gcroot": true,
-        "homepage": "https://nix-community.github.io/home-manager/",
-        "owner": "nix-community",
-        "repo": "home-manager",
-        "rev": "cf47e7ea2182c5638fdd1b42de329cc7d185cf8b",
-        "sha256": "09igpxhchgfd7xjgr882wz2yssw67p8blf0v23pkys18k46l2f13",
-        "type": "tarball",
-        "url": "https://github.com/nix-community/home-manager/archive/cf47e7ea2182c5638fdd1b42de329cc7d185cf8b.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "impermanence": {
-        "branch": "master",
-        "description": "Modules to help you handle persistent state on systems with ephemeral root storage [maintainer=@talyz]",
-        "homepage": "",
-        "owner": "nix-community",
-        "repo": "impermanence",
-        "rev": "4b3e914cdf97a5b536a889e939fb2fd2b043a170",
-        "sha256": "04l16szln2x0ajq2x799krb53ykvc6vm44x86ppy1jg9fr82161c",
-        "type": "tarball",
-        "url": "https://github.com/nix-community/impermanence/archive/4b3e914cdf97a5b536a889e939fb2fd2b043a170.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "naersk": {
         "branch": "master",
         "description": "Build rust crates in Nix. No configuration, no code generation, no IFD. Sandbox friendly. [maintainer: @Patryk27]",

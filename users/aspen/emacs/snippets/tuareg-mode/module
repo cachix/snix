@@ -1,9 +1,0 @@
-# -*- mode: snippet -*-
-# name: module
-# uuid: module
-# key: mod
-# condition: t
-# --
-module ${1:Name} = struct
-       $0
-end

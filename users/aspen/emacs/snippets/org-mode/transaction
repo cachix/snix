@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: transaction
-# key: begin
-# --
-BEGIN;
-$0
-ROLLBACK;

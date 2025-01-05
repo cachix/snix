@@ -1,6 +1,0 @@
-[workspace]
-members = [
-  "finito-core",
-  "finito-door",
-  "finito-postgres"
-]

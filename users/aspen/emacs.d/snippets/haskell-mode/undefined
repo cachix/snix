@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: undefined
-# key: u
-# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region 'nil))
-# --
-undefined$1

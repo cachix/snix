@@ -1,11 +1,8 @@
 # Set of unconditional config options applicable to all archeology machines.
 
-{ depot, pkgs, ... }:
+{ pkgs, ... }:
 
 {
-  # Use the TVL binary cache
-  tvl.cache.enable = true;
-
   # Start clickhose as a system service.
   services.clickhouse.enable = true;
 

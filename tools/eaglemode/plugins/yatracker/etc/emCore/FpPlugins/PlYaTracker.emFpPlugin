@@ -1,6 +1,0 @@
-#%rec:emFpPlugin%#
-
-FileTypes = { ".YaTracker" }
-Priority = 1.0
-Library = "PlYaTracker"
-Function = "PlYaTrackerPluginFunc"

@@ -1,4 +1,0 @@
-mkdocs-material==9.4.6
-mkdocs-rss-plugin==1.8.0
-pillow
-cairosvg

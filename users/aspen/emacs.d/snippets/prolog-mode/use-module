@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: use-module
-# uuid: use-module
-# key: use
-# condition: t
-# --
-:- use_module(${1:library($2)}${3:, [$4]}).

@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: Jest / Jasmine test
-# key: tst
-# --
-test('$1', () => {
-  expect($2).toBe($3)
-})

@@ -1,7 +1,0 @@
-if (false) {
-  print "yes";
-} else {
-  print "no";
-}
-
-print "afterwards";

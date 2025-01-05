@@ -1,3 +1,0 @@
-#!/usr/bin/env execlineb
-importas -i DEPOT_ROOT DEPOT_ROOT
-nix-run { $DEPOT_ROOT -A users.Profpatsch.jaeger -kK }

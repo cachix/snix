@@ -1,6 +1,0 @@
-# key: sql
-# name: SQL source block
-# --
-#+BEGIN_SRC sql ${1::async}
-$2
-#+END_SRC

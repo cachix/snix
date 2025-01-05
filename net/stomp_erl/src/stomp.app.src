@@ -1,7 +1,0 @@
-{application, stomp, [{description, "STOMP client for Erlang"},
-                      {vsn, "0.1.0"},
-                      {modules, [stomp_app, stomp_sup, stomp_worker]},
-                      {registered, [stomp_worker]},
-                      {env, []},
-                      {applications, [kernel, stdlib]},
-                      {mod, {stomp_app, []}}]}.

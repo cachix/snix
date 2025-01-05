@@ -1,7 +1,0 @@
-extern puts : fn cstring -> int
-
-ty print : fn cstring -> ()
-fn print x = let _ = puts x in ()
-
-ty main : fn -> int
-fn main = let _ = print "hi" in 0

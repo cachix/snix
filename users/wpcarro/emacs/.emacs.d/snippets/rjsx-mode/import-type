@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: import type
-# key: ixt
-# --
-import type { $1 } from '$2'

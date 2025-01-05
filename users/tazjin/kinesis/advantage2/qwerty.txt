@@ -1,6 +1,0 @@
-[caps]>[rwin]
-[lctrl]>[lalt]
-[delete]>[lctrl]
-[rctrl]>[rwin]
-{pup}>{-rwin}{b}{+rwin}
-{pdown}>{-rwin}{f}{+rwin}

@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: before
-# key: bef
-# --
-before(function() {
-                  $1
-})

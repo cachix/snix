@@ -1,5 +1,0 @@
-:set prompt "> "
-:set -Wall
-:set -XOverloadedStrings
-:set -XRecordWildCards
-:set -XTypeApplications

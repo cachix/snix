@@ -1,4 +1,0 @@
-# Man pages (taken from /plumb/basic), e.g. man(1)
-type	is	text
-data	matches	'([a-zA-Z¡-0-9_\-./]+)\(([1-8])\)'
-plumb	start	rc -c 'man '$2' '$1' >[2=1] | nobs | plumb -i -d edit -a ''action=showdata filename=/man/'$1'('$2')'''

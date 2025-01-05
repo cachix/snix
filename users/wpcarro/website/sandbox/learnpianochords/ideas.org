@@ -1,3 +1,0 @@
-* Support a frequency table of all of the chords
-* Support using spaced-repetition to help populate the frequency table of chords
-* If doing a frequency table, support left and right hands

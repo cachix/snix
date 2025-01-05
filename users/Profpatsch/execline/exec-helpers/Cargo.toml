@@ -1,8 +1,0 @@
-[package]
-name = "exec_helpers"
-version = "0.1.0"
-edition = "2021"
-
-[lib]
-name = "exec_helpers"
-path = "exec_helpers.rs"

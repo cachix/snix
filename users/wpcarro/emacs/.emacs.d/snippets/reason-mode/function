@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: Function
-# key: fn
-# --
-let $1 = (~$2:$3) => {
-  $4
-};

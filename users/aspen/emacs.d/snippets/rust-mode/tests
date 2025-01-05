@@ -1,9 +1,0 @@
-# key: tests
-# name: test module
-# --
-#[cfg(test)]
-mod ${1:tests} {
-    use super::*;
-
-    $0
-}

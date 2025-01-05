@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Rot13 URL Handler
-Exec=@out@/bin/uggc
-StartupNotify=false
-MimeType=x-scheme-handler/uggc;
-MimeType=x-scheme-handler/uggcf;

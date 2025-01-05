@@ -1,7 +1,0 @@
-[Unit]
-Description=Lieer sync for account 'google'
-
-[Service]
-Type=oneshot
-ExecStart=/nix/store/n6c4pr4fyrsjfksspkapb7yqc6fzl166-corp-lieer/bin/gmi sync
-WorkingDirectory=%h/mail/account.google

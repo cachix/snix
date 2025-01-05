@@ -1,6 +1,0 @@
-[package]
-name = "defer"
-version = "0.1.0"
-authors = ["Vincent Ambo <tazjin@gmail.com>"]
-
-[dependencies]

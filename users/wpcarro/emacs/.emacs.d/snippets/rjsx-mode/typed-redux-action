@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: typed-redux-action
-# key: trax
-# --
-export const ${1:$$(string-lower->caps yas-text)}: '`(downcase (functions-buffer-dirname))`/${1:$(string-caps->kebab yas-text)}' = '`(downcase (buffer-dirname))`/${1:$(string-caps->kebab yas-text)}'

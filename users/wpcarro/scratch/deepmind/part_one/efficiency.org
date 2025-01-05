@@ -1,6 +1,0 @@
-* Sorting
-** Merge:	O(n*log(n))
-** Heap:	O(n*log(n))
-** Insertion:	O(n^2)
-** Quick:	O(n^2)
-** Bubble:	O(n^2)

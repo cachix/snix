@@ -1,9 +1,0 @@
-# -*- mode: snippet -*-
-# name: expect-test
-# uuid: expect-test
-# key: exp
-# condition: t
-# --
-let%expect_test "${1:name}" =
-        ${2:<body>};
-        [%expect {| $3 |}]

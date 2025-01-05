@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: Import React dependency (ES6)
-# key: ir
-# --
-import React from 'react'

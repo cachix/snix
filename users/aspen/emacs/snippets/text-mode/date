@@ -1,5 +1,0 @@
-# -*- coding: utf-8 -*-
-# name: date
-# key: date
-# --
-`(format-time-string "%Y-%m-%d")`$0

@@ -1,5 +1,0 @@
-# key: ann
-# name: annotation
-# expand-env: ((yas-indent-line 'fixed))
-# --
-{-# ANN ${1:module} ("${2:HLint: ignore ${3:Reduce duplication}}" :: String) #-}

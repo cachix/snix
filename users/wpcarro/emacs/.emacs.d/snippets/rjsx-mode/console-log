@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: Console.log helper
-# key: clg
-# --
-console.log($1)

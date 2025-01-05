@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: shut up, hlint
-# key: dupl
-# expand-env: ((yas-indent-line 'fixed))
-# --
-{-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}

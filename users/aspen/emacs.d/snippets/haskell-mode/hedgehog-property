@@ -1,9 +1,0 @@
-# -*- mode: snippet -*-
-# name: Hedgehog Property
-# key: hprop
-# expand-env: ((yas-indent-line 'fixed))
-# --
-hprop_${1:somethingIsAlwaysTrue} :: Property
-hprop_$1 = property $ do
-  ${2:x} <- forAll ${3:Gen.int $ Range.linear 1 100}
-  ${4:x === x}

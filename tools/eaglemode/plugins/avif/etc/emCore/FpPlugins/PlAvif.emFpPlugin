@@ -1,6 +1,0 @@
-#%rec:emFpPlugin%#
-
-FileTypes = { ".avif" }
-Priority = 1.0
-Library = "PlAvif"
-Function = "PlAvifFpPluginFunc"

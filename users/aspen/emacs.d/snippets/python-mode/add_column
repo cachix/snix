@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: add_column
-# key: op.add_column
-# --
-op.add_column('${1:table}', sa.Column('${2:name}', sa.${3:String()}))$0

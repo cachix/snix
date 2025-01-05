@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: language pragma
-# key: lang
-# expand-env: ((yas-indent-line 'fixed))
-# --
-{-# LANGUAGE $1 #-}

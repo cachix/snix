@@ -1,6 +1,0 @@
-[Unit]
-Description=Stress test CPU
-
-[Service]
-Slice=demo.slice
-ExecStart=/usr/bin/stress -c 5

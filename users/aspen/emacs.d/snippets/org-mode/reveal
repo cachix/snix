@@ -1,6 +1,0 @@
-# key: reveal
-# name: reveal
-# condition: t
-# --
-#+ATTR_REVEAL: :frag ${1:roll-in}
-$0

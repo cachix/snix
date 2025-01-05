@@ -1,17 +1,15 @@
 # Shell derivation to invoke //nix/lazy-deps with the dependencies
 # that should be lazily made available in depot.
-{ pkgs, depot, ... }:
+{ depot, ... }:
 
 depot.nix.lazy-deps {
   age-keygen.attr = "third_party.nixpkgs.age";
   age.attr = "third_party.nixpkgs.age";
   depotfmt.attr = "tools.depotfmt";
-  fetch-depot-inbox.attr = "tools.fetch-depot-inbox";
   git-r.attr = "tools.git-r";
   git-review.attr = "third_party.nixpkgs.git-review";
   gerrit-update.attr = "tools.gerrit-update";
   gerrit.attr = "tools.gerrit-cli";
-  hash-password.attr = "tools.hash-password";
   josh-filter.attr = "third_party.nixpkgs.josh";
   mg.attr = "tools.magrathea";
   nint.attr = "nix.nint";
@@ -21,11 +19,6 @@ depot.nix.lazy-deps {
 
   tf-buildkite = {
     attr = "ops.buildkite.terraform";
-    cmd = "terraform";
-  };
-
-  tf-glesys = {
-    attr = "ops.glesys.terraform";
     cmd = "terraform";
   };
 

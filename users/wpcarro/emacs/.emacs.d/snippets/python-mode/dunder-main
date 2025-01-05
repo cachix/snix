@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: Dunder main (__main__)
-# key: mn
-# --
-if __name__ == "__main__":
-    main()

@@ -1,8 +1,6 @@
 { depot, pkgs, lib, ... }:
 
 let
-  systemFor = sys: (depot.ops.nixos.nixosFor sys).system;
-
   # assumes `name` is configured appropriately in your .ssh/config
   deployScript = name: sys: pkgs.writeShellScriptBin "deploy-${name}" ''
     set -eo pipefail

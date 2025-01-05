@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: date-time
-# key: dt
-# --
-[`(format-time-string "%Y-%m-%d %H:%m:%S")`]

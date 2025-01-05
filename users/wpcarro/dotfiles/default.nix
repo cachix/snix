@@ -1,5 +1,0 @@
-{ ... }:
-
-{
-  dunstrc = ./dunstrc;
-}

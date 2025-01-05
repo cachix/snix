@@ -1,4 +1,0 @@
-# key: at
-# name: action-type
-# --
-export const ${1:FOO_BAR$(->> yas-text s-upcase (s-replace-all '(("-" . "_") (" " . "_"))))}: '${3:ns}/${1:$(-> yas-text s-dashed-words)}' = '$3/${1:$(-> yas-text s-dashed-words)}'$5

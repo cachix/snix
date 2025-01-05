@@ -1,7 +1,0 @@
-# URLs, e.g. https://tvl.fyi
-# Based on /plumb/basic, but with most protocols removed
-# TODO(sterni): add default case to xdg-open
-type	is	text
-data	matches	'(https?)://[a-zA-Z0-9_@\-]+([.:][a-zA-Z0-9_@\-]+)*/?[a-zA-Z0-9_?,%#~&/\-+=]+([:.][a-zA-Z0-9_?,%#~&/\-+=]+)*'
-plumb	to	web
-plumb	start	web $0

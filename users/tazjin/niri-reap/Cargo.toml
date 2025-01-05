@@ -1,7 +1,0 @@
-[package]
-name = "niri-reap"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-niri-ipc = { git = "https://github.com/YaLTeR/niri.git", version = "0.1.9" }

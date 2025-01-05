@@ -23,31 +23,8 @@ let
     '';
 
     exceptions = [
-      # machines is allowed to access //users for several reasons:
-      #
-      # 1. User SSH keys are set in //users.
-      # 2. Some personal websites or demo projects are served from there.
-      [ "ops" "machines" "bugry" ]
-      [ "ops" "machines" "nevsky" ]
-
       # Due to evaluation order this also affects these targets.
       # TODO(tazjin): Can this one be removed somehow?
-      [ "ops" "nixos" ]
-      [ "ops" "machines" "all-systems" ]
-    ];
-  };
-
-  # Disallow access to //corp from other depot parts.
-  corpFilter = readTree.restrictFolder {
-    folder = "corp";
-    reason = ''
-      Code under //corp may use incompatible licensing terms with
-      other depot parts and should not be used anywhere else.
-    '';
-
-    exceptions = [
-      # For the same reason as above, machines are exempt to serve the corp
-      # website.
       [ "ops" "nixos" ]
       [ "ops" "machines" "all-systems" ]
     ];
@@ -56,9 +33,10 @@ let
   readDepot = depotArgs: readTree {
     args = depotArgs;
     path = ./.;
-    filter = parts: args: corpFilter parts (usersFilter parts args);
+    filter = parts: args: usersFilter parts args;
     scopedArgs = {
-      __findFile = _: _: throw "Do not import from NIX_PATH in the depot!";
+      # FIXME(Lix): this cannot work in Lix itself.
+      # __findFile = _: _: throw "Do not import from NIX_PATH in the depot!";
       builtins = builtins // {
         currentSystem = throw "Use localSystem from the readTree args instead of builtins.currentSystem!";
       };
@@ -103,20 +81,6 @@ readTree.fix (self: (readDepot {
   # Additionally targets can be excluded from CI by adding them to the
   # list below.
   ci.excluded = [
-    # xanthous and related targets are disabled until cl/9186 is submitted
-    self.users.aspen.xanthous
-    self.users.aspen.system.system.mugwumpSystem
-
-    # Temporarily disabled after cl/11289. Hopefully these failures are transient
-    # and will disappear with the next channel bump.
-    self.users.wpcarro.nixos.avaSystem
-    self.users.wpcarro.nixos.kyokoSystem
-    self.users.wpcarro.nixos.marcusSystem
-    self.users.wpcarro.nixos.tarascoSystem
-
-    # Disabled because it depends on an unstable FOD, which, when updated,
-    # breaks the build. Needs to be investigated by flokli.
-    self.users.flokli.keyboards.corneish_zen.firmware
   ];
 
   # List of all buildable targets, for CI purposes.

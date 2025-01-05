@@ -1,9 +1,0 @@
-/target
-/classes
-*.jar
-*.class
-/.nrepl-port
-/.cpcache
-/.clojure
-/result
-/.clj-kondo/.cache

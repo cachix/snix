@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: description
-# key: desc
-# --
-:DESCRIPTION:
-$1
-:END:

@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: import x from y
-# key: ix
-# --
-import $1 from '$2'

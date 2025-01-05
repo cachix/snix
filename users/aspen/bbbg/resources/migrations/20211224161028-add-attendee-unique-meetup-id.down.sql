@@ -1,1 +1,0 @@
-drop index attendee_uniq_meetup_user_id;

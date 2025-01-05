@@ -1,5 +1,0 @@
-# Replace the gLinux penguin with a custom image.
-XSECURELOCK_LOGO_IMAGE=~/.local/share/static/pickle-rick.jpg
-
-# Turn this off on laptop (not on desktop).
-XSECURELOCK_BLANK_DPMS_STATE=on

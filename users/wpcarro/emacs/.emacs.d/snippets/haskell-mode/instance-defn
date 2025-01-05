@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: Instance
-# key: inst
-# --
-instance $1 where
-  $2 = $3

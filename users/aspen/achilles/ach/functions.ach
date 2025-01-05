@@ -1,8 +1,0 @@
-ty id : fn a -> a
-fn id x = x
-
-ty plus : fn int -> int
-fn plus (x: int) (y: int) = x + y
-
-ty main : fn -> int
-fn main = plus (id 2) 7

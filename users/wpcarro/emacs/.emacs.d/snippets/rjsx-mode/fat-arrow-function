@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: Fat arrow function
-# key: faf
-# --
-() => {
-  $1
-}

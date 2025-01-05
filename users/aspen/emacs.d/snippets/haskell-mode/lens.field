@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: lens.field
-# key: lens
-# expand-env: ((yas-indent-line 'fixed))
-# --
-${1:field} :: Lens' ${2:Source} ${3:Target}
-$1 = lens _${4:sourceField} $ \\${2:$(-> yas-text s-word-initials s-downcase)} ${4:$(-> yas-text s-word-initials s-downcase)} -> ${2:$(-> yas-text s-word-initials s-downcase)} { _$4 = ${4:$(-> yas-text s-word-initials s-downcase)} }

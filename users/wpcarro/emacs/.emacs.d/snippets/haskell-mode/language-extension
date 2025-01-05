@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: language extension
-# key: lang
-# --
-{-# LANGUAGE $1 #-}

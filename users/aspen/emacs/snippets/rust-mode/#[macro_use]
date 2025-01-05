@@ -1,5 +1,0 @@
-# key: macro_use
-# name: #[macro_use]
-# --
-#[macro_use]
-${1:extern crate} ${2:something};$0

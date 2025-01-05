@@ -1,6 +1,0 @@
-[Unit]
-Description=Demo unit for systemd
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/echo "Systemd unit activated. Hello Hackeriet."

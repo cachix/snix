@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-configs="$WPCARRO/configs"
-
-(cd "$configs" && stow --delete --target="$HOME" .)

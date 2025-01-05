@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: <stdlib.h>
-# key: slb
-# --
-#include <stdlib.h>

@@ -1,6 +1,0 @@
-# key: py
-# name: Python source block
-# --
-#+BEGIN_SRC python
-$0
-#+END_SRC

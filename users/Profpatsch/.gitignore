@@ -1,6 +1,0 @@
-dist-newstyle/
-result-*
-
-/node-modules/
-# ignore all package-locks (for now?)
-package-lock.json

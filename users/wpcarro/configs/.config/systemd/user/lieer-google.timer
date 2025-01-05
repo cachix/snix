@@ -1,9 +1,0 @@
-[Unit]
-Description=Run lieer sync for account 'google'
-
-[Timer]
-OnActiveSec=1
-OnUnitActiveSec=120
-
-[Install]
-WantedBy=timers.target
