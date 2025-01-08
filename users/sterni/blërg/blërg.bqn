@@ -49,9 +49,9 @@ headerNames ← "X-Uniform-Type-Identifier"‿"X-Universally-Unique-Identifier"�
 MailNotesBackend ← {𝕊 mailDir:
   Entries ⇐ {𝕊:
     ms ← LR "mlist"‿mailDir
-    th ← ⍉⟨≠ms,≠headerNames⟩⥊headerNames Hdrs ms
+    th ← ⟨≠ms,≠headerNames⟩⥊headerNames Hdrs ms
     dh ← Dates ms
-    ah ← (("com.apple.mail-note"⊸≡⊑)˘/⊢) ⍉th∾dh≍ms
+    ah ← (("com.apple.mail-note"⊸≡⊑)˘/⊢) th∾˘dh≍˘ms
     {𝕊 ·‿uuid‿title‿time‿path:
       title ⇐ ⋄ time ⇐
       id ⇐ AsciiDown uuid
