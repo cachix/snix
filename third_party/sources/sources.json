@@ -11,6 +11,18 @@
         "url": "https://github.com/ryantm/agenix/archive/f6291c5935fdc4e0bef208cfc0dcab7e3f7a1c41.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "bqn-libs": {
+        "branch": "master",
+        "description": "Informal collection of BQN utilities",
+        "homepage": "",
+        "owner": "mlochbaum",
+        "repo": "bqn-libs",
+        "rev": "405644fe7aeca7cd31304c05b95de1a6c197fff6",
+        "sha256": "0wxa3k9kyqr4xlvjdrhza00gk3al9f3gjbfqws1vppx5m7cq97xq",
+        "type": "tarball",
+        "url": "https://github.com/mlochbaum/bqn-libs/archive/405644fe7aeca7cd31304c05b95de1a6c197fff6.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "gitignore.nix": {
         "branch": "master",
         "description": "Nix functions for filtering local git sources",
