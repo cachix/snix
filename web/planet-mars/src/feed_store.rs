@@ -1,6 +1,7 @@
 use feed_rs::model::Entry;
 use feed_rs::model::Feed;
 use serde::{Deserialize, Serialize};
+use std::convert::AsRef;
 use std::fs;
 use std::io::BufReader;
 use std::path::PathBuf;
@@ -20,7 +21,7 @@ pub struct FeedStore {
 }
 
 impl FeedStore {
-    pub fn new(dir: String) -> Self {
+    pub fn new(dir: &str) -> Self {
         Self {
             dir: super::to_checked_pathbuf(dir),
         }
@@ -66,6 +67,16 @@ impl FeedStore {
         false
     }
 
+    fn write<P: AsRef<std::path::Path> + std::fmt::Display, C: AsRef<[u8]>>(
+        path: P,
+        contents: C,
+    ) -> std::io::Result<()> {
+        if fs::exists(&path)? {
+            fs::rename(&path, format!("{path}.backup"))?;
+        }
+        fs::write(path, contents)
+    }
+
     pub fn store(&self, url: &Url, mut response: Response<Body>) -> bool {
         let headers = response.headers();
         let fetchdata = FetchData {
@@ -89,8 +100,9 @@ impl FeedStore {
         if !self.has_changed(url, &feed) {
             return false;
         }
-        let _ = fs::write(self.feed_path(url), body);
-        let _ = fs::write(
+        debug!("Storing feed for {url}.");
+        let _ = Self::write(self.feed_path(url), body);
+        let _ = Self::write(
             self.fetchdata_path(url),
             toml::to_string(&fetchdata).unwrap(),
         );

@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 # ammonia = "*" done by feed-rs
+anyhow = "*"
 clap = { version = "*", features = ["derive"] }
 env_logger = "*"
 feed-rs = "*"

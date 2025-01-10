@@ -1,8 +1,32 @@
-hello world
+<html>
+  <head>
+    <title>Planet TVL</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="generator" content="planet-mars">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="planet.css" type="text/css">
+    {# todo <link rel="alternate" type="application/rss+xml" title="Planet Haskell RSS Feed" href="rss20.xml"> #}
+    <link rel="alternate" type="application/xml+atom" title="Planet Haskell Atom Feed" href="atom.xml">
+  </head>
+  <body>
+    <main>
+    <h1 class="tophead">Planet TVL</h1>
+    {% for entry in entries %}
+      <article>
+        <h2><a href="{{entry.link}}">{{ entry.title|striptags }}<a></h2>
+        <date>{% if entry.published %}{{ entry.published | date(format="%Y-%m-%d %H:%M", timezone="Europe/Moscow") }}{% endif %}</date>{# todo: maybe group posts by day? #}
+        <p class="entry_author">{{ entry.author|striptags }}</p>
+        <div class="entry_content">
+          {{ entry.content }}
+        </div>
+        <p><a href="{{entry.link}}">full post<a></p>
+      </article>
+      {% endfor %}
+    </main>
 
-{% for entry in entries %}
-  {% for link in entry.links %}
-    {{link.href}}
-  {% endfor %}
-{% endfor %}
-
+    <aside>
+      <img src="logo.svg">
+      <p>Last updated: {{now()|date(format="%Y-%m-%d %H:%M")}}
+    </aside>
+  </body>
+</html>

@@ -37,10 +37,10 @@ impl Fetcher {
             .agent
             .get(url.to_string())
             .header("FROM", self.from.clone());
-        if fetchdata.etag != "" {
+        if !fetchdata.etag.is_empty() {
             builder = builder.header("If-None-Match", fetchdata.etag);
         }
-        if fetchdata.date != "" {
+        if !fetchdata.date.is_empty() {
             builder = builder.header("If-Modified-Since", fetchdata.date);
         }
 
