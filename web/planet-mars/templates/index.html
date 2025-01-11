@@ -9,24 +9,28 @@
     <link rel="alternate" type="application/xml+atom" title="Planet Haskell Atom Feed" href="atom.xml">
   </head>
   <body>
-    <main>
-    <h1 class="tophead">Planet TVL</h1>
-    {% for entry in entries %}
-      <article>
-        <h2><a href="{{entry.link}}">{{ entry.title|striptags }}<a></h2>
-        <date>{% if entry.published %}{{ entry.published | date(format="%Y-%m-%d %H:%M", timezone="Europe/Moscow") }}{% endif %}</date>{# todo: maybe group posts by day? #}
-        <p class="entry_author">{{ entry.author|striptags }}</p>
-        <div class="entry_content">
-          {{ entry.content }}
-        </div>
-        <p><a href="{{entry.link}}">full post<a></p>
-      </article>
-      {% endfor %}
-    </main>
+    <header>
+      <h1>Planet TVL</h1>
+    </header>
+    <div id="maincontainer">
+      <main>
+        {% for entry in entries %}
+          <article>
+            <h2><a href="{{entry.link}}">{{ entry.title|striptags }}<a></h2>
+            <date>{% if entry.published %}{{ entry.published | date(format="%Y-%m-%d %H:%M", timezone="Europe/Moscow") }}{% endif %}</date>{# todo: maybe group posts by day? #}
+            <p class="entry_author">{{ entry.author|striptags }}</p>
+            <div class="entry_content">
+              {{ entry.content }}
+            </div>
+            <p><a href="{{entry.link}}">full post</a></p>
+          </article>
+        {% endfor %}
+      </main>
 
-    <aside>
-      <img src="logo.svg">
-      <p>Last updated: {{now()|date(format="%Y-%m-%d %H:%M")}}
-    </aside>
+      <aside>
+        <img src="logo.svg">
+        <p>Last updated: {{now()|date(format="%Y-%m-%d %H:%M")}}
+      </aside>
+    </div>
   </body>
 </html>

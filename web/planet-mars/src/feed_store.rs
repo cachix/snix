@@ -41,7 +41,7 @@ impl FeedStore {
         format!("{}.toml", self.feed_path(url))
     }
 
-    pub fn get_fetchdata(&self, url: &Url) -> FetchData {
+    pub fn load_fetchdata(&self, url: &Url) -> FetchData {
         let path = self.fetchdata_path(url);
         if !fs::exists(path.clone()).unwrap() {
             return FetchData::default();
