@@ -63,6 +63,7 @@ in rec {
   whitbySystem = (nixosFor depot.ops.machines.whitby).system;
   sandunySystem = (nixosFor depot.ops.machines.sanduny).system;
   bugrySystem = (nixosFor depot.ops.machines.bugry).system;
+  nevskySystem = (nixosFor depot.ops.machines.nevsky).system;
   nixeryDev01System = (nixosFor depot.ops.machines.nixery-01).system;
-  meta.ci.targets = [ "sandunySystem" "whitbySystem" "bugrySystem" "nixeryDev01System" ];
+  meta.ci.targets = [ "sandunySystem" "whitbySystem" "bugrySystem" "nevskySystem" "nixeryDev01System" ];
 }
