@@ -71,6 +71,11 @@ variable "nevsky_ipv6" {
   default = "2a03:6f00:2:514b:0:feed:edef:beef"
 }
 
+variable "bugry_ipv4" {
+  type    = string
+  default = "91.199.149.239"
+}
+
 variable "sanduny_ipv4" {
   type    = string
   default = "85.119.82.231"

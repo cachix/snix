@@ -67,6 +67,13 @@ resource "glesys_dnsdomain_record" "tvl_fyi_nevsky_AAAA" {
   data   = var.nevsky_ipv6
 }
 
+resource "glesys_dnsdomain_record" "tvl_fyi_bugry_A" {
+  domain = glesys_dnsdomain.tvl_fyi.id
+  host   = "bugry"
+  type   = "A"
+  data   = var.bugry_ipv4
+}
+
 resource "glesys_dnsdomain_record" "tvl_fyi_nixery-01_A" {
   domain = glesys_dnsdomain.tvl_fyi.id
   host   = "nixery-01"
