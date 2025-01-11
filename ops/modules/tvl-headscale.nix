@@ -16,6 +16,12 @@
 
 let
   acl = with builtins; toFile "headscale-acl.json" (toJSON {
+    acls = [{
+      action = "accept";
+      src = [ "*" ];
+      dst = [ "*:*" ];
+    }];
+
     groups."group:builders" = [ "tvl" "tvl-builders" ];
     tagOwners."tag:builders" = [ "group:builders" ];
   });
