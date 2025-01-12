@@ -5,8 +5,9 @@ let
   cfg = config.services.depot.buildkite;
   agents = lib.range 1 cfg.agentCount;
   description = "Buildkite agents for TVL";
+  hostname = config.networking.hostName;
 
-  besadiiWithConfig = name: pkgs.writeShellScript "besadii-whitby" ''
+  besadiiWithConfig = name: pkgs.writeShellScript "besadii-${hostname}" ''
     export BESADII_CONFIG=/run/agenix/buildkite-besadii-config
     exec -a ${name} ${depot.ops.besadii}/bin/besadii "$@"
   '';
@@ -36,7 +37,7 @@ in
     # Run the Buildkite agents using the default upstream module.
     services.buildkite-agents = builtins.listToAttrs (map
       (n: rec {
-        name = "whitby-${toString n}";
+        name = "${hostname}-${toString n}";
         value = {
           inherit name;
           enable = true;
@@ -46,6 +47,8 @@ in
           hooks.environment = ''
             export PATH=$PATH:/run/wrappers/bin
           '';
+
+          tags.hostname = hostname;
 
           runtimePackages = with pkgs; [
             bash
@@ -67,7 +70,7 @@ in
       groups.buildkite-agents = { };
       users = builtins.listToAttrs (map
         (n: rec {
-          name = "buildkite-agent-whitby-${toString n}";
+          name = "buildkite-agent-${hostname}-${toString n}";
           value = {
             isSystemUser = true;
             group = lib.mkForce "buildkite-agents";
