@@ -76,6 +76,11 @@ variable "bugry_ipv4" {
   default = "91.199.149.239"
 }
 
+variable "bugry_ipv6" {
+  type    = string
+  default = "2a03:6f00:2:514b:5bc7:95ef:0:2"
+}
+
 variable "sanduny_ipv4" {
   type    = string
   default = "85.119.82.231"

@@ -30,10 +30,13 @@ let
   nevsky = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHQe7M+G8Id3ZD7j+I07TCUV1o12q1vpsOXHRlcPSEfa";
   bugry = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGqG6sITyJ/UsQ/RtYqmmMvTT4r4sppadoQIz5SvA+5J";
 
+  admins = tazjin ++ aspen ++ sterni;
   terraform.publicKeys = tazjin ++ aspen ++ sterni ++ flokli;
-  whitbyDefault.publicKeys = tazjin ++ aspen ++ sterni ++ [ whitby ];
-  allDefault.publicKeys = tazjin ++ aspen ++ sterni ++ [ sanduny whitby ];
-  sandunyDefault.publicKeys = tazjin ++ aspen ++ sterni ++ [ sanduny ];
+  whitbyDefault.publicKeys = admins ++ [ whitby ];
+  allDefault.publicKeys = admins ++ [ sanduny whitby ];
+  sandunyDefault.publicKeys = admins ++ [ sanduny ];
+  bugryDefault.publicKeys = admins ++ [ bugry ];
+  nevskyDefault.publicKeys = admins ++ [ nevsky ];
 in
 {
   "besadii.age" = whitbyDefault;
@@ -60,4 +63,6 @@ in
   "tf-glesys.age" = terraform;
   "tf-keycloak.age" = terraform;
   "tvl-alerts-bot-telegram-token.age" = whitbyDefault;
+  "wg-bugry.age" = bugryDefault;
+  "wg-nevsky.age" = nevskyDefault;
 }

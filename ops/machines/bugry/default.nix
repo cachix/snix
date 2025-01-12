@@ -8,6 +8,7 @@ in
   imports = [
     (mod "tvl-cache.nix")
     (mod "tvl-users.nix")
+    (depot.third_party.agenix.src + "/modules/age.nix")
   ];
 
   hardware.cpu.intel.updateMicrocode = true;
@@ -81,18 +82,39 @@ in
     };
   };
 
+  age.secrets = {
+    wg-privkey.file = depot.ops.secrets."wg-bugry.age";
+  };
+
   networking = {
     hostName = "bugry";
     domain = "tvl.fyi";
     hostId = "8425e349";
     useDHCP = false;
 
-    interfaces.enp6s0.ipv6.addresses = [{
+    interfaces.enp6s0.ipv4.addresses = [{
       address = "91.199.149.239";
       prefixLength = 24;
     }];
 
     defaultGateway = "91.199.149.1";
+
+    wireguard.interfaces.wg-nevsky = {
+      ips = [ "2a03:6f00:2:514b:5bc7:95ef:0:2/96" ];
+      privateKeyFile = "/run/agenix/wg-privkey";
+
+      peers = [{
+        publicKey = "gLyIY+R/YG9S8W8jtqE6pEV6MTyzeUX/PalL6iyvu3g="; # nevsky
+        endpoint = "188.225.81.75:51820";
+        persistentKeepalive = 25;
+        allowedIPs = [ "::/0" ];
+      }];
+
+      allowedIPsAsRoutes = false; # used as default v6 gateway below
+    };
+
+    defaultGateway6.address = "2a03:6f00:2:514b:5bc7:95ef::1";
+    defaultGateway6.interface = "wg-nevsky";
 
     nameservers = [
       "8.8.8.8"

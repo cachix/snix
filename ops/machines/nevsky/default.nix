@@ -7,6 +7,7 @@ in
 {
   imports = [
     (mod "tvl-users.nix")
+    (depot.third_party.agenix.src + "/modules/age.nix")
   ];
 
   hardware.cpu.amd.updateMicrocode = true;
@@ -83,6 +84,10 @@ in
     };
   };
 
+  age.secrets = {
+    wg-privkey.file = depot.ops.secrets."wg-nevsky.age";
+  };
+
   networking = {
     hostName = "nevsky";
     domain = "tvl.fyi";
@@ -106,12 +111,34 @@ in
       interface = "enp1s0f0np0";
     };
 
+    wireguard.interfaces.wg-bugry = {
+      ips = [ "2a03:6f00:2:514b:5bc7:95ef::1/96" ];
+      privateKeyFile = "/run/agenix/wg-privkey";
+      listenPort = 51820;
+
+      postSetup = ''
+        ${pkgs.iptables}/bin/ip6tables -t nat -A POSTROUTING -s '2a03:6f00:2:514b:5bc7:95ef::1/96' -o enp1s0f0np0 -j MASQUERADE
+      '';
+
+      postShutdown = ''
+        ${pkgs.iptables}/bin/ip6tables -t nat -D POSTROUTING -s '2a03:6f00:2:514b:5bc7:95ef::1/96' -o enp1s0f0np0 -j MASQUERADE
+      '';
+
+      peers = [{
+        publicKey = "+vFeWLH99aaypitw7x1J8IypoTrva28LItb1v2VjOAg="; # bugry
+        allowedIPs = [ "2a03:6f00:2:514b:5bc7:95ef::/96" ];
+      }];
+
+      allowedIPsAsRoutes = true;
+    };
+
     nameservers = [
       "8.8.8.8"
       "8.8.4.4"
     ];
 
     firewall.allowedTCPPorts = [ 22 80 443 ];
+    firewall.allowedUDPPorts = [ 51820 ];
   };
 
   # Generate an immutable /etc/resolv.conf from the nameserver settings
