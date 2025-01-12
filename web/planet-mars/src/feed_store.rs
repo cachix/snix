@@ -4,6 +4,7 @@ use feed_rs::model::Entry;
 use feed_rs::model::Feed;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::convert::AsRef;
 use std::fs;
 use std::io::BufReader;
@@ -12,9 +13,6 @@ use ureq::http::HeaderMap;
 use ureq::http::Response;
 use ureq::Body;
 use url::Url;
-
-/// How many feed entries should be included in the planet
-const ENTRIES_LEN: usize = 10;
 
 #[derive(Deserialize, Serialize, Default)]
 pub struct FetchData {
@@ -135,8 +133,12 @@ impl FeedStore {
         Ok(Some(parser.parse(BufReader::new(file))?))
     }
 
-    pub fn collect(&self, feed_configs: &Vec<super::FeedConfig>) -> (Vec<Feed>, Vec<Entry>) {
-        let mut feeds = Vec::new();
+    pub fn collect(
+        &self,
+        feed_configs: &Vec<super::FeedConfig>,
+        max_entries: usize,
+    ) -> (HashMap<String, Feed>, Vec<Entry>) {
+        let mut feeds = HashMap::new();
         let mut entries = Vec::new();
 
         for feed_config in feed_configs {
@@ -154,21 +156,24 @@ impl FeedStore {
                 Ok(None) => continue,
                 Ok(Some(f)) => f,
             };
+            for entry in &mut feed.entries {
+                entry.source = Some(feed_config.url.clone());
+            }
 
             entries.append(&mut std::mem::take(&mut feed.entries));
-            feeds.push(feed);
+            feeds.insert(feed_config.url.clone(), feed);
             // optimization to reduce memory usage
-            if entries.len() > 4 * ENTRIES_LEN {
-                entries = trim_entries(entries);
+            if entries.len() > 4 * max_entries {
+                entries = trim_entries(entries, max_entries);
             }
         }
-        (feeds, trim_entries(entries))
+        (feeds, trim_entries(entries, max_entries))
     }
 }
 
-fn trim_entries(mut entries: Vec<Entry>) -> Vec<Entry> {
+fn trim_entries(mut entries: Vec<Entry>, max_entries: usize) -> Vec<Entry> {
     entries.sort_by_key(|e| std::cmp::Reverse(e.updated.or(e.published).unwrap_or_default()));
-    entries.truncate(ENTRIES_LEN);
+    entries.truncate(max_entries);
     entries
 }
 

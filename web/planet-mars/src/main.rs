@@ -66,6 +66,8 @@ struct Config {
     out_dir: String,
     /// templates folder
     templates_dir: String,
+    /// How many feed entries should be included in the planet
+    max_entries: usize,
 }
 
 pub fn to_checked_pathbuf(dir: &str) -> PathBuf {

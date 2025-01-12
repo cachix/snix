@@ -1,5 +1,4 @@
 {% set dateformat = "%d.%m.%Y %H:%M" -%}
-
 <html>
   <head>
     <title>Planet TVL</title>
@@ -10,6 +9,7 @@
     <link rel="alternate" type="application/xml+atom" title="Planet Haskell Atom Feed" href="atom.xml">
   </head>
   <body>
+    <div id="bodydiv">
     <header>
       <h1>Planet TVL</h1>
     </header>
@@ -42,19 +42,19 @@
                   <span>{{ entry.published | date(format=dateformat) }}</span>
                 {% endif -%}
               </date>
-              {% if entry.authors -%}
-                &mdash; <span class="entry_author">{{ entry.authors.0.name | striptags }}</span>
+              {% set author = get_author(entry=entry) -%}
+              {% if author -%}
+                &mdash; <span class="entry_author">{{ author | striptags }}</span>
               {% endif -%}
             </div>
 
-            {% if entry.summary -%}
-              <div class="entry_summary">
-                {{ entry.summary.content }}
-              </div>
-            {% endif -%}
             {% if entry.content -%}
               <div class="entry_content">
                 {{ entry.content.body }}
+              </div>
+            {% elif entry.summary -%}
+              <div class="entry_summary">
+                {{ entry.summary.content }}
               </div>
             {% endif -%}
           </article>
@@ -65,7 +65,7 @@
         <img src="logo.svg">
         <p>Last updated: {{now()|date(format="%Y-%m-%d %H:%M")}}</p>
         <ul>
-          {% for feed in feeds %}
+          {% for feed_url, feed in feeds %}
             <li>
               <a {% if feed.links.0 %}href="{{feed.links.0.href}}"{% endif -%}>
                 {% if feed.title -%}
@@ -74,10 +74,12 @@
                   {{ feed.authors.0.name }}
                 {% endif -%}
               </a>
+              (<a href="{{feed_url}}">feed</a>)
             </li>
           {% endfor %}
         </ul>
       </aside>
     </div>
+  </div>
   </body>
 </html>

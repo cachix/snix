@@ -1,5 +1,5 @@
 p, h1, h2, h3, h4, h5, h6, small {
-  max-width: 48em;
+    max-width: 48em;
 }
 
 h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
@@ -9,34 +9,71 @@ h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
 
 ul, ol {
   /* account for the 1em -webkit-margin-start for the list icon */
-  max-width: 45em;
+    max-width: 45em;
 }
 
 ul,ol,dl, p {
-  line-height: 1.4;
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
+    line-height: 1.2;
 }
 
-body {
-  margin-top: 1em;
-  margin-bottom: 1em;
+ul, ol {
+    padding-inline-start: 1.5em;
 }
 
+#bodydiv {
+    margin: auto;
+    max-width: 80em;
+}
+
+#maincontainer aside img {
+    max-width: 10em;
+}
+
+#maincontainer main blockquote {
+    margin-left: 0;
+    margin-right: 10px;
+    box-shadow: 10px 0px 0px 0px #C4C4C4;
+}
+
+blockquote, pre code {
+    padding: 0.5ex 0;
+    display: block;
+    background-color: #EEE;
+}
+
+#maincontainer main * {
+    max-width: 100%;
+}
+
+#maincontainer main pre {
+    overflow-x: auto;
+}
+
+.entry_meta {
+    margin-bottom: 1em;
+}
+
+@media only screen and (min-width: 1024px) {
 #maincontainer {
     display: flex;
-    max-width: 80em;
 }
 
 #maincontainer main {
     max-width: 50em;
-}
-
-#maincontainer main * {
-    max-width: 50em;
+    flex: 5;
 }
 
 #maincontainer aside {
     margin-left: 5em;
-    max-width: 25em;
+    max-width: 15em;
+    flex: 1;
+}
+
+#maincontainer aside img {
+    margin: auto;
+    display: block;
 }
 
 article > h2.entry_header {
@@ -44,7 +81,6 @@ article > h2.entry_header {
 }
 
 .entry_meta {
-    border: 1px thin;
     padding: 3px 0;
     background-color: LightBlue;
 }
@@ -53,7 +89,8 @@ hr.entry_sep {
    border: none;
 }
 hr.entry_sep::before {
-  content: '* * *';
-  display: block;
-  text-align: center;
+    content: '* * *';
+    display: block;
+    text-align: center;
+}
 }
