@@ -90,6 +90,9 @@ bitflags! {
         /// Only relevant if [NarInfo::deriver] is [None],
         /// but valid to have set either way.
         const EXPLICIT_UNKNOWN_DERIVER = 1 << 4;
+
+        /// entirely missing References field, produced by harmonia
+        const REFERENCES_MISSING = 1 << 5;
     }
 }
 
@@ -292,7 +295,13 @@ impl<'a> NarInfo<'a> {
             store_path: store_path.ok_or(Error::MissingField("StorePath"))?,
             nar_hash: nar_hash.ok_or(Error::MissingField("NarHash"))?,
             nar_size: nar_size.ok_or(Error::MissingField("NarSize"))?,
-            references: references.ok_or(Error::MissingField("References"))?,
+            references: match references {
+                Some(val) => val,
+                None => {
+                    flags |= Flags::REFERENCES_MISSING;
+                    vec![]
+                }
+            },
             signatures,
             ca,
             system,
@@ -360,15 +369,17 @@ impl Display for NarInfo<'_> {
         writeln!(w, "NarHash: sha256:{}", nixbase32::encode(&self.nar_hash),)?;
         writeln!(w, "NarSize: {}", self.nar_size)?;
 
-        write!(w, "References:")?;
-        if self.references.is_empty() {
-            write!(w, " ")?;
-        } else {
-            for path in &self.references {
-                write!(w, " {path}")?;
+        if !self.flags.contains(Flags::REFERENCES_MISSING) {
+            write!(w, "References:")?;
+            if self.references.is_empty() {
+                write!(w, " ")?;
+            } else {
+                for path in &self.references {
+                    write!(w, " {path}")?;
+                }
             }
+            writeln!(w)?;
         }
-        writeln!(w)?;
 
         if let Some(deriver) = &self.deriver {
             writeln!(w, "Deriver: {deriver}.drv")?;
@@ -618,6 +629,27 @@ Sig: cache.nixos.org-1:HhaiY36Uk3XV1JGe9d9xHnzAapqJXprU1YZZzSzxE97jCuO5RR7vlG2kF
             hex!("60adfd293a4d81ad7cd7e47263cbb3fc846309ef91b154a08ba672b558f94ff3"),
             parsed.nar_hash,
         );
+    }
+
+    #[test]
+    fn references_missing() {
+        // This is a NARInfo without a References field.
+        // This NARInfo was produced by harmonia (but the signature was altered).
+        let input = r#"StorePath: /nix/store/64s9zav4fk5qiba1jq0ipvyhnn57r7dq-cfg-if-1.0.0
+URL: nar/0lxxfhy5fmfz0sbnqkqjdf7gx9gsxrfzz49n19y8sr93inawhshh.nar?hash=64s9zav4fk5qiba1jq0ipvyhnn57r7dq
+Compression: none
+FileHash: sha256:0lxxfhy5fmfz0sbnqkqjdf7gx9gsxrfzz49n19y8sr93inawhshh
+FileSize: 24944
+NarHash: sha256:0lxxfhy5fmfz0sbnqkqjdf7gx9gsxrfzz49n19y8sr93inawhshh
+NarSize: 24944
+Deriver: s409kxiz6bx2g0da01gzvlnnjpl3i4h9-cfg-if-1.0.0.drv
+Sig: cache.nixos.org-1:WDvKIdxSnQ8p2w9SD0ffdibUSNMz6QQN6jpe+A8LLNHmZFsX+m8GZF0x9DN6PWV6k+OlnBT5UVbiWQYgXIsQAQ==
+"#;
+        let parsed = NarInfo::parse(input).expect("should parse");
+
+        assert!(parsed.flags.contains(Flags::REFERENCES_MISSING));
+        assert_eq!(parsed.references, vec![]);
+        assert_eq!(parsed.to_string(), input);
     }
 
     /// Adds a signature to a NARInfo, using key material parsed from DUMMY_KEYPAIR.
