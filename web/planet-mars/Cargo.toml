@@ -1,0 +1,25 @@
+[package]
+name = "planet-mars"
+version = "0.1.1"
+edition = "2021"
+authors = ["Thomas Koch <thomas@koch.ro>"]
+description = "Feed aggregation planet like Planet Venus, produces static HTML and ATOM feed from fetched feeds."
+homepage = "https://github.com/thkoch2001/planet-mars"
+license = "AGPL-3.0-or-later"
+keywords = ["atom", "rss", "planet", "feed", "blogging"]
+categories = ["web-programming"]
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+env_logger = "0"
+feed-rs = "2"
+log = "0"
+ron = "0"
+serde = { version = "1", features = ["derive"] }
+slug = "0"
+tera = "1"
+toml = "0"
+ureq = { version = "3.0.0-rc5", features = ["brotli", "charset", "gzip", "native-tls"]}
+url = "2"
+

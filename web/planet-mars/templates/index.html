@@ -1,0 +1,85 @@
+{% set dateformat = "%d.%m.%Y %H:%M" -%}
+<html>
+  <head>
+    <title>Planet TVL</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="generator" content="planet-mars">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="planet.css" type="text/css">
+    <link rel="alternate" type="application/xml+atom" title="Planet Haskell Atom Feed" href="atom.xml">
+  </head>
+  <body>
+    <div id="bodydiv">
+    <header>
+      <h1>Planet TVL</h1>
+    </header>
+    <div id="maincontainer">
+      <main>
+        {% for entry in entries -%}
+          {% if loop.index > 1 -%}
+            <hr class="entry_sep">
+          {% endif -%}
+          {% if entry.links.0 -%}
+            {% set link = entry.links.0.href -%}
+          {% else -%}
+            {% set link = "" -%}
+          {% endif -%}
+          <article>
+            <h2 class="entry_header">
+              <a {% if link -%}href="{{link}}"{% endif -%}>
+                {% if entry.title -%}
+                  {{ entry.title.content|striptags }}
+                {% else -%}
+                  NO TITLE
+                {% endif -%}
+              </a>
+            </h2>
+            <div class="entry_meta">
+              <date>
+                {% if entry.updated -%}
+                  <span>{{ entry.updated | date(format=dateformat) }}</span>
+                {% else -%}
+                  <span>{{ entry.published | date(format=dateformat) }}</span>
+                {% endif -%}
+              </date>
+              {% set author = get_author(entry=entry) -%}
+              {% if author -%}
+                &mdash; <span class="entry_author">{{ author | striptags }}</span>
+              {% endif -%}
+            </div>
+
+            {% if entry.content -%}
+              <div class="entry_content">
+                {{ entry.content.body }}
+              </div>
+            {% elif entry.summary -%}
+              <div class="entry_summary">
+                {{ entry.summary.content }}
+              </div>
+            {% endif -%}
+          </article>
+        {% endfor -%}
+      </main>
+
+      <aside>
+        <img src="logo.svg">
+        <p>Last updated: {{now()|date(format="%Y-%m-%d %H:%M")}}</p>
+        <ul>
+          {% for feed_url, feed in feeds %}
+            <li>
+              <a {% if feed.links.0 %}href="{{feed.links.0.href}}"{% endif -%}>
+                {% if feed.title -%}
+                  {{feed.title.content|striptags}}
+                {% elif feed.authors.0 and feed.authors.0.name %}
+                  {{ feed.authors.0.name }}
+                {% endif -%}
+              </a>
+              (<a href="{{feed_url}}">feed</a>)
+            </li>
+          {% endfor %}
+        </ul>
+      </aside>
+    </div>
+  </div>
+  </body>
+</html>
