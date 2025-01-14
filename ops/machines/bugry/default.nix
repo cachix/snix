@@ -6,8 +6,12 @@ let
 in
 {
   imports = [
+    (mod "known-hosts.nix")
+    (mod "nixery.nix")
     (mod "tvl-cache.nix")
     (mod "tvl-users.nix")
+    (mod "www/nixery.dev.nix")
+
     (depot.third_party.agenix.src + "/modules/age.nix")
   ];
 
@@ -166,6 +170,16 @@ in
 
   tvl.cache.enable = true;
   tvl.cache.builderball = true;
+
+  services.depot.nixery.enable = true;
+
+  services.depot.automatic-gc = {
+    enable = true;
+    interval = "1 hour";
+    diskThreshold = 50; # GiB (10% of disk)
+    maxFreed = 150; # GiB
+    preserveGenerations = "14d";
+  };
 
   system.stateVersion = "24.11";
 }
