@@ -5,7 +5,7 @@
 let
   cfg = config.services.depot.nixery;
   description = "Nixery - container images on-demand";
-  nixpkgsSrc = depot.third_party.sources.nixpkgs-stable;
+  nixpkgsSrc = depot.third_party.sources.nixpkgs;
   storagePath = "/var/lib/nixery/${nixpkgsSrc.rev}";
 in
 {
