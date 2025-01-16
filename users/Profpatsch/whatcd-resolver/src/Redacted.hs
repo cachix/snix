@@ -112,25 +112,29 @@ redactedGetTorrentFile ::
   ( MonadLogger m,
     MonadThrow m,
     HasField "torrentId" dat Int,
+    HasField "useFreeleechTokens" dat Bool,
     MonadOtel m,
     MonadRedacted m
   ) =>
   dat ->
   m ByteString
 redactedGetTorrentFile dat = inSpan' "Redacted Get Torrent File" $ \span -> do
-  req <-
-    mkRedactedApiRequest
-      ( T2
-          (label @"action" "download")
-          ( label @"actionArgs"
-              [ ("id", Just (buildBytes intDecimalB dat.torrentId))
-              -- try using tokens as long as we have them (TODO: what if there’s no tokens left?
-              -- ANSWER: it breaks:
-              -- responseBody = "{\"status\":\"failure\",\"error\":\"You do not have any freeleech tokens left. Please use the regular DL link.\"}",
-              -- ("usetoken", Just "1")
-              ]
-          )
-      )
+  let actionArgs =
+        [ ("id", Just (buildBytes intDecimalB dat.torrentId))
+        ]
+          -- try using tokens as long as we have them (TODO: what if there’s no tokens left?
+          -- ANSWER: it breaks:
+          -- responseBody = "{\"status\":\"failure\",\"error\":\"You do not have any freeleech tokens left. Please use the regular DL link.\"}",
+          <> (if dat.useFreeleechTokens then [("usetoken", Just "1")] else [])
+  let reqDat =
+        ( T2
+            (label @"action" "download")
+            ( label @"actionArgs" $ actionArgs
+            )
+        )
+  addAttribute span "redacted.request" (toOtelJsonAttr reqDat)
+  req <- mkRedactedApiRequest reqDat
+
   httpTorrent span req
 
 mkRedactedTorrentLink :: Arg "torrentGroupId" Int -> Text
@@ -447,6 +451,7 @@ redactedPagedSearchAndInsert innerParser pagedRequest = do
 
 redactedGetTorrentFileAndInsert ::
   ( HasField "torrentId" r Int,
+    HasField "useFreeleechTokens" r Bool,
     MonadPostgres m,
     MonadThrow m,
     MonadLogger m,

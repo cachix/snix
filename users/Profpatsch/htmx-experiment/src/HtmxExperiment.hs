@@ -18,7 +18,6 @@ import Data.Maybe qualified as Maybe
 import Data.Monoid qualified as Monoid
 import Data.Text qualified as Text
 import FieldParser hiding (nonEmpty)
-import GHC.TypeLits (KnownSymbol, symbolVal)
 import IHP.HSX.QQ (hsx)
 import Label
 import Multipart2 (FormValidation (FormValidation), FormValidationResult, MultipartParseT, failFormValidation)
@@ -152,12 +151,6 @@ fixed route handler inner = Router $ \from -> \case
 --     [final] | route == final -> (Just handler, label @route (Handler from))
 --     _ -> (Nothing, label @route handler)
 
--- | Get the text of a symbol via TypeApplications
-symbolText :: forall sym. KnownSymbol sym => Text
-symbolText = do
-  symbolVal (Proxy :: Proxy sym)
-    & stringToText
-
 main :: IO ()
 main = runStderrLoggingT @IO $ do
   withRunInIO @(LoggingT IO) $ \runInIO -> do
@@ -208,7 +201,7 @@ main = runStderrLoggingT @IO $ do
 
 parsePostBody ::
   (MonadIO m, MonadThrow m, MonadLogger m) =>
-  MultipartParseT backend m b ->
+  MultipartParseT m b ->
   Wai.Request ->
   m b
 parsePostBody parser req =
@@ -333,18 +326,17 @@ registerForm validationErrors =
   |]
 
 registerFormValidate ::
-  Applicative m =>
+  (Applicative m) =>
   MultipartParseT
-    w
     m
     (FormValidation (T2 "email" ByteString "password" ByteString))
 registerFormValidate = do
   let emailFP = FieldParser $ \b ->
         if
-            | Bytes.elem (charToWordUnsafe '@') b -> Right b
-            | otherwise -> Left [fmt|This is not an email address: "{b & bytesToTextUtf8Unsafe}"|]
+          | Bytes.elem (charToWordUnsafe '@') b -> Right b
+          | otherwise -> Left [fmt|This is not an email address: "{b & bytesToTextUtf8Unsafe}"|]
 
-  getCompose @(MultipartParseT _ _) @FormValidation $ do
+  getCompose @(MultipartParseT _) @FormValidation $ do
     email <- Compose $ Multipart.fieldLabel' @"email" "email" emailFP
     password <-
       aEqB
@@ -364,7 +356,7 @@ registerFormValidate = do
           pure $ if compare == validate then Just validate else Nothing
 
 -- | A lifted version of 'Data.Maybe.fromMaybe'.
-fromMaybeS :: Selective f => f a -> f (Maybe a) -> f a
+fromMaybeS :: (Selective f) => f a -> f (Maybe a) -> f a
 fromMaybeS ifNothing fma =
   select
     ( fma <&> \case

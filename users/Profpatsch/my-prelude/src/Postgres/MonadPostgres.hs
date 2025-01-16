@@ -257,6 +257,32 @@ ensureNoneOrSingleRow = \case
 --
 -- When dealing with small results, it may be simpler (and perhaps faster) to use query instead.
 --
+-- The results are folded strictly into the Monoid returned by the decoder.
+--
+-- If you need more complex folding logic, use 'foldRowsWith' with a 'Fold'.
+--
+-- If you can, prefer aggregating in the database itself.
+foldRowsWithMonoid ::
+  forall row params m.
+  ( MonadPostgres m,
+    PG.ToRow params,
+    Typeable row,
+    Typeable params,
+    Monoid row
+  ) =>
+  PG.Query ->
+  params ->
+  Decoder row ->
+  Transaction m row
+foldRowsWithMonoid qry params decoder = foldRowsWith qry params decoder Fold.mconcat
+
+-- | Run a query, passing parameters, and fold over the resulting rows.
+--
+-- This doesn’t have to realize the full list of results in memory,
+-- rather results are streamed incrementally from the database.
+--
+-- When dealing with small results, it may be simpler (and perhaps faster) to use query instead.
+--
 -- The results are folded strictly by the 'Fold.Fold' that is passed.
 --
 -- If you can, prefer aggregating in the database itself.

@@ -35,6 +35,7 @@ import Json.Enc (Enc)
 import Json.Enc qualified as Enc
 import JsonLd
 import Label
+import Multipart2 (MultipartParseT)
 import Multipart2 qualified as Multipart
 import MyPrelude
 import Network.HTTP.Client.Conduit qualified as Http
@@ -47,6 +48,7 @@ import Network.Wai (ResponseReceived)
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp qualified as Warp
 import OpenTelemetry.Attributes qualified as Otel
+import OpenTelemetry.Context.ThreadLocal qualified as Otel
 import OpenTelemetry.Trace qualified as Otel hiding (getTracer, inSpan, inSpan')
 import OpenTelemetry.Trace.Monad qualified as Otel
 import Parse (Parse)
@@ -106,15 +108,10 @@ htmlUi = do
               respondOrig (Wai.responseLBS Http.status500 [] "")
 
     catchAppException $ do
-      let mp span parser =
-            Multipart.parseMultipartOrThrow
-              (appThrow span . AppExceptionTree)
-              parser
-              req
-
       let torrentIdMp span =
-            mp
+            parseMultipartOrThrow
               span
+              req
               ( do
                   label @"torrentId" <$> Multipart.field "torrent-id" ((Field.utf8 >>> Field.signedDecimal >>> Field.bounded @Int "int"))
               )
@@ -131,8 +128,9 @@ htmlUi = do
                   Html $
                     \span -> do
                       dat <-
-                        mp
+                        parseMultipartOrThrow
                           span
+                          req
                           ( do
                               label @"searchstr" <$> Multipart.field "redacted-search" Cat.id
                           )
@@ -167,7 +165,8 @@ htmlUi = do
                   HtmlOrReferer $ \span -> do
                     dat <- torrentIdMp span
                     runTransaction $ do
-                      inserted <- redactedGetTorrentFileAndInsert dat
+                      settings <- getSettings
+                      inserted <- redactedGetTorrentFileAndInsert (T2 dat (getLabel @"useFreeleechTokens" settings))
                       running <-
                         lift @Transaction $
                           doTransmissionRequest' (transmissionRequestAddTorrent inserted)
@@ -208,7 +207,7 @@ htmlUi = do
                 ),
                 ( "snips/transmission/getTorrentState",
                   Html $ \span -> do
-                    dat <- mp span $ label @"torrentHash" <$> Multipart.field "torrent-hash" Field.utf8
+                    dat <- parseMultipartOrThrow span req $ label @"torrentHash" <$> Multipart.field "torrent-hash" Field.utf8
                     status <-
                       doTransmissionRequest'
                         ( transmissionRequestListOnlyTorrents
@@ -238,6 +237,26 @@ htmlUi = do
                           pure $ renderJsonld jsonld
                       )
                 ),
+                ( "settings",
+                  PostAndRedirect
+                    ( do
+                        settings <- runTransaction getSettings
+                        pure $ do
+                          returnTo <- Multipart.fieldLabel @"returnTo" "returnTo" Field.utf8
+                          parsed <- label @"settings" <$> settingsMultipartParser settings
+                          pure $ T2 returnTo parsed
+                    )
+                    $ \_span (s :: T2 "returnTo" Text "settings" Settings) -> do
+                      let Settings {useFreeleechTokens} = s.settings
+                      runTransaction $ do
+                        _ <-
+                          writeSettings
+                            [ T2
+                                (label @"key" "useFreeleechTokens")
+                                (label @"val" $ Json.Bool useFreeleechTokens)
+                            ]
+                        pure $ label @"redirectTo" (s.returnTo & textToBytesUtf8)
+                ),
                 ( "artist",
                   do
                     HtmlWithQueryArgs
@@ -251,8 +270,9 @@ htmlUi = do
                   HtmlOrRedirect $
                     \span -> do
                       dat <-
-                        mp
+                        parseMultipartOrThrow
                           span
+                          req
                           (label @"artistId" <$> Multipart.field "artist-id" Field.utf8)
                       t <- redactedRefreshArtist dat
                       runTransaction $ do
@@ -297,12 +317,17 @@ htmlUi = do
       --       "https://musicbrainz.org/work/92000fd4-d304-406d-aeb4-6bdbeed318ec"
       --     )
       --     <&> renderJsonld
-      bestTorrentsTable <- getBestTorrentsTable (label @"groupByReleaseType" False) Nothing
+      (bestTorrentsTable, settings) <-
+        concurrentlyTraced
+          (getBestTorrentsTable (label @"groupByReleaseType" False) Nothing)
+          (getSettings)
       -- transmissionTorrentsTable <- lift @Transaction getTransmissionTorrentsTable
+      let returnUrl = (label @"returnUrl" "/")
       pure $
         htmlPageChrome
           "whatcd-resolver"
           [hsx|
+            {settingButtons returnUrl settings}
             <form
               hx-post="/snips/redacted/search"
               hx-target="#redacted-search-results">
@@ -329,6 +354,27 @@ htmlUi = do
                 hx-swap="none"
             />
         |]
+
+-- | Run two actions concurrently, and add them to the current Otel trace
+concurrentlyTraced :: (MonadUnliftIO m) => m a -> m b -> m (a, b)
+concurrentlyTraced act1 act2 = do
+  ctx <- Otel.getContext
+  concurrently
+    ( do
+        _old <- Otel.attachContext ctx
+        act1
+    )
+    ( do
+        _old <- Otel.attachContext ctx
+        act2
+    )
+
+parseMultipartOrThrow :: (MonadLogger m, MonadIO m, MonadThrow m) => Otel.Span -> Wai.Request -> Multipart.MultipartParseT m a -> m a
+parseMultipartOrThrow span req parser =
+  Multipart.parseMultipartOrThrow
+    (appThrow span . AppExceptionTree)
+    parser
+    req
 
 -- | Reload the current page (via the Referer header) if the browser has Javascript disabled (and thus htmx does not work). This should make post requests work out of the box.
 htmxOrReferer :: Wai.Request -> Wai.Response -> Wai.Response
@@ -391,12 +437,18 @@ artistPage ::
   dat ->
   m Html
 artistPage dat = runTransaction $ do
-  fresh <-
-    getBestTorrentsData
-      (Just $ E22 (getLabel @"artistRedactedId" dat))
+  (fresh, settings) <-
+    concurrentlyTraced
+      ( getBestTorrentsData
+          (Just $ E22 (getLabel @"artistRedactedId" dat))
+      )
+      (getSettings)
   let artistName = fresh & findMaybe (\t -> t.artists & findMaybe (\a -> if a.artistId == (dat.artistRedactedId & fromIntegral @Natural @Int) then Just a.artistName else Nothing))
   let torrents = mkBestTorrentsTable (label @"groupByReleaseType" True) fresh
 
+  let returnUrl =
+        label @"returnUrl" $
+          mkArtistLink (label @"artistId" (dat.artistRedactedId & fromIntegral @Natural @Int))
   pure $
     htmlPageChrome
       ( case artistName of
@@ -404,6 +456,7 @@ artistPage dat = runTransaction $ do
           Just a -> [fmt|{a} - Artist Page - whatcd-resolver|]
       )
       [hsx|
+        {settingButtons returnUrl settings}
         <p>Artist ID: {dat.artistRedactedId}</p>
 
         <div id="artist-torrents">
@@ -433,12 +486,17 @@ data HandlerResponse m where
   HtmlWithQueryArgs :: Parse Query a -> (a -> Otel.Span -> m Html) -> HandlerResponse m
   -- | render html or reload the page via the Referer header if no htmx
   HtmlOrReferer :: (Otel.Span -> m Html) -> HandlerResponse m
+  -- | parse the request as POST submission, then redirect to the given endpoint
+  PostAndRedirect ::
+    m (MultipartParseT m dat) ->
+    (Otel.Span -> dat -> m (Label "redirectTo" ByteString)) ->
+    HandlerResponse m
   -- | render a plain wai response
   Plain :: m Wai.Response -> HandlerResponse m
 
 runHandlers ::
   forall m.
-  (MonadOtel m) =>
+  (MonadOtel m, MonadLogger m, MonadThrow m) =>
   (HandlerResponse m) ->
   (Map Text (HandlerResponse m)) ->
   Wai.Request ->
@@ -446,7 +504,7 @@ runHandlers ::
   m ResponseReceived
 runHandlers defaultHandler handlers req respond = withRunInIO $ \runInIO -> do
   let path = req & Wai.pathInfo & Text.intercalate "/"
-  let html' resp act =
+  let inRouteSpan =
         Otel.inSpan'
           [fmt|Route /{path}|]
           ( Otel.defaultSpanArguments
@@ -457,6 +515,8 @@ runHandlers defaultHandler handlers req respond = withRunInIO $ \runInIO -> do
                     ]
               }
           )
+  let html' resp act =
+        inRouteSpan
           ( \span -> do
               res <- act span <&> (\h -> label @"html" h)
               addEventSimple span "Got Html result, rendering…"
@@ -473,6 +533,18 @@ runHandlers defaultHandler handlers req respond = withRunInIO $ \runInIO -> do
             r.redirectTo
             (\status header -> Wai.responseLBS status [header] "")
             req
+  let postAndRedirect ::
+        MultipartParseT m dat ->
+        (Otel.Span -> dat -> m (Label "redirectTo" ByteString)) ->
+        m ResponseReceived
+      postAndRedirect parser act = inRouteSpan $ \span -> do
+        if (req & Wai.requestMethod) == "POST"
+          then do
+            dat <- parseMultipartOrThrow span req parser
+            res <- act span dat
+            liftIO $ respond (Wai.responseLBS Http.seeOther303 [("Location", res.redirectTo)] "")
+          else do
+            liftIO $ respond (Wai.responseLBS Http.methodNotAllowed405 [] "")
   let htmlWithQueryArgs parser act =
         case req & Parse.runParse "Unable to find the right request query arguments" (lmap Wai.queryString parser) of
           Right a -> html (act a)
@@ -492,6 +564,7 @@ runHandlers defaultHandler handlers req respond = withRunInIO $ \runInIO -> do
                               <pre>{err & prettyErrorTree}</pre>
                             |]
               )
+
   let handler =
         handlers
           & Map.lookup path
@@ -501,6 +574,7 @@ runHandlers defaultHandler handlers req respond = withRunInIO $ \runInIO -> do
             HtmlOrRedirect act -> htmlOrRedirect act
             HtmlWithQueryArgs parser act -> htmlWithQueryArgs parser act
             HtmlOrReferer act -> htmlOrReferer act
+            PostAndRedirect mParser act -> mParser >>= \parser -> postAndRedirect parser act
             Plain act -> liftIO $ runInIO act >>= respond
   runInIO handler
 
@@ -689,7 +763,7 @@ mkBestTorrentsTable opts fresh = do
                       b.artists
                         <&> ( \a ->
                                 T2
-                                  (label @"url" [fmt|/artist?redacted_id={a.artistId}|])
+                                  (label @"url" $ mkArtistLink a)
                                   (label @"content" $ Html.toHtml @Text a.artistName)
                             )
                         & mkLinkList
@@ -759,6 +833,9 @@ mkLinkList xs =
     & List.intersperse ", "
     & mconcat
 
+mkArtistLink :: (HasField "artistId" r Int) => r -> Text
+mkArtistLink a = [fmt|/artist?redacted_id={a.artistId}|]
+
 getTransmissionTorrentsTable ::
   (MonadTransmission m, MonadThrow m, MonadLogger m, MonadOtel m) => m Html
 getTransmissionTorrentsTable = do
@@ -805,6 +882,12 @@ migrate = inSpan "Database Migration" $ do
   execute
     [sql|
     CREATE SCHEMA IF NOT EXISTS redacted;
+
+    CREATE TABLE IF NOT EXISTS redacted.settings (
+      id SERIAL PRIMARY KEY,
+      key TEXT NOT NULL UNIQUE,
+      value JSONB
+    );
 
     CREATE TABLE IF NOT EXISTS redacted.torrent_groups (
       id SERIAL PRIMARY KEY,
@@ -990,3 +1073,97 @@ withDb act = do
     -- print [fmt|data dir: {db & TmpPg.toDataDirectory}|]
     -- print [fmt|conn string: {db & TmpPg.toConnectionString}|]
     act db
+
+data Settings = Settings
+  { useFreeleechTokens :: Bool
+  }
+  deriving stock (Generic)
+
+settingFreeleechToken :: Bool -> Settings
+settingFreeleechToken b = Settings {useFreeleechTokens = b}
+
+instance Semigroup Settings where
+  a <> b = Settings {useFreeleechTokens = a.useFreeleechTokens || b.useFreeleechTokens}
+
+instance Monoid Settings where
+  mempty = Settings {useFreeleechTokens = False}
+
+submitSettingForm :: (HasField "returnUrl" r Text, ToHtml a) => r -> a -> Html
+submitSettingForm opts inputs =
+  [hsx|
+  <form
+    method="post"
+    action="/settings"
+  >
+    <input type="hidden" name="returnTo" value={opts.returnUrl} />
+    {inputs}
+  </form>
+  |]
+
+settingButtons :: (HasField "returnUrl" opts Text) => opts -> Settings -> Html
+settingButtons opts s =
+  if s.useFreeleechTokens
+    then
+      submitSettingForm
+        opts
+        [hsx|<p>Using freeleech tokens! <input type="submit" name="useFreeleechTokensOFF" value="Turn off" /></p>|]
+    else
+      submitSettingForm
+        opts
+        [hsx|<p>Not using freeleech tokens <input type="submit" name="useFreeleechTokensON" value="Turn on" /></p>|]
+
+settingsMultipartParser :: (Applicative m) => Settings -> MultipartParseT m Settings
+settingsMultipartParser old = do
+  useFreeleechTokens <- do
+    on <-
+      Multipart.fieldMay
+        "useFreeleechTokensON"
+        (cconst $ True)
+    off <-
+      Multipart.fieldMay
+        "useFreeleechTokensOFF"
+        (cconst $ False)
+    pure $ (on <|> off) & fromMaybe old.useFreeleechTokens
+  pure $ Settings {..}
+
+getSettings :: (MonadPostgres m, MonadOtel m) => Transaction m Settings
+getSettings = inSpan' "Get Settings" $ \span -> do
+  res <-
+    foldRowsWithMonoid
+      [sql|
+    SELECT key, value
+    FROM redacted.settings
+  |]
+      ()
+      ( do
+          key <- Dec.text
+          Dec.jsonMay
+            ( case key of
+                "useFreeleechTokens" -> settingFreeleechToken <$> Json.asBool
+                _ -> pure mempty
+            )
+            <&> fromMaybe mempty
+      )
+  lift $ addAttribute span "settings" (toOtelAttrGenericStruct res)
+  pure res
+
+writeSettings ::
+  (MonadPostgres m, MonadOtel m) =>
+  [T2 "key" Text "val" Json.Value] ->
+  Transaction m (Label "numberOfRowsAffected" Natural)
+writeSettings settings = inSpan' "Write Settings" $ \span -> do
+  addAttribute
+    span
+    "settings"
+    ( toOtelJsonAttr $
+        Enc.list
+          (\s -> Enc.tuple2 Enc.text Enc.value (s.key, s.val))
+          settings
+    )
+  execute
+    [sql|
+    INSERT INTO redacted.settings (key, value)
+    SELECT * FROM UNNEST(?::text[], ?::jsonb[])
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+  |]
+    (settings & unzipPGArray @"key" @Text @"val" @Json.Value)

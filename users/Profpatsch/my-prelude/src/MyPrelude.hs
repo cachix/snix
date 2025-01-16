@@ -80,6 +80,9 @@ module MyPrelude
     MonadTrans,
     lift,
 
+    -- * Kinds
+    Type,
+
     -- * Data types
     Coercible,
     coerce,
@@ -154,6 +157,7 @@ module MyPrelude
     Category,
     (>>>),
     (&>>),
+    cconst,
     Any,
 
     -- * Enum definition
@@ -174,6 +178,7 @@ where
 
 import Control.Applicative ((<|>))
 import Control.Category (Category, (>>>))
+import Control.Category qualified as Category
 import Control.Foldl.NonEmpty qualified as Foldl1
 import Control.Monad (guard, join, unless, when)
 import Control.Monad.Catch (MonadThrow (throwM))
@@ -200,6 +205,7 @@ import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.Functor.Contravariant (Contravariant (contramap), (>$<))
 import Data.Functor.Identity (Identity (runIdentity))
+import Data.Kind (Type)
 import Data.List (zip4)
 import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty ((:|)), nonEmpty)
@@ -285,6 +291,11 @@ infixl 5 >&<
 
 -- like >>>
 infixr 1 &>>
+
+-- | Categorical constant function,
+-- like 'const' but works for anything that’s a category and profunctor.
+cconst :: (Category c, Profunctor c) => b -> c a b
+cconst b = Category.id & rmap (\_ -> b)
 
 -- | encode a Text to a UTF-8 encoded Bytestring
 textToBytesUtf8 :: Text -> ByteString

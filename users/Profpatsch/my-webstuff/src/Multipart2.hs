@@ -23,7 +23,7 @@ data FormFields = FormFields
   }
 
 -- | A parser for a HTTP multipart form (a form sent by the browser)
-newtype MultipartParseT backend m a = MultipartParseT
+newtype MultipartParseT m a = MultipartParseT
   { unMultipartParseT ::
       FormFields ->
       m (Validation (NonEmpty Error) a)
@@ -32,7 +32,9 @@ newtype MultipartParseT backend m a = MultipartParseT
     (Functor, Applicative, Selective)
     via (ValidationParseT FormFields m)
 
--- | After parsing a form, either we get the result or a list of form fields that failed
+-- | After parsing a form, either we get the result or a list of form fields that failed.
+--
+-- Using this via Applicative you get either a valid result (@Just a@), or a list of validation errors.
 newtype FormValidation a
   = FormValidation
       (DList FormValidationResult, Maybe a)
@@ -87,7 +89,7 @@ failFormValidation form err =
 parseMultipartOrThrow ::
   (MonadLogger m, MonadIO m) =>
   (ErrorTree -> m a) ->
-  MultipartParseT backend m a ->
+  MultipartParseT m a ->
   Wai.Request ->
   m a
 parseMultipartOrThrow throwF parser req = do
@@ -108,17 +110,32 @@ parseMultipartOrThrow throwF parser req = do
       Success a -> pure a
 
 -- | Parse the field out of the multipart message
-field :: (Applicative m) => ByteString -> FieldParser ByteString a -> MultipartParseT backend m a
+field :: (Applicative m) => ByteString -> FieldParser ByteString a -> MultipartParseT m a
 field fieldName fieldParser = MultipartParseT $ \mp ->
   mp.inputs
     & findMaybe (\input -> if fst input == fieldName then Just (snd input) else Nothing)
     & annotate [fmt|Field "{fieldName}" does not exist in the multipart form|]
     >>= runFieldParser fieldParser
-    & eitherToListValidation
-    & pure
+      & eitherToListValidation
+      & pure
 
 -- | Parse the field out of the multipart message
-field' :: (Applicative m) => ByteString -> FieldParser ByteString a -> MultipartParseT backend m (FormValidation a)
+fieldMay :: (Applicative m) => ByteString -> FieldParser ByteString a -> MultipartParseT m (Maybe a)
+fieldMay fieldName fieldParser = MultipartParseT $ \mp ->
+  mp.inputs
+    & findMaybe (\input -> if fst input == fieldName then Just (snd input) else Nothing)
+    & \case
+      Nothing -> pure $ Success Nothing
+      Just b ->
+        b
+          & runFieldParser fieldParser
+          & eitherToListValidation
+          <&> Just
+          & pure
+
+-- | Parse the field out of the multipart message
+-- TODO: what is this for??
+field' :: (Applicative m) => ByteString -> FieldParser ByteString a -> MultipartParseT m (FormValidation a)
 field' fieldName fieldParser = MultipartParseT $ \mp ->
   mp.inputs
     & findMaybe (\input -> if fst input == fieldName then Just $ snd input else Nothing)
@@ -136,15 +153,15 @@ field' fieldName fieldParser = MultipartParseT $ \mp ->
     & pure
 
 -- | Parse the field out of the multipart message, and into a 'Label' of the given name.
-fieldLabel :: forall lbl backend m a. (Applicative m) => ByteString -> FieldParser ByteString a -> MultipartParseT backend m (Label lbl a)
+fieldLabel :: forall lbl m a. (Applicative m) => ByteString -> FieldParser ByteString a -> MultipartParseT m (Label lbl a)
 fieldLabel fieldName fieldParser = label @lbl <$> field fieldName fieldParser
 
 -- | Parse the field out of the multipart message, and into a 'Label' of the given name.
-fieldLabel' :: forall lbl backend m a. (Applicative m) => ByteString -> FieldParser ByteString a -> MultipartParseT backend m (FormValidation (Label lbl a))
+fieldLabel' :: forall lbl m a. (Applicative m) => ByteString -> FieldParser ByteString a -> MultipartParseT m (FormValidation (Label lbl a))
 fieldLabel' fieldName fieldParser = fmap (label @lbl) <$> field' fieldName fieldParser
 
 -- | parse all fields out of the multipart message, with the same parser
-allFields :: (Applicative m) => FieldParser (T2 "key" ByteString "value" ByteString) b -> MultipartParseT backend m [b]
+allFields :: (Applicative m) => FieldParser (T2 "key" ByteString "value" ByteString) b -> MultipartParseT m [b]
 allFields fieldParser = MultipartParseT $ \mp ->
   mp.inputs
     <&> tupToT2 @"key" @"value"
@@ -159,7 +176,7 @@ tupToT2 (a, b) = T2 (label a) (label b)
 file ::
   (Applicative m) =>
   ByteString ->
-  MultipartParseT backend m (MultipartFile Lazy.ByteString)
+  MultipartParseT m (MultipartFile Lazy.ByteString)
 file fieldName = MultipartParseT $ \mp ->
   mp.files
     & List.find (\input -> input.multipartNameAttribute == fieldName)
@@ -173,14 +190,14 @@ file fieldName = MultipartParseT $ \mp ->
 -- | Return all files from the multipart message
 allFiles ::
   (Applicative m) =>
-  MultipartParseT backend m [MultipartFile Lazy.ByteString]
+  MultipartParseT m [MultipartFile Lazy.ByteString]
 allFiles = MultipartParseT $ \mp -> do
   pure $ Success $ mp.files
 
 -- | Ensure there is exactly one file and return it (ignoring the field name)
 exactlyOneFile ::
   (Applicative m) =>
-  MultipartParseT backend m (MultipartFile Lazy.ByteString)
+  MultipartParseT m (MultipartFile Lazy.ByteString)
 exactlyOneFile = MultipartParseT $ \mp ->
   mp.files
     & \case
