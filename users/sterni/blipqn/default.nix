@@ -17,6 +17,22 @@ let
       pkgs.cbqn
     ];
 
+    doCheck = true;
+    checkInputs = [
+      pkgs.netcat-openbsd
+    ];
+    checkPhase = ''
+      runHook preCheck
+      nc -lu 2323 > raw &
+      BQN ./examples.bqn localhost 2323 32 10 235
+      kill %1
+      base64 raw > received
+      diff -u received - <<EOF
+      AAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+      EOF
+      runHook postCheck
+    '';
+
     meta.ci.targets = [ "debug" ];
     passthru.debug = drv.overrideAttrs (old: {
       CFLAGS = "-g -Werror -DFLIPDOT_DEBUG=1";
