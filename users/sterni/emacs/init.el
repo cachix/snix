@@ -357,9 +357,10 @@
   ;; This is based on (car deft-extensions), but unfortunately the variable is
   ;; not re-bound in the hook defined by defcustom, so it is always "txt".
   (setq deft-default-extension "org")
+  (setq deft-recursive t)
   (evil-define-key 'normal 'global (kbd "<leader>mn") 'deft)
   :custom
-  deft-directory (expand-file-name "~/files/sync/org/notes")
+  deft-directory (expand-file-name "~/files/sync/org")
   deft-extensions '("org" "md" "txt" "tex"))
 
 (unless (server-running-p)
