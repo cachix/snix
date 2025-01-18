@@ -157,6 +157,11 @@ in
         url = "depot@sanduny.tvl.su:/var/lib/depot";
         projects = "depot";
       };
+
+      remote.bugry = {
+        url = "depot@bugry.tvl.fyi:/var/lib/depot";
+        projects = "depot";
+      };
     };
   };
 

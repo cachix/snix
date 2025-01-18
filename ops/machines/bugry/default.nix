@@ -6,6 +6,7 @@ let
 in
 {
   imports = [
+    (mod "depot-replica.nix")
     (mod "known-hosts.nix")
     (mod "nixery.nix")
     (mod "tvl-cache.nix")
@@ -172,6 +173,9 @@ in
   tvl.cache.builderball = true;
 
   services.depot.nixery.enable = true;
+
+  # Allow Gerrit to replicate depot to /var/lib/depot
+  services.depot.replica.enable = true;
 
   services.depot.automatic-gc = {
     enable = true;
