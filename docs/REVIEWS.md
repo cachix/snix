@@ -10,7 +10,7 @@ TVL Code Reviews
     - [Gerrit workflows](#gerrit-workflows)
     - [Review process & approvals](#review-process--approvals)
     - [Submitting changes via email](#submitting-changes-via-email)
-    - [Gerrit for Github users](#gerrit-for-github-users)
+    - [Gerrit for GitHub users](#gerrit-for-github-users)
 
 <!-- markdown-toc end -->
 
@@ -29,7 +29,7 @@ The preferred method of contributions & review is done via Gerrit.
 TVL’s Gerrit supports single sign-on (SSO) using a GitHub, StackOverflow or
 GitLab.com account.
 
-Additionally if you want prefer not to use an SSO option or wish to have a
+Additionally, if you prefer not to use an SSO option or wish to have a
 backup authentication strategy in the event of downed server or a keycloak
 issue (recommended), you can create a TVL-specific LDAP account on the Gerrit
 instance by following these instructions:
@@ -53,7 +53,7 @@ Gerrit.
 First, [tell Gerrit][Gerrit SSH] about your SSH keys.
 
 Then, to make using Gerrit smooth for users, the repository should be cloned and
-a commit hook should be installed as follows:
+a commit hook installed as follows:
 
 ```
 git clone "ssh://$USER@code.tvl.fyi:29418/depot"
@@ -92,7 +92,7 @@ git config remote.origin.push HEAD:refs/for/canon
 Then, after making your change, push to the default, or to a special target:
 
 ```
-Example:
+# Example:
 git commit -m 'docs(REVIEWS): Fixed all the errors in the reviews docs'
 git push origin
 
@@ -144,7 +144,7 @@ both sides:
    on your behalf.
  - If you decide to get a Gerrit account later on, existing CLs need to be
    abandoned and recreated (as CLs can't change Owner).
-   This causing earlier reviews do be more disconnected, causing more churn.
+   This causes earlier reviews to be more disconnected, and thus more churn.
 
 We provide local accounts and do SSO with various third-parties, so getting the
 account should usually be low-friction.
@@ -161,18 +161,18 @@ Create an appropriate commit locally and send it us using either of these option
 
 The email address is a [public inbox][].
 
-## Gerrit for Github Users
+## Gerrit for GitHub Users
 
 There is a walkthrough that describes [only the parts that differ
-from Github][github-diff], although it does not cover [attention
+from GitHub][github-diff], although it does not cover [attention
 sets][], which are important to understand.
 
 ### Attention Sets
 
-The attention set of a CL is somewhat similar to the set of Github
+The attention set of a CL is somewhat similar to the set of GitHub
 users who have unread notifications for a PR.  The "your turn" list
 on the dashboard is similar to your unread notifications list in
-Github.  These similarities are only rough approximations, however.
+GitHub.  These similarities are only rough approximations, however.
 
 Unfortunately the rules for updating attention sets are very
 different and complex.  If you don't read and understand them, you
