@@ -26,12 +26,11 @@ All changes are tracked at [cl.tvl.fyi](https://cl.tvl.fyi) using Gerrit. See
 
 The preferred method of contributions & review is done via Gerrit.
 
-TVL’s Gerrit supports single sign-on (SSO) using a GitHub, StackOverflow or
-GitLab.com account.
+For quick drive-by contributions, TVL’s Gerrit supports single sign-on (SSO)
+using a GitHub, StackOverflow or GitLab.com account (or alternatively, you
+can [submit changes via email](#submitting-changes-via-email)).
 
-Additionally, if you prefer not to use an SSO option or wish to have a
-backup authentication strategy in the event of downed server or a keycloak
-issue (recommended), you can create a TVL-specific LDAP account on the Gerrit
+In general, we recommend to create a TVL-specific LDAP account on the Gerrit
 instance by following these instructions:
 
 1. Be a member of `#tvl` on [hackint][].
