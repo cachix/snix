@@ -103,7 +103,9 @@ git push origin HEAD:refs/for/canon%wip
 TIP: Every individual commit will become a separate change. We do not squash
 related commits, but instead submit them one by one. Be aware that if you are
 expecting a different behaviour and attempt something like an unsquashed subtree
-merge, you will produce a *lot* of CLs. This is strongly discouraged.
+merge, you will produce a *lot* of CLs (read
+[how to import another project properly][importing-projects]).
+This is strongly discouraged.
 
 During your review, the reviewer(s) might ask you to make changes. You can
 simply amend your commit(s) and push to the same ref. Gerrit will automatically
@@ -159,6 +161,8 @@ Create an appropriate commit locally and send it us using either of these option
 * `git send-email`: If configured on your system, this will take care of the
   whole emailing process for you.
 
+For more details, refer to the [official git documentation][git-contributing-email].
+
 The email address is a [public inbox][].
 
 ## Gerrit for GitHub Users
@@ -204,3 +208,5 @@ read.
 [github-diff]: https://gerrit.wikimedia.org/r/Documentation/intro-gerrit-walkthrough-github.html
 [attention sets]: https://gerrit-review.googlesource.com/Documentation/user-attention-set.html
 [attention-set-rules]: https://gerrit-review.googlesource.com/Documentation/user-attention-set.html#_rules
+[git-contributing-email]: https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project#_project_over_email
+[importing-projects]: ./importing-projects.md
