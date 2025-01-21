@@ -112,7 +112,10 @@ repository, you can usually build the project by calling `nix-build -A
 path.to.project`.
 
 For example, to build a project located at `//tools/foo` you would call
-`nix-build -A tools.foo`
+`nix-build -A tools.foo` from the repository root. `//tools/magrathea`
+(which is added to `PATH` automatically if you enable [direnv][])
+allows you to do the same via `mg build //tools/foo`
+regardless of what your working directory is.
 
 If the project has tests, check that they still work before submitting your
 change.
@@ -127,3 +130,4 @@ review][] documentation.
 [code review]: ./REVIEWS.md
 [Conventional Commits]: https://www.conventionalcommits.org
 [Importing projects into depot]: ./importing-projects.md
+[direnv]: https://direnv.net
