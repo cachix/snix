@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ depot, pkgs, lib, ... }:
 
 let
   patchesFromDir = dir:
@@ -12,6 +12,8 @@ let
     exec ${pkgs.cbqn}/bin/BQN ${../mkbqnkeyboard.bqn} -s -i \
       "${pkgs.srcOnly pkgs.mbqn}/editors/inputrc" "$1"
   '';
+
+  inherit (depot.users.sterni.acme) plan9port;
 in
 
 pkgs.plan9port.overrideAttrs (old: {
@@ -23,17 +25,32 @@ pkgs.plan9port.overrideAttrs (old: {
     mv plumb/sterni.plumbing plumb/initial.plumbing
   '';
 
-  nativeBuildInputs = old.nativeBuildInputs or [ ] ++ [
-    pkgs.buildPackages.makeWrapper
-  ];
+  passthru = old.passthru or { } // {
+    wrapper =
+      let
+        PLAN9 = "${plan9port}/plan9";
+        globalBins = [
+          "9p"
+          "9pfuse"
+        ];
+      in
+      pkgs.runCommandNoCC "${old.pname}-wrapper-${old.version}"
+        {
+          nativeBuildInputs = [
+            pkgs.buildPackages.makeWrapper
+          ];
+        }
+        ''
+          mkdir -p "$out/bin"
 
-  # Make some tools (that don't clash) available in PATH directly
-  postInstall = old.postInstall or "" + ''
-    for cmd in 9p 9pfuse; do
-      makeWrapper "$out/plan9/bin/$cmd" "$out/bin/$cmd" \
-        --set PLAN9 "$out/plan9"
-    done
-  '';
+          ln -s "${plan9port}/bin/9" "$out/bin/"
+          for cmd in ${lib.escapeShellArgs globalBins}; do
+            makeWrapper "${PLAN9}/bin/$cmd" "$out/bin/$cmd" \
+              --set PLAN9 "${PLAN9}"
+          done
+
+        '';
+  };
 
   doInstallCheck = true;
   installCheckPhase = old.installCheckPhase or "" + ''
@@ -46,4 +63,8 @@ pkgs.plan9port.overrideAttrs (old: {
     "$out/bin/9" 9p write plumb/rules < ${./../plumb}/sterni.plumbing
     kill "$pid"
   '';
+
+  meta = old.meta or { } // {
+    ci.targets = [ "wrapper" ];
+  };
 })
