@@ -122,7 +122,7 @@
 
 (let ((org-folder (concat (getenv "HOME") "/files/sync/org")))
   (setq org-agenda-files (directory-files-recursively org-folder "\\.org$")
-        org-default-notes-file (concat org-folder "/inbox.org")
+        org-default-notes-file (concat org-folder "/context.org")
         initial-buffer-choice org-default-notes-file
         org-refile-targets '((org-agenda-files . (:maxlevel . 2)))))
 
