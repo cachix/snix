@@ -29,7 +29,8 @@ plumb start rc -c 'cd '$wdir'; cd `{git rev-parse --show-toplevel} && git show -
 # TODO(sterni): can we add an acme address to target paths somehow?
 
 # TODO(sterni): look at //tools/magrathea's parsing.
-depotpathchar = '[^:.,!"'' ]'
+# TODO(sterni): only be strict at the boundary
+depotpathchar = '[^:.,;!?"''`|~(){}\[\]<> ]'
 depotpath = '//('$depotpathchar'+)'
 
 # TVL short links to files in depot, open in local editor, e.g.
