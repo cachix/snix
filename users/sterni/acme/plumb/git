@@ -1,0 +1,5 @@
+# based on https://blog.silvela.org/post/2021-12-11-acme-tricks/
+type	is	text
+data	matches	'[0-9a-f]*[a-f][0-9a-f]*'
+data	matches	'([0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]+)'
+plumb	start rc -c 'cd '$wdir'; cd `{git rev-parse --show-toplevel} && git show --pretty=fuller '$1' | plumb -i -d edit -a ''action=showdata filename=+git/'$1''' '

@@ -1,7 +1,6 @@
 # TODO(sterni): are rules for :linenumber etc. needed or acme default?
 # TODO(sterni): file: urls
 # TODO(sterni): xdg-open for mail addresses, images, pdfs etc.
-# TODO(sterni): git
 
 editor = acme
 include man
@@ -9,4 +8,5 @@ include man
 depot = /home/lukas/src/depot
 include tvl
 
+include git
 include urls
