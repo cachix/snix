@@ -113,7 +113,6 @@ Hackint also provide a [web chat][tvl-webchat].
 [Nix]: https://nixos.org/nix
 [an experiment]: https://tvl.fyi/monorepo-doc
 [panettone]: https://cs.tvl.fyi/depot@canon/-/tree/web/panettone
-[tvix]: https://cs.tvl.fyi/depot/-/blob/third_party/nix/README.md
 [dottime]: https://dotti.me
 [tvl-irc]: ircs://irc.hackint.org:6697/#tvl
 [hackint]: https://hackint.org/
