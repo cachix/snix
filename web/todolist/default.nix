@@ -48,7 +48,7 @@ let
 
   fileLink = defun [ todo string ] (t:
     ''<a style="color: inherit;"
-         href="https://cs.tvl.fyi/depot/-/blob/${t.file}#L${toString t.line}">
+         href="https://code.tvl.fyi/tree/${t.file}#n${toString t.line}">
       //${t.file}:${toString t.line}</a>'');
 
   todoElement = defun [ todo string ] (t: ''
@@ -105,7 +105,7 @@ writeTextFile {
         <p class="footer">
           <a class="uncoloured-link" href="https://tvl.fyi">homepage</a>
           |
-          <a class="uncoloured-link" href="https://cs.tvl.fyi/depot/-/blob/README.md">code</a>
+          <a class="uncoloured-link" href="https://code.tvl.fyi/about/README.md">code</a>
           |
           <a class="uncoloured-link" href="https://cl.tvl.fyi">reviews</a>
         </p>
