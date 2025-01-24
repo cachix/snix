@@ -127,7 +127,7 @@
                                  (directory-files-recursively org-folder "\\.org$"))
         org-default-notes-file (concat org-folder "/context.org")
         initial-buffer-choice org-default-notes-file
-        org-refile-targets '((org-agenda-files . (:maxlevel . 2)))))
+        org-refile-targets '((org-agenda-files . (:maxlevel . 4)))))
 
 ;; latex
 
