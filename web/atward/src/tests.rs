@@ -59,11 +59,6 @@ fn depot_root_cgit_query() {
 #[test]
 fn plain_host_queries() {
     assert_eq!(
-        dispatch(&handlers(), &"cs".into()),
-        Some("https://cs.tvl.fyi/".to_string()),
-    );
-
-    assert_eq!(
         dispatch(&handlers(), &"cl".into()),
         Some("https://cl.tvl.fyi/".to_string()),
     );
