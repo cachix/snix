@@ -244,6 +244,7 @@ Like \\[project-find-regexp], but always ask for a directory (defaulting to
   (evil-define-key 'normal 'global (kbd "<leader>em") 'man)
   (evil-define-key '(normal visual) 'global (kbd "<leader>eu") 'browse-url-at-point)
   (evil-define-key '(normal visual) 'global (kbd "<leader>ef") 'ffap)
+  (evil-define-key 'normal 'global (kbd "<leader>eo") 'occur)
   (evil-define-key 'normal 'global (kbd "<leader>eg") 'sterni-find-regexp)
   (evil-define-key 'normal 'global (kbd "<leader>er") 'rename-visited-file)
   ;; modify what is displayed
