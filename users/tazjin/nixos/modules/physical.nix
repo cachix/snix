@@ -86,6 +86,7 @@ in
         unzip
         vlc
         volumeicon
+        watchexec
         whois
         xclip
         xsecurelock
