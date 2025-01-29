@@ -57,7 +57,7 @@ where
             .await
             // The last entry of the stream must have 1 path component, after which
             // we break the loop manually.
-            .expect("Tvix bug: unexpected end of stream")?;
+            .ok_or(IngestionError::UnexpectedEndOfStream)??;
 
         let node = match &mut entry {
             IngestionEntry::Dir { .. } => {
@@ -290,9 +290,7 @@ mod test {
     }
 
     #[rstest]
-    #[should_panic]
     #[case::empty_entries(vec![])]
-    #[should_panic]
     #[case::missing_intermediate_dir(vec![
         IngestionEntry::Regular {
             path: "blub/.keep".parse().unwrap(),
@@ -301,6 +299,21 @@ mod test {
             digest: EMPTY_BLOB_DIGEST.clone(),
         },
     ])]
+    #[tokio::test]
+    async fn test_end_of_stream(#[case] entries: Vec<IngestionEntry>) {
+        use crate::import::IngestionError;
+
+        let directory_service = MemoryDirectoryService::default();
+
+        let result = ingest_entries(
+            directory_service.clone(),
+            futures::stream::iter(entries.into_iter().map(Ok::<_, std::io::Error>)),
+        )
+        .await;
+        assert!(matches!(result, Err(IngestionError::UnexpectedEndOfStream)));
+    }
+
+    #[rstest]
     #[should_panic]
     #[case::leaf_after_parent(vec![
         IngestionEntry::Dir {

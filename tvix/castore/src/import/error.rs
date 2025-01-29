@@ -17,4 +17,7 @@ pub enum IngestionError<E: std::fmt::Display> {
 
     #[error("failed to finalize directory upload: {0}")]
     FinalizeDirectoryUpload(CastoreError),
+
+    #[error("unexpected end of stream")]
+    UnexpectedEndOfStream,
 }
