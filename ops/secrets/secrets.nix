@@ -1,8 +1,4 @@
 let
-  flokli = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPTVTXOutUZZjXLB0lUSgeKcSY/8mxKkC0ingGK1whD2 flokli"
-  ];
-
   tazjin = [
     # tverskoy
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM1fGWz/gsq+ZeZXjvUrV+pBlanw1c3zJ9kLTax9FWQy"
@@ -25,45 +21,44 @@ let
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJk+KvgvI2oJTppMASNUfMcMkA2G5ZNt+HnWDzaXKLlo"
   ];
 
+  flokli = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPTVTXOutUZZjXLB0lUSgeKcSY/8mxKkC0ingGK1whD2 flokli";
+
   sanduny = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOag0XhylaTVhmT6HB8EN2Fv5Ymrc4ZfypOXONUkykTX";
   whitby = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILNh/w4BSKov0jdz3gKBc98tpoLta5bb87fQXWBhAl2I";
   nevsky = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHQe7M+G8Id3ZD7j+I07TCUV1o12q1vpsOXHRlcPSEfa";
   bugry = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGqG6sITyJ/UsQ/RtYqmmMvTT4r4sppadoQIz5SvA+5J";
 
   admins = tazjin ++ aspen ++ sterni;
-  terraform.publicKeys = tazjin ++ aspen ++ sterni ++ flokli;
-  whitbyDefault.publicKeys = admins ++ [ whitby ];
-  allDefault.publicKeys = admins ++ [ sanduny whitby ];
-  sandunyDefault.publicKeys = admins ++ [ sanduny ];
-  bugryDefault.publicKeys = admins ++ [ bugry ];
-  nevskyDefault.publicKeys = admins ++ [ nevsky ];
-  cacheDefault.publicKeys = whitbyDefault.publicKeys ++ [ nevsky ];
+  allHosts = [ whitby sanduny nevsky bugry ];
+  for = hosts: {
+    publicKeys = hosts ++ admins;
+  };
 in
 {
-  "besadii.age" = cacheDefault;
-  "buildkite-agent-token.age" = cacheDefault;
-  "buildkite-graphql-token.age" = cacheDefault;
-  "buildkite-ssh-private-key.age" = cacheDefault;
-  "clbot-ssh.age" = whitbyDefault;
-  "clbot.age" = whitbyDefault;
-  "depot-inbox-imap.age" = sandunyDefault;
-  "depot-replica-key.age" = whitbyDefault;
-  "gerrit-autosubmit.age" = whitbyDefault;
-  "gerrit-secrets.age" = whitbyDefault;
-  "grafana.age" = whitbyDefault;
-  "irccat.age" = whitbyDefault;
-  "journaldriver.age" = allDefault;
-  "keycloak-db.age" = whitbyDefault;
-  "nix-cache-priv.age" = cacheDefault;
-  "nix-cache-pub.age" = cacheDefault;
-  "owothia.age" = whitbyDefault;
-  "panettone.age" = whitbyDefault;
-  "smtprelay.age" = whitbyDefault;
-  "teleirc.age" = whitbyDefault;
-  "tf-buildkite.age" = terraform;
-  "tf-glesys.age" = terraform;
-  "tf-keycloak.age" = terraform;
-  "tvl-alerts-bot-telegram-token.age" = whitbyDefault;
-  "wg-bugry.age" = bugryDefault;
-  "wg-nevsky.age" = nevskyDefault;
+  "besadii.age" = for [ whitby nevsky ];
+  "buildkite-agent-token.age" = for [ whitby nevsky ];
+  "buildkite-graphql-token.age" = for [ whitby nevsky ];
+  "buildkite-ssh-private-key.age" = for [ whitby nevsky ];
+  "clbot-ssh.age" = for [ whitby nevsky ];
+  "clbot.age" = for [ whitby nevsky ];
+  "depot-inbox-imap.age" = for [ sanduny ];
+  "depot-replica-key.age" = for [ whitby nevsky ];
+  "gerrit-autosubmit.age" = for [ whitby nevsky ];
+  "gerrit-secrets.age" = for [ whitby nevsky ];
+  "grafana.age" = for [ whitby nevsky ];
+  "irccat.age" = for [ whitby nevsky ];
+  "journaldriver.age" = for allHosts;
+  "keycloak-db.age" = for [ whitby nevsky ];
+  "nix-cache-priv.age" = for [ whitby nevsky ];
+  "nix-cache-pub.age" = for [ whitby nevsky ];
+  "owothia.age" = for [ whitby nevsky ];
+  "panettone.age" = for [ whitby nevsky ];
+  "smtprelay.age" = for [ whitby nevsky ];
+  "teleirc.age" = for [ whitby nevsky ];
+  "tf-buildkite.age" = for [ /* humans only */ ];
+  "tf-glesys.age" = for [ /* humans only */ ];
+  "tf-keycloak.age" = for [ flokli ];
+  "tvl-alerts-bot-telegram-token.age" = for [ whitby nevsky ];
+  "wg-bugry.age" = for [ bugry ];
+  "wg-nevsky.age" = for [ nevsky ];
 }
