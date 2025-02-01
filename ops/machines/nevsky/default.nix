@@ -246,31 +246,34 @@ in
     useRoutingFeatures = "both";
   };
 
-  # Run a Harmonia binary cache.
-  #
-  # TODO(tazjin): switch to upstream module after fix for Nix 2.3
-  services.depot.harmonia = {
-    enable = true;
-    signKeyPaths = [ (config.age.secretsDir + "/nix-cache-priv") ];
-    settings.bind = "127.0.0.1:6443";
-    settings.priority = 50;
-  };
+  services.depot = {
+    # Run a Harmonia binary cache.
+    #
+    # TODO(tazjin): switch to upstream module after fix for Nix 2.3
+    harmonia = {
+      enable = true;
+      signKeyPaths = [ (config.age.secretsDir + "/nix-cache-priv") ];
+      settings.bind = "127.0.0.1:6443";
+      settings.priority = 50;
+    };
 
-  services.depot.builderball.enable = true;
+    builderball.enable = true;
 
-  # Automatically collect garbage from the Nix store.
-  services.depot.automatic-gc = {
-    enable = true;
-    interval = "1 hour";
-    diskThreshold = 200; # GiB
-    maxFreed = 420; # GiB
-    preserveGenerations = "60d";
-  };
 
-  # Run a handful of Buildkite agents to support parallel builds.
-  services.depot.buildkite = {
-    enable = true;
-    agentCount = 16;
+    # Automatically collect garbage from the Nix store.
+    automatic-gc = {
+      enable = true;
+      interval = "1 hour";
+      diskThreshold = 200; # GiB
+      maxFreed = 420; # GiB
+      preserveGenerations = "60d";
+    };
+
+    # Run a handful of Buildkite agents to support parallel builds.
+    buildkite = {
+      enable = true;
+      agentCount = 16;
+    };
   };
 
   # Start a ZNC instance which bounces for tvlbot and owothia.
