@@ -12,6 +12,7 @@ in
     (mod "tvl-cache.nix")
     (mod "tvl-users.nix")
     (mod "www/nixery.dev.nix")
+    (mod "www/self-redirect.nix")
 
     (depot.third_party.agenix.src + "/modules/age.nix")
   ];
