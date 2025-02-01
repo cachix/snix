@@ -1,0 +1,83 @@
+From b46a68c7327bf1df62d6f836cd5aa53c5b2b96b3 Mon Sep 17 00:00:00 2001
+From: sternenseemann <sternenseemann@systemli.org>
+Date: Sat, 1 Feb 2025 19:33:30 +0100
+Subject: [PATCH] src/cmd/devdraw: ignore primary selection
+
+By default devdraw updates the primary selection when Snarfing (which is
+a little questionable as it's supposed to hold the current selection)
+and prefers the primary selection when Pasting. I use xwayland-satellite
+which does not support syncing the primary selection between wayland and
+X11 which prevents Pasting in plan9port altogether as soon as you've
+Snarfed once (as long as the primary selection is empty, everything
+works as expected, but Snarfing populates the primary selection neither
+devdraw nor xwayland-satellite will ever clear the primary selection).
+
+This issue in xwayland-satellite is tracked at
+<https://github.com/Supreeeme/xwayland-satellite/issues/103>.
+
+In the meantime, I'm working around this issue by just ignoring the
+primary selection altogether. I suspect the preference for the primary
+selection in devdraw is wrong anyways. The Snarf/Paste operations fit
+how the X11 clipboard is supposed to work and is different to the
+primary selection.
+---
+ src/cmd/devdraw/x11-screen.c | 24 +++++++-----------------
+ 1 file changed, 7 insertions(+), 17 deletions(-)
+
+diff --git a/src/cmd/devdraw/x11-screen.c b/src/cmd/devdraw/x11-screen.c
+index 6b02dd7a..201ff044 100644
+--- a/src/cmd/devdraw/x11-screen.c
++++ b/src/cmd/devdraw/x11-screen.c
+@@ -1287,7 +1287,6 @@ _xtoplan9mouse(Xwin *w, XEvent *e, Mouse *m)
+ 
+ 	if(_x.putsnarf != _x.assertsnarf){
+ 		_x.assertsnarf = _x.putsnarf;
+-		XSetSelectionOwner(_x.display, XA_PRIMARY, w->drawable, CurrentTime);
+ 		if(_x.clipboard != None)
+ 			XSetSelectionOwner(_x.display, _x.clipboard, w->drawable, CurrentTime);
+ 		XFlush(_x.display);
+@@ -1527,7 +1526,7 @@ rpc_getsnarf(void)
+ {
+ 	uchar *data;
+ 	Atom clipboard;
+-	XWindow xw;
++	XWindow xw = None;
+ 	Xwin *w;
+ 
+ 	qlock(&clip.lk);
+@@ -1539,26 +1538,17 @@ rpc_getsnarf(void)
+ 	if(_x.putsnarf != _x.assertsnarf)
+ 		goto mine;
+ 
+-	/*
+-	 * Is there a primary selection (highlighted text in an xterm)?
+-	 */
+-	clipboard = XA_PRIMARY;
+-	xw = XGetSelectionOwner(_x.display, XA_PRIMARY);
+-	// TODO check more
+-	if(xw == w->drawable){
+-	mine:
+-		data = (uchar*)strdup(clip.buf);
+-		goto out;
+-	}
+-
+ 	/*
+ 	 * If not, is there a clipboard selection?
+ 	 */
+-	if(xw == None && _x.clipboard != None){
++	if(_x.clipboard != None){
+ 		clipboard = _x.clipboard;
+ 		xw = XGetSelectionOwner(_x.display, _x.clipboard);
+-		if(xw == w->drawable)
+-			goto mine;
++		if(xw == w->drawable) {
++		mine:
++			data = (uchar*)strdup(clip.buf);
++			goto out;
++		}
+ 	}
+ 
+ 	/*
+-- 
+2.47.0
+
