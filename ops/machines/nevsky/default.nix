@@ -165,10 +165,12 @@ in
 
       postSetup = ''
         ${pkgs.iptables}/bin/ip6tables -t nat -A POSTROUTING -s '2a03:6f00:2:514b:5bc7:95ef::1/96' -o enp1s0f0np0 -j MASQUERADE
+        ip -6 neigh add proxy 2a03:6f00:2:514b:5bc7:95ef:0:2 dev enp1s0f0np0
       '';
 
       postShutdown = ''
         ${pkgs.iptables}/bin/ip6tables -t nat -D POSTROUTING -s '2a03:6f00:2:514b:5bc7:95ef::1/96' -o enp1s0f0np0 -j MASQUERADE
+        ip -6 neigh del proxy 2a03:6f00:2:514b:5bc7:95ef:0:2 dev enp1s0f0np0
       '';
 
       peers = [{
