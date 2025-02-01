@@ -12,6 +12,7 @@ in
     (mod "irccat.nix")
     (mod "known-hosts.nix")
     (mod "owothia.nix")
+    (mod "smtprelay.nix")
     (mod "tvl-buildkite.nix")
     (mod "tvl-users.nix")
     (mod "www/cache.tvl.fyi.nix")
@@ -363,6 +364,17 @@ in
         # This secret is read from an environment variable, which is
         # populated by a systemd EnvironmentFile.
         irc_pass = "$CLBOT_PASS";
+      };
+    };
+
+    # Start a local SMTP relay to Gmail (used by gerrit)
+    smtprelay = {
+      enable = true;
+      args = {
+        listen = ":2525";
+        remote_host = "smtp.gmail.com:587";
+        remote_auth = "plain";
+        remote_user = "tvlbot@tazj.in";
       };
     };
   };
