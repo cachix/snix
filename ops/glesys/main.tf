@@ -96,7 +96,6 @@ locals {
   whitby_services = [
     "auth",
     "b",
-    "cl",
     "code",
     "cs",
     "deploys",
@@ -105,6 +104,7 @@ locals {
 
   # Hostnames of all public services on nevsky
   nevsky_services = [
+    "cl",
   ]
 
   # Hostnames of all public services on bugry
