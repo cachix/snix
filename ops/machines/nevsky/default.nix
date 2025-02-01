@@ -6,10 +6,12 @@ let
 in
 {
   imports = [
+    (depot.third_party.agenix.src + "/modules/age.nix")
     (mod "builderball.nix")
     (mod "cgit.nix")
     (mod "cheddar.nix")
     (mod "clbot.nix")
+    (mod "gerrit-autosubmit.nix")
     (mod "harmonia.nix")
     (mod "irccat.nix")
     (mod "josh.nix")
@@ -22,12 +24,14 @@ in
     (mod "paroxysm.nix")
     (mod "restic.nix")
     (mod "smtprelay.nix")
+    (mod "teleirc.nix")
     (mod "tvl-buildkite.nix")
     (mod "tvl-slapd/default.nix")
     (mod "tvl-users.nix")
     (mod "www/auth.tvl.fyi.nix")
     (mod "www/b.tvl.fyi.nix")
     (mod "www/cache.tvl.fyi.nix")
+    (mod "www/cache.tvl.su.nix")
     (mod "www/cl.tvl.fyi.nix")
     (mod "www/code.tvl.fyi.nix")
     (mod "www/cs.tvl.fyi.nix")
@@ -35,7 +39,6 @@ in
     (mod "www/self-cache.tvl.fyi.nix")
     (mod "www/self-redirect.nix")
     (mod "www/status.tvl.su.nix")
-    (depot.third_party.agenix.src + "/modules/age.nix")
   ];
 
   hardware.cpu.amd.updateMicrocode = true;
@@ -420,6 +423,22 @@ in
         remote_user = "tvlbot@tazj.in";
       };
     };
+
+    # Run the Telegram<>IRC bridge for Volga Sprint.
+    teleirc.enable = true;
+
+    # Configure backups to GleSYS
+    restic = {
+      enable = true;
+      paths = [
+        "/var/backup/postgresql"
+        "/var/lib/grafana"
+        "/var/lib/znc"
+      ];
+    };
+
+    # Run autosubmit bot for Gerrit
+    gerrit-autosubmit.enable = true;
   };
 
   # Start a ZNC instance which bounces for tvlbot and owothia.
@@ -486,6 +505,12 @@ in
   tvl.cache.enable = true;
   tvl.cache.builderball = true;
 
+  # Disable background git gc system-wide, as it has a tendency to break CI.
+  environment.etc."gitconfig".source = pkgs.writeText "gitconfig" ''
+    [gc]
+    autoDetach = false
+  '';
+
   security.sudo.extraRules = [{
     groups = [ "wheel" ];
     commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }];
@@ -503,6 +528,32 @@ in
   };
 
   zramSwap.enable = true;
+
+  environment.systemPackages = (with pkgs; [
+    bat
+    bb
+    curl
+    direnv
+    emacs-nox
+    fd
+    git
+    htop
+    hyperfine
+    jq
+    nano
+    nix-diff
+    nix-top
+    nvd
+    ripgrep
+    screen
+    tig
+    tree
+    unzip
+    vim
+    watchexec
+    zfs
+    zfstools
+  ]);
 
   system.stateVersion = "24.11";
 }

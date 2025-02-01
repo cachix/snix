@@ -5,7 +5,7 @@
 { depot, config, lib, pkgs, ... }:
 
 let
-  cfg = config.services.depot.owothia;
+  cfg = config.services.depot.teleirc;
   description = "IRC<>Telegram sync for Volga Sprint channel";
   configFile = builtins.toFile "teleirc.env" ''
     # connect through tvlbot's ZNC bouncer
