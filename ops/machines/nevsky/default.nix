@@ -8,7 +8,9 @@ in
   imports = [
     (mod "builderball.nix")
     (mod "harmonia.nix")
+    (mod "irccat.nix")
     (mod "known-hosts.nix")
+    (mod "owothia.nix")
     (mod "tvl-buildkite.nix")
     (mod "tvl-users.nix")
     (mod "www/cache.tvl.fyi.nix")
@@ -96,6 +98,8 @@ in
       secretFile = name: depot.ops.secrets."${name}.age";
     in
     {
+      irccat.file = secretFile "irccat";
+      owothia.file = secretFile "owothia";
       wg-privkey.file = depot.ops.secrets."wg-nevsky.age";
 
       nix-cache-priv = {
@@ -259,7 +263,6 @@ in
 
     builderball.enable = true;
 
-
     # Automatically collect garbage from the Nix store.
     automatic-gc = {
       enable = true;
@@ -273,6 +276,32 @@ in
     buildkite = {
       enable = true;
       agentCount = 16;
+    };
+
+    # make our channel more owo
+    owothia = {
+      enable = true;
+      ircServer = "localhost";
+      ircPort = config.services.znc.config.Listener.l.Port;
+    };
+
+    # Run irccat to forward messages to IRC
+    irccat = {
+      enable = true;
+      config = {
+        tcp.listen = ":4722"; # "ircc"
+        irc = {
+          server = "localhost:${toString config.services.znc.config.Listener.l.Port}";
+          tls = false;
+          nick = "tvlbot";
+          # Note: irccat means 'ident' where it says 'realname', so
+          # this is critical for connecting to ZNC.
+          realname = "tvlbot";
+          channels = [
+            "#tvl"
+          ];
+        };
+      };
     };
   };
 
