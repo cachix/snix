@@ -273,6 +273,39 @@ in
     agentCount = 16;
   };
 
+  # Start a ZNC instance which bounces for tvlbot and owothia.
+  services.znc = {
+    enable = true;
+    useLegacyConfig = false;
+    config = {
+      LoadModule = [
+        "webadmin"
+        "adminlog"
+      ];
+
+      User.admin = {
+        Admin = true;
+        Pass.password = {
+          Method = "sha256";
+          Hash = "bb00aa8239de484c2925b1c3f6a196fb7612633f001daa9b674f83abe7e1103f";
+          Salt = "TiB0Ochb1CrtpMTl;2;j";
+        };
+      };
+
+      Listener.l = {
+        Host = "localhost";
+        Port = 2627; # bncr
+        SSL = false;
+      };
+
+      Listener.tailscale = {
+        Host = "100.64.0.11";
+        Port = 2627; # bncr
+        SSL = false;
+      };
+    };
+  };
+
   # Use TVL cache locally through the proxy; for cross-builder substitution.
   tvl.cache.enable = true;
   tvl.cache.builderball = true;
