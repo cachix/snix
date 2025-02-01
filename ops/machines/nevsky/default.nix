@@ -15,6 +15,7 @@ in
     (mod "josh.nix")
     (mod "known-hosts.nix")
     (mod "livegrep.nix")
+    (mod "monitoring.nix")
     (mod "monorepo-gerrit.nix")
     (mod "owothia.nix")
     (mod "panettone.nix")
@@ -33,6 +34,7 @@ in
     (mod "www/grep.tvl.fyi.nix")
     (mod "www/self-cache.tvl.fyi.nix")
     (mod "www/self-redirect.nix")
+    (mod "www/status.tvl.su.nix")
     (depot.third_party.agenix.src + "/modules/age.nix")
   ];
 
