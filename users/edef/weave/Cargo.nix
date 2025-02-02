@@ -7193,7 +7193,7 @@ rec {
         ];
         features = {
           "axum" = [ "dep:axum" ];
-          "otlp" = [ "dep:tracing-opentelemetry" "dep:opentelemetry" "dep:opentelemetry-otlp" "dep:opentelemetry_sdk" "dep:opentelemetry-http" "dep:opentelemetry-semantic-conventions" "reqwest-tracing?/opentelemetry_0_27" ];
+          "otlp" = [ "dep:tracing-opentelemetry" "dep:opentelemetry" "dep:opentelemetry-otlp" "dep:opentelemetry_sdk" "dep:opentelemetry-http" "dep:opentelemetry-semantic-conventions" "reqwest-tracing?/opentelemetry_0_28" ];
           "reqwest" = [ "dep:reqwest-tracing" ];
           "tonic" = [ "dep:tonic" "dep:http" ];
           "tracy" = [ "dep:tracing-tracy" ];

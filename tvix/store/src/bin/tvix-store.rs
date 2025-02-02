@@ -541,7 +541,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     tokio::select! {
         res = tokio::signal::ctrl_c() => {
             res?;
-            if let Err(e) = tracing_handle.force_shutdown().await {
+            if let Err(e) = tracing_handle.shutdown().await {
                 eprintln!("failed to shutdown tracing: {e}");
             }
             Ok(())

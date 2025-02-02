@@ -9032,9 +9032,9 @@ rec {
       };
       "opentelemetry" = rec {
         crateName = "opentelemetry";
-        version = "0.27.1";
+        version = "0.28.0";
         edition = "2021";
-        sha256 = "1mx6kc1479pkak49xxy98jzqnfilkm1bc56liryvjdzd52606w5b";
+        sha256 = "09k43sgaarw3zx5j434ngq1canpcjibsbxaqqa8dyp0acxxncvi3";
         dependencies = [
           {
             name = "futures-core";
@@ -9058,7 +9058,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
             optional = true;
             usesDefaultFeatures = false;
           }
@@ -9076,7 +9076,7 @@ rec {
           "internal-logs" = [ "tracing" ];
           "pin-project-lite" = [ "dep:pin-project-lite" ];
           "spec_unstable_logs_enabled" = [ "logs" ];
-          "testing" = [ "trace" "metrics" ];
+          "testing" = [ "trace" ];
           "thiserror" = [ "dep:thiserror" ];
           "trace" = [ "pin-project-lite" "futures-sink" "futures-core" "thiserror" ];
           "tracing" = [ "dep:tracing" ];
@@ -9085,9 +9085,9 @@ rec {
       };
       "opentelemetry-http" = rec {
         crateName = "opentelemetry-http";
-        version = "0.27.0";
+        version = "0.28.0";
         edition = "2021";
-        sha256 = "102dn3xkcbb41cjyssdy7gv1d8db9r2s1g1gdhl1nz5syvssga0h";
+        sha256 = "0lv2sbsdr7b8bxnly92zzhlm1wzjbynib1xlkw9hs0qh56pkz1m8";
         libName = "opentelemetry_http";
         dependencies = [
           {
@@ -9109,19 +9109,36 @@ rec {
             packageId = "opentelemetry";
             features = [ "trace" ];
           }
+          {
+            name = "reqwest";
+            packageId = "reqwest";
+            optional = true;
+            usesDefaultFeatures = false;
+            features = [ "blocking" ];
+          }
+          {
+            name = "tracing";
+            packageId = "tracing";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
         ];
         features = {
+          "default" = [ "internal-logs" ];
           "hyper" = [ "dep:http-body-util" "dep:hyper" "dep:hyper-util" "dep:tokio" ];
+          "internal-logs" = [ "tracing" "opentelemetry/internal-logs" ];
           "reqwest" = [ "dep:reqwest" ];
           "reqwest-rustls" = [ "reqwest" "reqwest/rustls-tls-native-roots" ];
           "reqwest-rustls-webpki-roots" = [ "reqwest" "reqwest/rustls-tls-webpki-roots" ];
+          "tracing" = [ "dep:tracing" ];
         };
+        resolvedDefaultFeatures = [ "default" "internal-logs" "reqwest" "tracing" ];
       };
       "opentelemetry-otlp" = rec {
         crateName = "opentelemetry-otlp";
-        version = "0.27.0";
+        version = "0.28.0";
         edition = "2021";
-        sha256 = "0xhzw57khwribh4817lhf9rayl5ik8z1qaibpxvcbb4dhshn3kwi";
+        sha256 = "148xq13ar11bvmk7pxbslrhh5pgf40bv83n6dlysigj1dm613vsv";
         libName = "opentelemetry_otlp";
         dependencies = [
           {
@@ -9145,6 +9162,11 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "opentelemetry-http";
+            packageId = "opentelemetry-http";
+            optional = true;
+          }
+          {
             name = "opentelemetry-proto";
             packageId = "opentelemetry-proto";
             usesDefaultFeatures = false;
@@ -9160,8 +9182,14 @@ rec {
             optional = true;
           }
           {
+            name = "reqwest";
+            packageId = "reqwest";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
             usesDefaultFeatures = false;
           }
           {
@@ -9193,19 +9221,18 @@ rec {
           }
         ];
         features = {
-          "default" = [ "grpc-tonic" "trace" "metrics" "logs" "internal-logs" ];
+          "default" = [ "http-proto" "reqwest-blocking-client" "trace" "metrics" "logs" "internal-logs" ];
           "grpc-tonic" = [ "tonic" "prost" "http" "tokio" "opentelemetry-proto/gen-tonic" ];
           "gzip-tonic" = [ "tonic/gzip" ];
           "http" = [ "dep:http" ];
           "http-json" = [ "serde_json" "prost" "opentelemetry-http" "opentelemetry-proto/gen-tonic-messages" "opentelemetry-proto/with-serde" "http" "trace" "metrics" ];
           "http-proto" = [ "prost" "opentelemetry-http" "opentelemetry-proto/gen-tonic-messages" "http" "trace" "metrics" ];
           "hyper-client" = [ "opentelemetry-http/hyper" ];
-          "integration-testing" = [ "tonic" "prost" "tokio/full" "trace" ];
-          "internal-logs" = [ "tracing" ];
+          "integration-testing" = [ "tonic" "prost" "tokio/full" "trace" "logs" ];
+          "internal-logs" = [ "tracing" "opentelemetry/internal-logs" ];
           "logs" = [ "opentelemetry/logs" "opentelemetry_sdk/logs" "opentelemetry-proto/logs" ];
           "metrics" = [ "opentelemetry/metrics" "opentelemetry_sdk/metrics" "opentelemetry-proto/metrics" ];
           "opentelemetry-http" = [ "dep:opentelemetry-http" ];
-          "populate-logs-event-name" = [ "opentelemetry-proto/populate-logs-event-name" ];
           "prost" = [ "dep:prost" ];
           "reqwest" = [ "dep:reqwest" ];
           "reqwest-blocking-client" = [ "reqwest/blocking" "opentelemetry-http/reqwest" ];
@@ -9224,13 +9251,13 @@ rec {
           "tracing" = [ "dep:tracing" ];
           "zstd-tonic" = [ "tonic/zstd" ];
         };
-        resolvedDefaultFeatures = [ "default" "grpc-tonic" "http" "internal-logs" "logs" "metrics" "prost" "tokio" "tonic" "trace" "tracing" ];
+        resolvedDefaultFeatures = [ "default" "grpc-tonic" "http" "http-proto" "internal-logs" "logs" "metrics" "opentelemetry-http" "prost" "reqwest" "reqwest-blocking-client" "tokio" "tonic" "trace" "tracing" ];
       };
       "opentelemetry-proto" = rec {
         crateName = "opentelemetry-proto";
-        version = "0.27.0";
+        version = "0.28.0";
         edition = "2021";
-        sha256 = "19jryh79aalv4i6hds8mq03v7l5b2jpnhly84f8cfpnszb5mmq56";
+        sha256 = "0vbl4si1mny87pmqxxg6wday45pcc8bvpcrf46cpwwi4606qgy2n";
         libName = "opentelemetry_proto";
         dependencies = [
           {
@@ -9257,11 +9284,13 @@ rec {
           }
         ];
         features = {
+          "base64" = [ "dep:base64" ];
           "default" = [ "full" ];
-          "full" = [ "gen-tonic" "trace" "logs" "metrics" "zpages" "with-serde" ];
+          "full" = [ "gen-tonic" "trace" "logs" "metrics" "zpages" "with-serde" "internal-logs" ];
           "gen-tonic" = [ "gen-tonic-messages" "tonic/transport" ];
           "gen-tonic-messages" = [ "tonic" "prost" ];
           "hex" = [ "dep:hex" ];
+          "internal-logs" = [ "tracing" ];
           "logs" = [ "opentelemetry/logs" "opentelemetry_sdk/logs" ];
           "metrics" = [ "opentelemetry/metrics" "opentelemetry_sdk/metrics" ];
           "prost" = [ "dep:prost" ];
@@ -9270,26 +9299,27 @@ rec {
           "testing" = [ "opentelemetry/testing" ];
           "tonic" = [ "dep:tonic" ];
           "trace" = [ "opentelemetry/trace" "opentelemetry_sdk/trace" ];
+          "tracing" = [ "dep:tracing" ];
           "with-schemars" = [ "schemars" ];
-          "with-serde" = [ "serde" "hex" ];
+          "with-serde" = [ "serde" "hex" "base64" ];
           "zpages" = [ "trace" ];
         };
         resolvedDefaultFeatures = [ "gen-tonic" "gen-tonic-messages" "logs" "metrics" "prost" "tonic" "trace" ];
       };
       "opentelemetry-semantic-conventions" = rec {
         crateName = "opentelemetry-semantic-conventions";
-        version = "0.27.0";
+        version = "0.28.0";
         edition = "2021";
-        sha256 = "0ljwn5p5651rg1zfm8ryh152wgi5bs609s49qkv2xcv3zw16j6xw";
+        sha256 = "1dzra5yspllg0qi6hry2ncm19h7vxnmvh4y3sqn3cm9dikvs5crg";
         libName = "opentelemetry_semantic_conventions";
         features = { };
         resolvedDefaultFeatures = [ "default" ];
       };
       "opentelemetry_sdk" = rec {
         crateName = "opentelemetry_sdk";
-        version = "0.27.1";
+        version = "0.28.0";
         edition = "2021";
-        sha256 = "1f1sw5xjgbdz0nxfhkj7qwmjahffhmbk6lnzdmab5c7rxrn9s7i3";
+        sha256 = "0w4mycm070f4knvi1x5v199apd1fvi0712qiyv0pz70889havpw4";
         dependencies = [
           {
             name = "async-trait";
@@ -9338,7 +9368,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
             usesDefaultFeatures = false;
           }
           {
@@ -9364,19 +9394,22 @@ rec {
           "async-std" = [ "dep:async-std" ];
           "async-trait" = [ "dep:async-trait" ];
           "default" = [ "trace" "metrics" "logs" "internal-logs" ];
-          "experimental_metrics_periodic_reader_no_runtime" = [ "metrics" ];
+          "experimental_logs_batch_log_processor_with_async_runtime" = [ "logs" ];
+          "experimental_metrics_disable_name_validation" = [ "metrics" ];
+          "experimental_metrics_periodicreader_with_async_runtime" = [ "metrics" ];
+          "experimental_trace_batch_span_processor_with_async_runtime" = [ "trace" ];
           "glob" = [ "dep:glob" ];
           "http" = [ "dep:http" ];
           "internal-logs" = [ "tracing" ];
           "jaeger_remote_sampler" = [ "trace" "opentelemetry-http" "http" "serde" "serde_json" "url" ];
-          "logs" = [ "opentelemetry/logs" "async-trait" "serde_json" ];
+          "logs" = [ "opentelemetry/logs" "serde_json" ];
           "metrics" = [ "opentelemetry/metrics" "glob" "async-trait" ];
           "opentelemetry-http" = [ "dep:opentelemetry-http" ];
           "percent-encoding" = [ "dep:percent-encoding" ];
           "rand" = [ "dep:rand" ];
-          "rt-async-std" = [ "async-std" ];
-          "rt-tokio" = [ "tokio" "tokio-stream" ];
-          "rt-tokio-current-thread" = [ "tokio" "tokio-stream" ];
+          "rt-async-std" = [ "async-std" "experimental_async_runtime" ];
+          "rt-tokio" = [ "tokio" "tokio-stream" "experimental_async_runtime" ];
+          "rt-tokio-current-thread" = [ "tokio" "tokio-stream" "experimental_async_runtime" ];
           "serde" = [ "dep:serde" ];
           "serde_json" = [ "dep:serde_json" ];
           "spec_unstable_logs_enabled" = [ "logs" "opentelemetry/spec_unstable_logs_enabled" ];
@@ -9388,7 +9421,7 @@ rec {
           "tracing" = [ "dep:tracing" ];
           "url" = [ "dep:url" ];
         };
-        resolvedDefaultFeatures = [ "async-trait" "default" "glob" "internal-logs" "logs" "metrics" "percent-encoding" "rand" "rt-tokio" "serde_json" "tokio" "tokio-stream" "trace" "tracing" ];
+        resolvedDefaultFeatures = [ "async-trait" "default" "experimental_async_runtime" "glob" "internal-logs" "logs" "metrics" "percent-encoding" "rand" "rt-tokio" "serde_json" "tokio" "tokio-stream" "trace" "tracing" ];
       };
       "os_str_bytes" = rec {
         crateName = "os_str_bytes";
@@ -11354,6 +11387,12 @@ rec {
             packageId = "bytes";
           }
           {
+            name = "futures-channel";
+            packageId = "futures-channel";
+            optional = true;
+            target = { target, features }: (!("wasm32" == target."arch" or null));
+          }
+          {
             name = "futures-core";
             packageId = "futures-core";
             usesDefaultFeatures = false;
@@ -11650,13 +11689,18 @@ rec {
           "stream" = [ "tokio/fs" "dep:tokio-util" "dep:wasm-streams" ];
           "zstd" = [ "dep:async-compression" "async-compression?/zstd" "dep:tokio-util" ];
         };
-        resolvedDefaultFeatures = [ "__rustls" "__rustls-ring" "__tls" "h2" "http2" "json" "rustls-tls-native-roots" "rustls-tls-native-roots-no-provider" "stream" ];
+        resolvedDefaultFeatures = [ "__rustls" "__rustls-ring" "__tls" "blocking" "h2" "http2" "json" "rustls-tls-native-roots" "rustls-tls-native-roots-no-provider" "stream" ];
       };
       "reqwest-middleware" = rec {
         crateName = "reqwest-middleware";
         version = "0.4.0";
         edition = "2018";
-        sha256 = "1qz5yw869305zhp0c2s2fqbxnf9fpgxscbssi2lr27vibssx7k6i";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/TrueLayer/reqwest-middleware";
+          rev = "9fdba406c124c567e2302f1aec63483ed7db63b1";
+          sha256 = "0jn14w0pbixscp4vgcanpi36d7b9k5c2hvksa00l5xgsmkmxni7l";
+        };
         libName = "reqwest_middleware";
         authors = [
           "Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"
@@ -11711,7 +11755,12 @@ rec {
         crateName = "reqwest-tracing";
         version = "0.5.5";
         edition = "2018";
-        sha256 = "1ll0v7wnxhh3b5iq68i9wkgfcsqxjfhyal0v6ihnjpsqj0ribrkk";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/TrueLayer/reqwest-middleware";
+          rev = "9fdba406c124c567e2302f1aec63483ed7db63b1";
+          sha256 = "0jn14w0pbixscp4vgcanpi36d7b9k5c2hvksa00l5xgsmkmxni7l";
+        };
         libName = "reqwest_tracing";
         authors = [
           "Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"
@@ -11742,7 +11791,7 @@ rec {
           {
             name = "opentelemetry";
             packageId = "opentelemetry";
-            rename = "opentelemetry_0_27_pkg";
+            rename = "opentelemetry_0_28_pkg";
             optional = true;
           }
           {
@@ -11761,7 +11810,7 @@ rec {
           {
             name = "tracing-opentelemetry";
             packageId = "tracing-opentelemetry";
-            rename = "tracing-opentelemetry_0_28_pkg";
+            rename = "tracing-opentelemetry_0_29_pkg";
             optional = true;
           }
         ];
@@ -11789,6 +11838,8 @@ rec {
           "opentelemetry_0_26_pkg" = [ "dep:opentelemetry_0_26_pkg" ];
           "opentelemetry_0_27" = [ "opentelemetry_0_27_pkg" "tracing-opentelemetry_0_28_pkg" ];
           "opentelemetry_0_27_pkg" = [ "dep:opentelemetry_0_27_pkg" ];
+          "opentelemetry_0_28" = [ "opentelemetry_0_28_pkg" "tracing-opentelemetry_0_29_pkg" ];
+          "opentelemetry_0_28_pkg" = [ "dep:opentelemetry_0_28_pkg" ];
           "tracing-opentelemetry_0_21_pkg" = [ "dep:tracing-opentelemetry_0_21_pkg" ];
           "tracing-opentelemetry_0_22_pkg" = [ "dep:tracing-opentelemetry_0_22_pkg" ];
           "tracing-opentelemetry_0_23_pkg" = [ "dep:tracing-opentelemetry_0_23_pkg" ];
@@ -11797,8 +11848,9 @@ rec {
           "tracing-opentelemetry_0_26_pkg" = [ "dep:tracing-opentelemetry_0_26_pkg" ];
           "tracing-opentelemetry_0_27_pkg" = [ "dep:tracing-opentelemetry_0_27_pkg" ];
           "tracing-opentelemetry_0_28_pkg" = [ "dep:tracing-opentelemetry_0_28_pkg" ];
+          "tracing-opentelemetry_0_29_pkg" = [ "dep:tracing-opentelemetry_0_29_pkg" ];
         };
-        resolvedDefaultFeatures = [ "opentelemetry_0_27" "opentelemetry_0_27_pkg" "tracing-opentelemetry_0_28_pkg" ];
+        resolvedDefaultFeatures = [ "opentelemetry_0_28" "opentelemetry_0_28_pkg" "tracing-opentelemetry_0_29_pkg" ];
       };
       "reserve-port" = rec {
         crateName = "reserve-port";
@@ -15544,9 +15596,9 @@ rec {
       };
       "tower-http" = rec {
         crateName = "tower-http";
-        version = "0.5.2";
+        version = "0.6.2";
         edition = "2018";
-        sha256 = "1xakj3x0anp55gjqibiwvzma5iz0w9pcjsr7qk97sx4qm4sd970y";
+        sha256 = "15wnvhl6cpir9125s73bqjzjsvfb0fmndmsimnl2ddnlhfvs6gs0";
         libName = "tower_http";
         authors = [
           "Tower Maintainers <team@tower-rs.com>"
@@ -15579,10 +15631,7 @@ rec {
           {
             name = "http-body";
             packageId = "http-body";
-          }
-          {
-            name = "http-body-util";
-            packageId = "http-body-util";
+            optional = true;
           }
           {
             name = "pin-project-lite";
@@ -15622,6 +15671,10 @@ rec {
             packageId = "bytes";
           }
           {
+            name = "http-body";
+            packageId = "http-body";
+          }
+          {
             name = "tokio";
             packageId = "tokio";
             features = [ "full" ];
@@ -15631,34 +15684,35 @@ rec {
           "async-compression" = [ "dep:async-compression" ];
           "auth" = [ "base64" "validate-request" ];
           "base64" = [ "dep:base64" ];
-          "catch-panic" = [ "tracing" "futures-util/std" ];
-          "compression-br" = [ "async-compression/brotli" "futures-core" "tokio-util" "tokio" ];
-          "compression-deflate" = [ "async-compression/zlib" "futures-core" "tokio-util" "tokio" ];
+          "catch-panic" = [ "tracing" "futures-util/std" "dep:http-body" "dep:http-body-util" ];
+          "compression-br" = [ "async-compression/brotli" "futures-core" "dep:http-body" "tokio-util" "tokio" ];
+          "compression-deflate" = [ "async-compression/zlib" "futures-core" "dep:http-body" "tokio-util" "tokio" ];
           "compression-full" = [ "compression-br" "compression-deflate" "compression-gzip" "compression-zstd" ];
-          "compression-gzip" = [ "async-compression/gzip" "futures-core" "tokio-util" "tokio" ];
-          "compression-zstd" = [ "async-compression/zstd" "futures-core" "tokio-util" "tokio" ];
-          "decompression-br" = [ "async-compression/brotli" "futures-core" "tokio-util" "tokio" ];
-          "decompression-deflate" = [ "async-compression/zlib" "futures-core" "tokio-util" "tokio" ];
+          "compression-gzip" = [ "async-compression/gzip" "futures-core" "dep:http-body" "tokio-util" "tokio" ];
+          "compression-zstd" = [ "async-compression/zstd" "futures-core" "dep:http-body" "tokio-util" "tokio" ];
+          "decompression-br" = [ "async-compression/brotli" "futures-core" "dep:http-body" "dep:http-body-util" "tokio-util" "tokio" ];
+          "decompression-deflate" = [ "async-compression/zlib" "futures-core" "dep:http-body" "dep:http-body-util" "tokio-util" "tokio" ];
           "decompression-full" = [ "decompression-br" "decompression-deflate" "decompression-gzip" "decompression-zstd" ];
-          "decompression-gzip" = [ "async-compression/gzip" "futures-core" "tokio-util" "tokio" ];
-          "decompression-zstd" = [ "async-compression/zstd" "futures-core" "tokio-util" "tokio" ];
-          "follow-redirect" = [ "futures-util" "iri-string" "tower/util" ];
-          "fs" = [ "futures-util" "tokio/fs" "tokio-util/io" "tokio/io-util" "dep:http-range-header" "mime_guess" "mime" "percent-encoding" "httpdate" "set-status" "futures-util/alloc" "tracing" ];
+          "decompression-gzip" = [ "async-compression/gzip" "futures-core" "dep:http-body" "dep:http-body-util" "tokio-util" "tokio" ];
+          "decompression-zstd" = [ "async-compression/zstd" "futures-core" "dep:http-body" "dep:http-body-util" "tokio-util" "tokio" ];
+          "follow-redirect" = [ "futures-util" "dep:http-body" "iri-string" "tower/util" ];
+          "fs" = [ "futures-util" "dep:http-body" "dep:http-body-util" "tokio/fs" "tokio-util/io" "tokio/io-util" "dep:http-range-header" "mime_guess" "mime" "percent-encoding" "httpdate" "set-status" "futures-util/alloc" "tracing" ];
           "full" = [ "add-extension" "auth" "catch-panic" "compression-full" "cors" "decompression-full" "follow-redirect" "fs" "limit" "map-request-body" "map-response-body" "metrics" "normalize-path" "propagate-header" "redirect" "request-id" "sensitive-headers" "set-header" "set-status" "timeout" "trace" "util" "validate-request" ];
           "futures-core" = [ "dep:futures-core" ];
           "futures-util" = [ "dep:futures-util" ];
           "httpdate" = [ "dep:httpdate" ];
           "iri-string" = [ "dep:iri-string" ];
-          "metrics" = [ "tokio/time" ];
+          "limit" = [ "dep:http-body" "dep:http-body-util" ];
+          "metrics" = [ "dep:http-body" "tokio/time" ];
           "mime" = [ "dep:mime" ];
           "mime_guess" = [ "dep:mime_guess" ];
           "percent-encoding" = [ "dep:percent-encoding" ];
           "request-id" = [ "uuid" ];
-          "timeout" = [ "tokio/time" ];
+          "timeout" = [ "dep:http-body" "tokio/time" ];
           "tokio" = [ "dep:tokio" ];
           "tokio-util" = [ "dep:tokio-util" ];
           "tower" = [ "dep:tower" ];
-          "trace" = [ "tracing" ];
+          "trace" = [ "dep:http-body" "tracing" ];
           "tracing" = [ "dep:tracing" ];
           "util" = [ "tower" ];
           "uuid" = [ "dep:uuid" ];
@@ -15679,9 +15733,9 @@ rec {
       };
       "tower-otel-http-metrics" = rec {
         crateName = "tower-otel-http-metrics";
-        version = "0.10.0";
+        version = "0.11.0";
         edition = "2021";
-        sha256 = "17zqz5cl3jy01cdjmqvx92jqzjy1lcghja6w2bazbh1yf61sj2zd";
+        sha256 = "0n8c8k11kcxk0gmb01d0lhv80qwy774323n9ngd5rgxbvnl97f6z";
         libName = "tower_otel_http_metrics";
         dependencies = [
           {
@@ -15951,9 +16005,9 @@ rec {
       };
       "tracing-opentelemetry" = rec {
         crateName = "tracing-opentelemetry";
-        version = "0.28.0";
+        version = "0.29.0";
         edition = "2021";
-        sha256 = "0lyhrf5mfbcbjs7gdgqx62kmf810xbkj7ymgy70bb6440pv73acp";
+        sha256 = "0dnca0b7bxbp6gd64skkvzy3p58yjh35kvnxpggz7sfwd4jjs7vj";
         libName = "tracing_opentelemetry";
         dependencies = [
           {
@@ -16041,9 +16095,9 @@ rec {
           "futures-util" = [ "dep:futures-util" ];
           "lazy_static" = [ "dep:lazy_static" ];
           "metrics" = [ "opentelemetry/metrics" "opentelemetry_sdk/metrics" "smallvec" ];
-          "metrics_gauge_unstable" = [ "opentelemetry/otel_unstable" ];
           "smallvec" = [ "dep:smallvec" ];
           "thiserror" = [ "dep:thiserror" ];
+          "thiserror-1" = [ "dep:thiserror-1" ];
           "tracing-log" = [ "dep:tracing-log" ];
         };
         resolvedDefaultFeatures = [ "default" "metrics" "smallvec" "tracing-log" ];
@@ -17619,6 +17673,7 @@ rec {
             name = "opentelemetry-otlp";
             packageId = "opentelemetry-otlp";
             optional = true;
+            features = [ "grpc-tonic" ];
           }
           {
             name = "opentelemetry-semantic-conventions";
@@ -17679,7 +17734,7 @@ rec {
         ];
         features = {
           "axum" = [ "dep:axum" ];
-          "otlp" = [ "dep:tracing-opentelemetry" "dep:opentelemetry" "dep:opentelemetry-otlp" "dep:opentelemetry_sdk" "dep:opentelemetry-http" "dep:opentelemetry-semantic-conventions" "reqwest-tracing?/opentelemetry_0_27" ];
+          "otlp" = [ "dep:tracing-opentelemetry" "dep:opentelemetry" "dep:opentelemetry-otlp" "dep:opentelemetry_sdk" "dep:opentelemetry-http" "dep:opentelemetry-semantic-conventions" "reqwest-tracing?/opentelemetry_0_28" ];
           "reqwest" = [ "dep:reqwest-tracing" ];
           "tonic" = [ "dep:tonic" "dep:http" ];
           "tracy" = [ "dep:tracing-tracy" ];
