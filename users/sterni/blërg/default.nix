@@ -5,8 +5,10 @@ let
   runtimeDependencies = [
     depot.users.sterni.mn2html
     pkgs.mblaze
-    pkgs.execline # execline-cd, importas
+    pkgs.execline # execline-cd, importas, pipeline
     # coreutils   # for printf (assumed to be installed)
+    pkgs.pandoc
+    pkgs.lowdown
   ];
 
   # … and this

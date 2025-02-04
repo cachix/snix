@@ -42,6 +42,7 @@ LR ← Lines∘R
 GetEnv ← {R "importas"‿"env"‿𝕩‿"printf"‿"%s"‿"$env"}
 
 RelPath ← •wdpath⊸•file.At
+Ext ← '.'⊸(⊑∘1⊸↑∘/∘(=∧∊∘⊢)↑⊢)⌾⌽ •file.Name
 
 # 3p dependencies
 
@@ -79,27 +80,42 @@ MailNotesBackend ← {𝕊 config:
 
 # Git Backend
 
+converters ← ⍉>⟨
+# TODO(sterni): avoid cat
+⟨"html", ⋈"cat"⟩,
+⟨"md", "lowdown"‿"-T"‿"html"‿"--html-no-skiphtml"‿"--html-no-escapehtml"‿"--html-callout-mdn"⟩,
+# TODO(sterni): use emacs
+⟨"org", "pandoc"‿"-f"‿"org"‿"-t"‿"html5"⟩,
+⟩
+
+# TODO(sterni): don't assemble blocks in this ad hoc fashion
+# TODO(sterni): pipefail
+PipelineCmd ← {"pipeline"⋈⊸∾(' '⊸∾¨𝕨)∾""⋈⊸∾𝕩}
+
 GitBackend ← {𝕊 config:
   repo ← RelPath •file.At config j.ObjGet "repository"
   path ← ∾⟜'/' '/' StripRight config "." j._ObjGetDef "path"
 
   # We use zero separated fields when dealing with paths, so quoting is unnecessary
-  Git ← {R "git"‿"-c"‿"core.quotePath=false"‿"-C"‿repo∾𝕩}
-  rev ← Git "rev-parse"‿"HEAD"
+  GitCmd ← {"git"‿"-c"‿"core.quotePath=false"‿"-C"‿repo∾𝕩}
+  rev ← R GitCmd "rev-parse"‿"HEAD"
   # Use the author date of the latest commit on the file to establish the date
   # of the file. The author date is easier to arbitrarily change and survives
   # history rewrites. It could be interesting to ignore commits that touch
   # multiple files (especially treewide ones).
-  PathDate ← {ReadPosDec Git "log"‿"--date=unix"‿"--pretty=tformat:%ad"‿"-1"‿rev‿"--"‿𝕩}
+  PathDate ← {ReadPosDec R GitCmd "log"‿"--date=unix"‿"--pretty=tformat:%ad"‿"-1"‿rev‿"--"‿𝕩}
 
   Entries ⇐ {𝕤⋄
-    blobs ← ∘‿2⥊@ SplitChar Git "ls-tree"‿"-zr"‿"--format=%(path)%x00%(objectname)"‿rev‿path
+    blobs ← ∘‿2⥊@ SplitChar R GitCmd "ls-tree"‿"-zr"‿"--format=%(path)%x00%(objectname)"‿rev‿path
     {𝕊 p‿b:
       id ⇐ Slugify path DropPrefix p
       # TODO(sterni): extract from file if possible
       title ⇐ •file.Name p
       time ⇐ PathDate p
-      Render ⇐ {𝕤 ⋄ {"<pre>"∾𝕩∾"</pre>"} Git "cat-file"‿"blob"‿b}
+      Render ⇐ {𝕤
+        conv ← converters j.ObjGet Ext p
+        R (GitCmd "cat-file"‿"blob"‿b) PipelineCmd conv
+      }
     }˘blobs
   }
 }
