@@ -52,6 +52,11 @@ pkgs.plan9port.overrideAttrs (old: {
         '';
   };
 
+  postInstall = ''
+    echo '48.3626 10.9026 483\
+    (OpenLab Augsburg)' > $out/plan9/sky/here
+  '';
+
   doInstallCheck = true;
   installCheckPhase = old.installCheckPhase or "" + ''
     export NAMESPACE="$(mktemp -d)"
