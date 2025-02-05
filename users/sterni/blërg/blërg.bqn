@@ -163,7 +163,7 @@ config ← {
 }
 
 entries ← (<"time") ((⍒∘(•ns.Get˜¨))⊏⊢) ∾{𝕩.Entries @}¨ config.backends
-# TODO(sterni): assert id uniqueness
+"All entry IDs must be unique"!(≠=≠∘⍷) •ns.Get⟜"id"¨ entries
 
 MkDirP outDir
 entryIndex ← outDir⊸WriteEntry¨ entries
