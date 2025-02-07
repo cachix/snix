@@ -11,20 +11,20 @@
 
 MkDirP ← •file.CreateDir⍟(¬•file.Exists)
 
-AsciiDown ← ('A'-'a')⊸(⊢-×⟜('A'⊸≤∧≤⟜'Z'))
-Slugify ← '-'⊸⊣⍟(¬(('A'⊸≤∧'z'⊸≥)∨<⊸(⊑∊)⟜"-_0123456789"))¨ AsciiDown
+AsciiDown ← ⊢ - ('A'-'a')⊸×⟜('A'⊸≤∧≤⟜'Z')
+Slugify ← '-'⊸⊣⍟(('A'⊸≤ ∧ ≤⟜'z') ¬∘∨ "-_0123456789"⊸(⊑∊˜)⟜<)¨ AsciiDown
 
 DropPrefix ← {𝕩(≠/⊣)𝕨↑˜≠𝕩}
-StripLeft ← ((¬ ∧`∘=)/⊢)
+StripLeft ← (¬ ∧`∘=)/⊢
 StripRight ← ⌽ StripLeft⟜⌽
 
 _join ← {(∾⟜(𝕗⊸∾))´𝕩;𝕨∾𝕗∾𝕩}
 
 nl ← @+10
-SplitChar ← ((=(¯1˙⍟⊣)¨+`∘=)⊔⊢)
+SplitChar ← (= (¯1˙⍟⊣)¨ +`∘=)⊔⊢
 Lines ← nl⊸SplitChar
 
-ReadPosInt ← {(𝕨⊸×+⊣)´∘⌽-⟜'0'𝕩} # ty leah2
+ReadPosInt ← {(𝕨⊸×+⊣)´ ⌽'0'-˜𝕩} # ty leah2
 ReadPosDec ← 10⊸ReadPosInt
 
 Chomp ← {⟨nl⟩≡¯1↑𝕩? ¯1↓𝕩; 𝕩}
@@ -42,7 +42,7 @@ LR ← Lines∘R
 GetEnv ← {R "importas"‿"env"‿𝕩‿"printf"‿"%s"‿"$env"}
 
 RelPath ← •wdpath⊸•file.At
-SplitExt ← (∊⌾⌽(∨`∘∧+¯2⊸×∘∧)=⟜'.')⊔⊢
+SplitExt ← (∊⌾⌽ (∨`∘∧ + ¯2⊸×∘∧) =⟜'.')⊔⊢
 
 # 3p dependencies
 
@@ -81,16 +81,16 @@ MailNotesBackend ← {𝕊 config:
 # Git Backend
 
 converters ← ⍉>⟨
-# TODO(sterni): avoid cat
-⟨"html", ⋈"cat"⟩,
-⟨"md", "lowdown"‿"-T"‿"html"‿"--html-no-skiphtml"‿"--html-no-escapehtml"‿"--html-callout-mdn"⟩,
-# TODO(sterni): use emacs
-⟨"org", "pandoc"‿"-f"‿"org"‿"-t"‿"html5"⟩,
+  # TODO(sterni): avoid cat
+  ⟨"html", ⋈"cat"⟩,
+  ⟨"md", "lowdown"‿"-T"‿"html"‿"--html-no-skiphtml"‿"--html-no-escapehtml"‿"--html-callout-mdn"⟩,
+  # TODO(sterni): use emacs
+  ⟨"org", "pandoc"‿"-f"‿"org"‿"-t"‿"html5"⟩,
 ⟩
 
 # TODO(sterni): don't assemble blocks in this ad hoc fashion
 # TODO(sterni): pipefail
-PipelineCmd ← {"pipeline"⋈⊸∾(' '⊸∾¨𝕨)∾""⋈⊸∾𝕩}
+PipelineCmd ← {⟨"pipeline"⟩∾(' '⊸∾¨𝕨)∾⟨""⟩∾𝕩}
 
 GitBackend ← {𝕊 config:
   repo ← RelPath •file.At config j.ObjGet "repository"
@@ -155,14 +155,14 @@ config ← {
   raw ← j.Parse •FChars configFile
 
   [bns,bcs] ← raw j.ObjGet "backends"
-  bcs ↩ bcs ∾˘⟜{2‿1⊸⥊"name"‿𝕩}¨ bns
-  bts ← (j.ObjGet⟜"type")˜¨ bcs
+  bcs ↩ bcs ∾˘⟜{2‿1⥊"name"‿𝕩}¨ bns
+  bts ← j.ObjGet⟜"type"¨ bcs
   backends ⇐ bcs {𝕏 𝕨}¨ backends⊸j.ObjGet¨ bts
 
   title ⇐ raw j.ObjGet "title"
 }
 
-entries ← (<"time") ((⍒∘(•ns.Get˜¨))⊏⊢) ∾{𝕩.Entries @}¨ config.backends
+entries ← ((⍒ •ns.Get⟜"time"¨)⊏⊢) ∾{𝕩.Entries @}¨ config.backends
 "All entry IDs must be unique"!(≠=≠∘⍷) •ns.Get⟜"id"¨ entries
 
 MkDirP outDir
