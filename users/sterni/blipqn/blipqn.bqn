@@ -35,7 +35,8 @@ MakeFlipdot ← {
 # the original error location, though.
 _defer_ ← {
   # can't use •CurrentError if 𝕩 is namespace: https://github.com/dzaima/cbqn/commit/d6609df82
-  s‿r ← (1⊸⋈∘𝔾)⎊(0⊸⋈∘((6⊸=•Type)◶⟨•CurrentError,"_defer_: Unknown Error occurred"˙⟩)) 𝕩 ⋄ 𝔽 𝕩 ⋄ r⊣r!s;
+  # to avoid this problem, always wrap 𝕩 in a list and unwrap it before calling 𝔾
+  s‿r ← (1⊸⋈∘𝔾∘⊑)⎊(0⊸⋈∘•CurrentError) ⋈𝕩 ⋄ 𝔽 𝕩 ⋄ r⊣r!s;
   (𝕨⊸𝔽) _𝕣_ (𝕨⊸𝔾) 𝕩
 }
 
