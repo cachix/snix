@@ -1,7 +1,7 @@
 # Portable chunked streams for Common Lisp
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.chunga;
+let src = with pkgs; srcOnly sbcl.pkgs.chunga;
 in depot.nix.buildLisp.library {
   name = "chunga";
   deps = with depot.third_party.lisp; [

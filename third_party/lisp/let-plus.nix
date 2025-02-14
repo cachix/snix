@@ -1,6 +1,6 @@
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.let-plus;
+let src = with pkgs; srcOnly sbcl.pkgs.let-plus;
 in depot.nix.buildLisp.library {
   name = "let-plus";
   deps = [

@@ -1,12 +1,13 @@
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.cl-smtp;
+let src = with pkgs; srcOnly sbcl.pkgs.cl-smtp;
 in depot.nix.buildLisp.library {
   name = "cl-smtp";
   deps = with depot.third_party.lisp; [
+    alexandria
     usocket
-    trivial-gray-streams
     flexi-streams
+    frugal-uuid-non-frugal
     cl-base64
     cl-plus-ssl
   ];

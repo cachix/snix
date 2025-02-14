@@ -1,6 +1,6 @@
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.cl-change-case;
+let src = with pkgs; srcOnly sbcl.pkgs.cl-change-case;
 in depot.nix.buildLisp.library {
   name = "cl-change-case";
 

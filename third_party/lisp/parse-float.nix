@@ -1,6 +1,6 @@
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.parse-float;
+let src = with pkgs; srcOnly sbcl.pkgs.parse-float;
 in depot.nix.buildLisp.library {
   name = "parse-float";
 

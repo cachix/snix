@@ -1,7 +1,7 @@
 { depot, pkgs, ... }:
 
 let
-  getSrcs = builtins.map (p: "${pkgs.srcOnly pkgs.lispPackages.metabang-bind}/${p}");
+  getSrcs = builtins.map (p: "${pkgs.srcOnly pkgs.sbcl.pkgs.metabang-bind}/${p}");
 in
 
 depot.nix.buildLisp.library {

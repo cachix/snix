@@ -3,7 +3,7 @@
 
 let
   inherit (depot.nix) buildLisp;
-  src = with pkgs; srcOnly lispPackages.usocket-server;
+  src = with pkgs; srcOnly sbcl.pkgs.usocket-server;
 in
 buildLisp.library {
   name = "usocket-server";

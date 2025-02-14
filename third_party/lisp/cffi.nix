@@ -2,7 +2,7 @@
 { depot, pkgs, ... }:
 
 with depot.nix;
-let src = with pkgs; srcOnly lispPackages.cffi;
+let src = with pkgs; srcOnly sbcl.pkgs.cffi;
 in buildLisp.library {
   name = "cffi";
   deps = with depot.third_party.lisp; [
@@ -13,13 +13,14 @@ in buildLisp.library {
   ];
 
   srcs = [
+    "${src}/src/package.lisp"
+    "${src}/src/sys-utils.lisp"
     {
       ecl = src + "/src/cffi-ecl.lisp";
       sbcl = src + "/src/cffi-sbcl.lisp";
       ccl = src + "/src/cffi-openmcl.lisp";
     }
   ] ++ map (f: src + ("/src/" + f)) [
-    "package.lisp"
     "utils.lisp"
     "libraries.lisp"
     "early-types.lisp"

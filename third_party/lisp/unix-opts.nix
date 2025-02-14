@@ -2,7 +2,7 @@
 { depot, pkgs, ... }:
 
 
-let src = with pkgs; srcOnly lispPackages.unix-opts;
+let src = with pkgs; srcOnly sbcl.pkgs.unix-opts;
 in depot.nix.buildLisp.library {
   name = "unix-opts";
 

@@ -2,7 +2,7 @@
 # LOOP macro.
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.iterate;
+let src = with pkgs; srcOnly sbcl.pkgs.iterate;
 in depot.nix.buildLisp.library {
   name = "iterate";
   srcs = [

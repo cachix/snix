@@ -1,6 +1,6 @@
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.trivial-features;
+let src = with pkgs; srcOnly sbcl.pkgs.trivial-features;
 in depot.nix.buildLisp.library {
   name = "trivial-features";
   srcs = [

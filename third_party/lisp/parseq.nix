@@ -1,6 +1,6 @@
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.parseq;
+let src = with pkgs; srcOnly sbcl.pkgs.parseq;
 in depot.nix.buildLisp.library {
   name = "parseq";
 

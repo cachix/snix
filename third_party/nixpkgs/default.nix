@@ -56,9 +56,6 @@ let
     # newer trunk fails somewhere within reqwest, trying to read a mystery file
     trunk = stableNixpkgs.trunk;
 
-    # the big lisp package change breaks everything in //3p/lisp, undo it for now.
-    lispPackages = stableNixpkgs.lispPackages;
-
     # mypaint is broken on stable (2024-09-05)
     mypaint = stableNixpkgs.mypaint;
 

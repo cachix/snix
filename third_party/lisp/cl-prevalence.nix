@@ -2,12 +2,12 @@
 # an in-memory database)
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.cl-prevalence;
+let src = with pkgs; srcOnly sbcl.pkgs.cl-prevalence;
 in depot.nix.buildLisp.library {
   name = "cl-prevalence";
 
   deps = with depot.third_party.lisp; [
-    bordeaux-threads
+    moptilities
     s-xml
     s-sysdeps
   ];
@@ -21,5 +21,9 @@ in depot.nix.buildLisp.library {
     "managed-prevalence.lisp"
     "master-slave.lisp"
     "blob.lisp"
+  ];
+
+  brokenOn = [
+    "ecl" # see moptilities
   ];
 }

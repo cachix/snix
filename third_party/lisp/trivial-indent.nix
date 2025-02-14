@@ -1,6 +1,6 @@
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.trivial-indent;
+let src = with pkgs; srcOnly sbcl.pkgs.trivial-indent;
 in depot.nix.buildLisp.library {
   name = "trivial-indent";
 

@@ -1,7 +1,7 @@
 { depot, pkgs, ... }:
 
 let
-  src = with pkgs; srcOnly lispPackages.trivial-mimes;
+  src = with pkgs; srcOnly sbcl.pkgs.trivial-mimes;
 
   mime-types = pkgs.runCommand "mime-types.lisp" { } ''
     substitute ${src}/mime-types.lisp $out \

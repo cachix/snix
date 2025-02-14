@@ -1,7 +1,7 @@
 # Flexible bivalent streams for Common Lisp
 { depot, pkgs, ... }:
 
-let src = with pkgs; srcOnly lispPackages.flexi-streams;
+let src = with pkgs; srcOnly sbcl.pkgs.flexi-streams;
 in depot.nix.buildLisp.library {
   name = "flexi-streams";
   deps = [ depot.third_party.lisp.trivial-gray-streams ];

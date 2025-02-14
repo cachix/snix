@@ -3,7 +3,7 @@
 let
   inherit (pkgs) runCommand;
   inherit (depot.nix.buildLisp) bundled;
-  src = with pkgs; srcOnly lispPackages.ironclad;
+  src = with pkgs; srcOnly sbcl.pkgs.ironclad;
   getSrc = f: "${src}/src/${f}";
 
 in
@@ -90,7 +90,17 @@ depot.nix.buildLisp.library {
     "digests/crc24.lisp"
     "digests/crc32.lisp"
     "digests/groestl.lisp"
-    "digests/jh.lisp"
+  ] ++ [
+    {
+      # Work around compiler warning for CCL:
+      # https://github.com/sharplispers/ironclad/commit/ebc994b06409829c463b099fe460276cba564d43#commitcomment-153059140
+      ccl = pkgs.runCommand "jh.lisp" { } ''
+        substitute "${src}/src/digests/jh.lisp" "$out" \
+          --replace-fail "(declare (notinline jh-buffer jh-state))" ""
+      '';
+      default = "${src}/src/digests/jh.lisp";
+    }
+  ] ++ map getSrc [
     "digests/kupyna.lisp"
     "digests/md2.lisp"
     "digests/md4.lisp"

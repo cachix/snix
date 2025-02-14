@@ -3,7 +3,7 @@
 
 let
   inherit (depot.nix) buildLisp;
-  src = with pkgs; srcOnly lispPackages.local-time;
+  src = with pkgs; srcOnly sbcl.pkgs.local-time;
 in
 buildLisp.library {
   name = "local-time";

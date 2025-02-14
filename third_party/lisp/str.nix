@@ -2,7 +2,7 @@
 
 let
   inherit (depot.nix) buildLisp;
-  src = with pkgs; srcOnly lispPackages.str;
+  src = with pkgs; srcOnly sbcl.pkgs.str;
 in
 buildLisp.library {
   name = "str";
@@ -22,7 +22,7 @@ buildLisp.library {
       substitute ${src}/str.lisp $out \
         --replace-fail \
           '(asdf:component-version (asdf:find-system "str"))' \
-          '"${pkgs.lispPackages.str.meta.version}"'
+          '"${pkgs.sbcl.pkgs.str.version}"'
     '')
   ];
 

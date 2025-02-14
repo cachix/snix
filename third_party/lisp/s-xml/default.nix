@@ -4,7 +4,7 @@
 let
   src = pkgs.applyPatches {
     name = "s-xml-source";
-    src = pkgs.lispPackages.s-xml.src;
+    src = pkgs.sbcl.pkgs.s-xml.src;
 
     patches = [
       ./0001-fix-definition-order-in-xml.lisp.patch

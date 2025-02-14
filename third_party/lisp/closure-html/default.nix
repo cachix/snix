@@ -3,7 +3,7 @@
 let
   src = pkgs.applyPatches {
     name = "closure-html-source";
-    src = pkgs.lispPackages.closure-html.src;
+    src = pkgs.sbcl.pkgs.closure-html.src;
 
     patches = [
       # delete unexported and unused double defun in sgml-dtd.lisp

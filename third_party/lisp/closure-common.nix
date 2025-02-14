@@ -1,7 +1,7 @@
 { depot, pkgs, ... }:
 
 let
-  src = with pkgs; srcOnly lispPackages.closure-common;
+  src = with pkgs; srcOnly sbcl.pkgs.closure-common;
   getSrcs = builtins.map (p: "${src}/${p}");
 in
 depot.nix.buildLisp.library {

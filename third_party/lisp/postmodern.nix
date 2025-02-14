@@ -2,7 +2,7 @@
 
 let
   inherit (depot.nix.buildLisp) bundled;
-  src = with pkgs; srcOnly lispPackages.postmodern;
+  src = with pkgs; srcOnly sbcl.pkgs.postmodern;
 
   cl-postgres = depot.nix.buildLisp.library {
     name = "cl-postgres";

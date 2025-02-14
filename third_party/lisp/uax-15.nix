@@ -3,7 +3,7 @@
 let
   inherit (pkgs) runCommand;
   inherit (depot.nix.buildLisp) bundled;
-  src = with pkgs; srcOnly lispPackages.uax-15;
+  src = with pkgs; srcOnly sbcl.pkgs.uax-15;
 in
 depot.nix.buildLisp.library {
   name = "uax-15";

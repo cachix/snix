@@ -2,7 +2,7 @@
 { depot, pkgs, ... }:
 
 let
-  src = pkgs.srcOnly pkgs.lispPackages.lisp-binary;
+  src = pkgs.srcOnly pkgs.sbcl.pkgs.lisp-binary;
 in
 depot.nix.buildLisp.library {
   name = "lisp-binary";
