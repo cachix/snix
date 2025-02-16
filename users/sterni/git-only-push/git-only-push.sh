@@ -89,10 +89,7 @@ if [ "$#" -eq 0 ]; then
   die 100 "Missing commits"
 fi
 
-# Resolve ranges, get them into chronological order
 repo="$(git rev-parse --show-toplevel)"
-revs="$(git -C "$repo" rev-list --no-walk "$@" | tac)"
-
 worktree=
 
 cleanup() {
@@ -108,19 +105,24 @@ else
   git -C "$repo" worktree add "$worktree" "$base"
 fi
 
-for rev in $revs; do
-  if $dry; then
-    printf 'Would cherry pick %s\n' "$rev" >&2
-  else
-    no_cherry_pick=false
-    git -C "$worktree" cherry-pick ${cherry_pick_x:+-x} "$rev" || no_cherry_pick=true
-    if $no_cherry_pick; then
-      tmp="$worktree"
-      # Prevent cleanup from removing the worktree
-      worktree=""
-      die 101 "Could not cherry pick $rev. Please manually fixup worktree at $tmp"
+for arg in "$@"; do
+  # Resolve ranges, get them into chronological order
+  revs="$(git -C "$repo" rev-list --no-walk "$arg" | tac)"
+
+  for rev in $revs; do
+    if $dry; then
+      printf 'Would cherry pick %s\n' "$rev" >&2
+    else
+      no_cherry_pick=false
+      git -C "$worktree" cherry-pick ${cherry_pick_x:+-x} "$rev" || no_cherry_pick=true
+      if $no_cherry_pick; then
+        tmp="$worktree"
+        # Prevent cleanup from removing the worktree
+        worktree=""
+        die 101 "Could not cherry pick $rev. Please manually fixup worktree at $tmp"
+      fi
     fi
-  fi
+  done
 done
 
 if $dry; then
