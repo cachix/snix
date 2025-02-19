@@ -24,7 +24,7 @@ where
                 // fetch the linked node from the directory_service.
                 let directory = directory_service.get(&digest).await?.ok_or_else(|| {
                     // If we didn't get the directory node that's linked, that's a store inconsistency, bail out!
-                    warn!("directory {} does not exist", digest);
+                    warn!(directory.digest = %digest, "directory does not exist");
 
                     Error::StorageError(format!("directory {} does not exist", digest))
                 })?;
