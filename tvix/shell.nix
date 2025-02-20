@@ -25,6 +25,7 @@
       })
     ];
   })
+, withIntegration ? false
 , ...
 }:
 
@@ -61,6 +62,9 @@ pkgs.mkShell {
     # `cargo build` on MacOS.
     pkgs.libiconv
     pkgs.buildPackages.darwin.apple_sdk.frameworks.Security
+  ] ++ pkgs.lib.optionals withIntegration [
+    pkgs.cbtemulator
+    pkgs.google-cloud-bigtable-tool
   ];
 
   # Set TVIX_BENCH_NIX_PATH to a somewhat pinned nixpkgs path.

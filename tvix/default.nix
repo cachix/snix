@@ -59,6 +59,9 @@ in
   # workspace too.
   shell = (import ./shell.nix { inherit pkgs; });
 
+  # Shell, but with tools necessary to run the integration tests
+  shell-integration = (import ./shell.nix { inherit pkgs; withIntegration = true; });
+
   # Build the Rust documentation for publishing on docs.tvix.dev.
   rust-docs = pkgs.stdenv.mkDerivation {
     inherit cargoDeps src;
@@ -120,6 +123,7 @@ in
   meta.ci.targets = [
     "clippy"
     "shell"
+    "shell-integration"
     "rust-docs"
     "crate2nix-check"
   ];
