@@ -215,9 +215,7 @@ where
             let _reserve_space = conn.read_u64_le().await?;
         }
         if picked_version.minor() >= 33 {
-            // Nix version. We're plain lying, we're not Nix, but eh…
-            // Setting it to the 2.3 lineage. Not 100% sure this is a
-            // good idea.
+            // Nix version.
             wire::write_bytes(&mut conn, nix_version).await?;
             conn.flush().await?;
         }
