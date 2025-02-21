@@ -29,6 +29,7 @@ depot.nix.readTree.drvTargets {
 
   home-manager = super.home-manager.overrideAttrs (_: {
     src = depot.third_party.sources.home-manager;
+    patches = [ ./patches/0001-home-environment-fix-compatibility-with-Nix-2.3.patch ];
     version = "git-"
       + builtins.substring 0 7 depot.third_party.sources.home-manager.rev;
   });
