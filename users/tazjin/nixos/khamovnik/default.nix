@@ -7,12 +7,27 @@ config:
 let
   mod = name: depot.path.origSrc + ("/ops/modules/" + name);
   usermod = name: depot.path.origSrc + ("/users/tazjin/nixos/modules/" + name);
-  private = /arc/junk/tazjin;
 
   zdevice = device: {
     inherit device;
     fsType = "zfs";
   };
+
+  # Determine whether private Yandex-specific configuration should be loaded,
+  # and fail if it is unexpectedly not available.
+  yandexConfigIncludes =
+    let
+      hostname = if builtins.pathExists "/etc/hostname" then builtins.readFile "/etc/hostname" else "";
+      isKhamovnik = hostname == "khamovnik\n";
+      private = /arc/junk/tazjin;
+      hasPrivate = builtins.pathExists private;
+    in
+    assert isKhamovnik -> hasPrivate;
+    if !isKhamovnik then [ ] else [
+      (private + "/nixos/yandex.nix")
+      (private + "/emacs/module.nix")
+    ];
+
 in
 {
   imports = [
@@ -24,10 +39,7 @@ in
     (usermod "physical.nix")
     (usermod "systemd-unfreeze.nix")
     (pkgs.home-manager.src + "/nixos")
-  ] ++ (if (builtins.pathExists private) then [
-    (private + "/nixos/yandex.nix")
-    (private + "/emacs/module.nix")
-  ] else [ ]);
+  ] ++ yandexConfigIncludes;
 
   # from hardware-configuration.nix
   boot = {
