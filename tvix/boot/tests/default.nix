@@ -98,14 +98,22 @@ let
           # Upload. We can't use nix copy --to http://…, as it wants access to the nix db.
           # However, we can use mkBinaryCache to assemble .narinfo and .nar.xz to upload,
           # and then drive a HTTP client ourselves.
-          to_upload=${pkgs.mkBinaryCache { rootPaths = [path];}}
+          to_upload=${
+            pkgs.mkBinaryCache {
+              rootPaths = [ path ];
+              # Needs to be set explicitly now: https://github.com/NixOS/nixpkgs/pull/376365#issuecomment-2692701604
+              compression = "xz";
+            }
+          }
 
           # Upload all NAR files (with some parallelism).
           # As mkBinaryCache produces them xz-compressed, unpack them on the fly.
           # nar-bridge doesn't care about the path we upload *to*, but a
           # subsequent .narinfo upload need to refer to its contents (by narhash).
           echo -e "Uploading NARs… "
-          ls -d $to_upload/nar/*.nar.xz | rush -n1 'nar_hash=$(xz -d < {} | nix-hash --base32 --type sha256 --flat /dev/stdin);xz -d < {} | curl -s --fail-with-body -T - --unix-socket $PWD/nar-bridge.sock http://localhost:9000/nar/''${nar_hash}.nar'
+          # TODO(flokli): extension of the nar files where changed from .nar.xz to .xz
+          # https://github.com/NixOS/nixpkgs/pull/376365
+          ls -d $to_upload/nar/*.xz | rush -n1 'nar_hash=$(xz -d < {} | nix-hash --base32 --type sha256 --flat /dev/stdin);xz -d < {} | curl -s --fail-with-body -T - --unix-socket $PWD/nar-bridge.sock http://localhost:9000/nar/''${nar_hash}.nar'
           echo "Done."
 
           # Upload all NARInfo files.
