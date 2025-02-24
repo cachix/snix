@@ -27,7 +27,7 @@ in
       };
 
       ed25519SecretKeyFile = mkOption {
-        type = with types; uniq string;
+        type = with types; uniq str;
         description = "Path to the ed25519 secret key for the server";
       };
     };

@@ -10,7 +10,7 @@ in
 
     interval = mkOption {
       description = "Systemd calendar expression for how often to run the interval";
-      type = types.string;
+      type = types.str;
       default = "minutely";
       example = "hourly";
     };

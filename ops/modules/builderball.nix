@@ -14,7 +14,7 @@ in
     enable = lib.mkEnableOption description;
 
     caches = lib.mkOption {
-      type = with lib.types; listOf string;
+      type = with lib.types; listOf str;
       description = "Public addresses of caches to use";
 
       default = [
