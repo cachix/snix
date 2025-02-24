@@ -1,4 +1,4 @@
-{ config, depot, pkgs, ... }:
+{ config, pkgs, ... }:
 {
   imports = [ ./nar-bridge-module.nix ];
 
@@ -11,11 +11,10 @@
         tryFiles = "$uri $uri/index.html =404";
         root = pkgs.runCommand "index"
           {
-            nativeBuildInputs = [ depot.tools.cheddar ];
+            nativeBuildInputs = [ pkgs.markdown2html-converter ];
           } ''
           mkdir -p $out
-          cheddar README.md < ${./README.md} > $out/index.html
-          find $out
+          markdown2html-converter ${./README.md} -o $out/index.html
         '';
       };
       locations."/" = {
