@@ -319,6 +319,10 @@ Get the hell out of here, snipe!
   "r" #'consult-recent-file))
 #+end_src
 
+#+begin_src elisp :tangle yes
+(setopt evil-collection-setup-minibuffer t)
+#+end_src
+
 ** Flycheck
 #+begin_src elisp :tangle yes
 (evil-set-command-property 'flycheck-next-error :repeat nil)
@@ -721,7 +725,10 @@ fireplace-esque eval binding
 
   (:map org-capture-mode-map
    :n "g RET" #'org-capture-finalize
-   :n "g \\"  #'org-captue-refile)))
+   :n "g \\"  #'org-captue-refile)
+
+  (:map org-mode-map
+   [tab] #'org-cycle)))
 #+end_src
 
 ** magit
@@ -1072,8 +1079,13 @@ nil
               ([tab] . corfu-next)
               ("S-TAB" . corfu-previous)
               ([backtab] . corfu-previous))
-  :init (setopt corfu-on-exact-match 'insert
+  :init (setopt corfu-auto t
+                corfu-auto-delay 0.1
+                corfu-preview-current 'insert
+                corfu-on-exact-match 'insert
                 corfu-preselect 'prompt
+                corfu-cycle t
+                corfu-auto-prefix 2
                 completion-cycle-threshold 1
                 corfu-quit-no-match t
                 corfu-quit-at-boundary t)
@@ -1385,7 +1397,6 @@ you'll change the colors used for nicks."
 ;; This adds the ERC message insert hook.
 (add-hook 'erc-insert-modify-hook 'erc-insert-nick-colors)
 #+end_src
-
 * Hacks
 Not having this breaks elisp documentation :(
 #+begin_src elisp :tangle yes
