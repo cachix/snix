@@ -55,12 +55,6 @@ let
   stableOverlay = _unstableSelf: unstableSuper: {
     # newer trunk fails somewhere within reqwest, trying to read a mystery file
     trunk = stableNixpkgs.trunk;
-
-    # mypaint is broken on stable (2024-09-05)
-    mypaint = stableNixpkgs.mypaint;
-
-    # gdmap is broken on unstable (2024-12-31)
-    gdmap = stableNixpkgs.gdmap;
   };
 
   # Overlay to expose the nixpkgs commits we are using to other Nix code.
