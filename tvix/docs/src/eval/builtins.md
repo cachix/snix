@@ -87,7 +87,7 @@ The `impl` column indicates implementation status in tvix:
 | match                         | false  |       |       |         |
 | mul                           | false  |       |       |         |
 | nixPath                       | false  |       |       | todo    |
-| nixVersion                    | false  |       |       | todo    |
+| nixVersion                    | false  |       |       |         |
 | null                          | true   |       |       |         |
 | parseDrvName                  | false  |       |       |         |
 | partition                     | false  |       |       |         |

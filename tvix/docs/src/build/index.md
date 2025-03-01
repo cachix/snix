@@ -9,7 +9,7 @@ This means the builder protocol is versatile enough to express the environment a
 Nix build expects, while not being aware of "what any of this means".
 
 For example, it is not aware of how certain environment variables are set in a
-nix build, but allows specifying environent variables that should be set.
+nix build, but allows specifying environment variables that should be set.
 
 It's also not aware of what nix store paths are. Instead, it allows:
 
