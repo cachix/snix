@@ -49,7 +49,7 @@ let
           depot.tvix.nar-bridge
           pkgs.curl
           pkgs.rush-parallel
-          pkgs.xz.bin
+          pkgs.zstd.bin
           pkgs.nix
         ];
         buildCommand = ''
@@ -101,8 +101,8 @@ let
           to_upload=${
             pkgs.mkBinaryCache {
               rootPaths = [ path ];
-              # Needs to be set explicitly now: https://github.com/NixOS/nixpkgs/pull/376365#issuecomment-2692701604
-              compression = "xz";
+              # Implemented in https://github.com/NixOS/nixpkgs/pull/376365
+              compression = "zstd";
             }
           }
 
@@ -111,9 +111,9 @@ let
           # nar-bridge doesn't care about the path we upload *to*, but a
           # subsequent .narinfo upload need to refer to its contents (by narhash).
           echo -e "Uploading NARs… "
-          # TODO(flokli): extension of the nar files where changed from .nar.xz to .xz
+          # TODO(flokli): extension of the nar files where changed from .nar.{compression} to .{compression}
           # https://github.com/NixOS/nixpkgs/pull/376365
-          ls -d $to_upload/nar/*.xz | rush -n1 'nar_hash=$(xz -d < {} | nix-hash --base32 --type sha256 --flat /dev/stdin);xz -d < {} | curl -s --fail-with-body -T - --unix-socket $PWD/nar-bridge.sock http://localhost:9000/nar/''${nar_hash}.nar'
+          ls -d $to_upload/nar/*.zst | rush -n1 'nar_hash=$(zstdcat < {} | nix-hash --base32 --type sha256 --flat /dev/stdin);zstdcat < {} | curl -s --fail-with-body -T - --unix-socket $PWD/nar-bridge.sock http://localhost:9000/nar/''${nar_hash}.nar'
           echo "Done."
 
           # Upload all NARInfo files.
