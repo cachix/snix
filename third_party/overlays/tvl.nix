@@ -33,6 +33,14 @@ depot.nix.readTree.drvTargets {
     withAWS = false;
   });
 
+  # see b/439; this fix will be upstreamed in nixpkgs
+  buildkite-agent = super.buildkite-agent.overrideAttrs (old: {
+    # once PR#386414 propagates here (& len(ldflags) = 2), we can delete this
+    ldflags = assert (builtins.length old.ldflags) == 1; old.ldflags ++ [
+      "-X github.com/buildkite/agent/v3/version.buildNumber=nix"
+    ];
+  });
+
   # No longer builds with Nix 2.3 after
   # https://github.com/nixos/nixpkgs/commit/5f9d2d95721cdf20ace744f2db75ad70a7aedd3a
   nixos-option = super.nixos-option.override {
