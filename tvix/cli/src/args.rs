@@ -50,7 +50,7 @@ pub struct Args {
     ///
     /// This option may be given multiple times. Paths added through -I take precedence over
     /// NIX_PATH.
-    #[clap(long = "extra-nix-path", short = 'I', env = "NIX_PATH", action = clap::ArgAction::Append)]
+    #[clap(long = "extra-nix-path", short = 'I', action = clap::ArgAction::Append)]
     pub extra_nix_paths: Option<Vec<String>>,
 
     /// Print "raw" (unquoted) output.
