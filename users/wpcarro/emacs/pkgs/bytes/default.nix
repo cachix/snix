@@ -14,7 +14,7 @@ let
       })
     { };
 
-  emacs = (pkgs.emacsPackagesFor pkgs.emacs28).emacsWithPackages (epkgs: [ bytes ]);
+  emacs = (pkgs.emacsPackagesFor pkgs.emacs).emacsWithPackages (epkgs: [ bytes ]);
 in
 bytes.overrideAttrs (_old: {
   doCheck = true;

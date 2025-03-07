@@ -124,7 +124,7 @@ lib.fix (self: {
       bat
       curl
       direnv
-      emacs28-nox
+      emacs-nox
       fswebcam
       git
       gnupg

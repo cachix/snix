@@ -14,7 +14,7 @@ let
       })
     { };
 
-  emacs = (pkgs.emacsPackagesFor pkgs.emacs28).emacsWithPackages (epkgs: [
+  emacs = (pkgs.emacsPackagesFor pkgs.emacs).emacsWithPackages (epkgs: [
     string
   ]);
 in

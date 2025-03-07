@@ -10,7 +10,7 @@ let
       })
     { };
 
-  emacs = (pkgs.emacsPackagesFor pkgs.emacs28).emacsWithPackages (epkgs: [ vector ]);
+  emacs = (pkgs.emacsPackagesFor pkgs.emacs).emacsWithPackages (epkgs: [ vector ]);
 in
 vector.overrideAttrs (_old: {
   doCheck = true;

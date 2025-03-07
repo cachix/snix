@@ -15,7 +15,7 @@ let
       })
     { };
 
-  emacs = (pkgs.emacsPackagesFor pkgs.emacs28).emacsWithPackages (epkgs: [ list ]);
+  emacs = (pkgs.emacsPackagesFor pkgs.emacs).emacsWithPackages (epkgs: [ list ]);
 in
 list.overrideAttrs (_old: {
   doCheck = true;
