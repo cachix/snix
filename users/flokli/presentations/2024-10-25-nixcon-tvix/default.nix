@@ -32,4 +32,8 @@ stdenv.mkDerivation {
     # Above command doesn't fail on error, ensure file has been created
     [[ -f "$out/slides.pdf" ]] || exit 1
   '';
+
+  # reveal-md presentation.md --print started timing out possibly due to
+  # chromium: 133.0.6943.141 -> 134.0.6998.35
+  meta.ci.skip = true;
 }

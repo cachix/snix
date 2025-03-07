@@ -33,14 +33,6 @@ depot.nix.readTree.drvTargets {
     withAWS = false;
   });
 
-  # see b/439; this fix will be upstreamed in nixpkgs
-  buildkite-agent = super.buildkite-agent.overrideAttrs (old: {
-    # once PR#386414 propagates here (& len(ldflags) = 2), we can delete this
-    ldflags = assert (builtins.length old.ldflags) == 1; old.ldflags ++ [
-      "-X github.com/buildkite/agent/v3/version.buildNumber=nix"
-    ];
-  });
-
   # No longer builds with Nix 2.3 after
   # https://github.com/nixos/nixpkgs/commit/5f9d2d95721cdf20ace744f2db75ad70a7aedd3a
   nixos-option = super.nixos-option.override {
@@ -49,7 +41,6 @@ depot.nix.readTree.drvTargets {
 
   home-manager = super.home-manager.overrideAttrs (_: {
     src = depot.third_party.sources.home-manager;
-    patches = [ ./patches/0001-home-environment-fix-compatibility-with-Nix-2.3.patch ];
     version = "git-"
       + builtins.substring 0 7 depot.third_party.sources.home-manager.rev;
   });
@@ -170,15 +161,6 @@ depot.nix.readTree.drvTargets {
     # tests fail
     doCheck = false;
   };
-
-  # Imports a patch that fixes usage of this package on versions
-  # >=1.9. The patch has been proposed upstream, but so far with no
-  # reactions from the maintainer:
-  #
-  # https://github.com/tpm2-software/tpm2-pkcs11/pull/849
-  tpm2-pkcs11 = super.tpm2-pkcs11.overrideAttrs (old: {
-    patches = (old.patches or [ ]) ++ [ ./patches/tpm2-pkcs11-190-dbupgrade.patch ];
-  });
 
   # Dependency isn't supported by Python 3.12
   html5validator = super.html5validator.override {
