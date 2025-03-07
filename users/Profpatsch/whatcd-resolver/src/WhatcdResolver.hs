@@ -135,37 +135,43 @@ htmlUi = do
                     counterHtml <- counterHtmlM
                     mainHtml counterHtml uniqueRunId span
                 ),
-                ( "snips/redacted/search",
-                  Html $
-                    \span -> do
-                      dat <-
-                        parseMultipartOrThrow
-                          span
-                          req
-                          ( do
-                              label @"searchstr" <$> Multipart.field "redacted-search" Cat.id
-                          )
-                      t <- redactedSearchAndInsert [("searchstr", dat.searchstr)]
+                ( "redacted-search",
+                  HtmlWithQueryArgs (singleQueryArgument "searchstr" Cat.id) $
+                    \searchstr _span -> do
+                      t <- redactedSearchAndInsert [("searchstr", searchstr)]
                       runTransaction $ do
                         res <- t
-                        table <-
-                          getBestTorrentsTable
-                            (label @"groupByReleaseType" True)
-                            ( Just (E21 (label @"onlyTheseTorrents" res.newTorrents)) ::
-                                ( Maybe
-                                    ( E2
-                                        "onlyTheseTorrents"
-                                        [Label "torrentId" Int]
-                                        "artistRedactedId"
-                                        Natural
-                                    )
+                        (table, settings) <-
+                          concurrentlyTraced
+                            ( getBestTorrentsTable
+                                (label @"groupByReleaseType" True)
+                                ( Just
+                                    ( E21
+                                        (label @"onlyTheseTorrents" res.newTorrents)
+                                    ) ::
+                                    Maybe
+                                      ( E2
+                                          "onlyTheseTorrents"
+                                          [Label "torrentId" Int]
+                                          "artistRedactedId"
+                                          Natural
+                                      )
                                 )
                             )
-                        pure
-                          [hsx|
-                          <h1>Search results for <pre>{dat.searchstr}</pre></h1>
-                          {table}
-                        |]
+                            (getSettings)
+                        pure $
+                          mainHtml'
+                            ( MainHtml
+                                { pageTitle = [fmt|whatcd-resolver – Search – {searchstr & bytesToTextUtf8Lenient}|],
+                                  counterHtml = "",
+                                  mainContent =
+                                    [hsx|<h1>Search results for <pre>{searchstr}</pre></h1>{table}|],
+                                  uniqueRunId,
+                                  searchFieldContent = searchstr & bytesToTextUtf8Lenient,
+                                  settings
+                                }
+                            )
+                            _span
                 ),
                 ( "snips/redacted/torrentDataJson",
                   Html $ \span -> do
@@ -337,28 +343,52 @@ htmlUi = do
           (getBestTorrentsTable (label @"groupByReleaseType" False) Nothing)
           (getSettings)
       -- transmissionTorrentsTable <- lift @Transaction getTransmissionTorrentsTable
-      let returnUrl = (label @"returnUrl" "/")
       pure $
-        htmlPageChrome
-          "whatcd-resolver"
-          ( [hsx|
-            {counterHtml}
-            {settingButtons returnUrl settings}
+        mainHtml'
+          ( MainHtml
+              { pageTitle = "whatcd-resolver",
+                counterHtml,
+                mainContent = bestTorrentsTable,
+                uniqueRunId,
+                settings,
+                searchFieldContent = ""
+              }
+          )
+          _span
+
+data MainHtml = MainHtml
+  { pageTitle :: Text,
+    counterHtml :: Html,
+    mainContent :: Html,
+    searchFieldContent :: Text,
+    uniqueRunId :: Text,
+    settings :: Settings
+  }
+
+mainHtml' :: MainHtml -> Otel.Span -> Html
+mainHtml' dat _span = do
+  -- transmissionTorrentsTable <- lift @Transaction getTransmissionTorrentsTable
+  let returnUrl = (label @"returnUrl" "/")
+
+  htmlPageChrome
+    dat.pageTitle
+    ( [hsx|
+            {dat.counterHtml}
+            {settingButtons returnUrl dat.settings}
           |]
-              <> [hsx|
-            <form
-              hx-post="/snips/redacted/search"
-              hx-target="#redacted-search-results">
-              <label for="redacted-search">Redacted Search</label>
+        <> [hsx|
+            <form action="redacted-search">
+              <label for="redacted-search-input">Redacted Search</label>
               <input
-                id="redacted-search"
+                id="redacted-search-input"
                 type="text"
-                name="redacted-search" />
+                name="searchstr"
+                value={dat.searchFieldContent} />
               <button type="submit" hx-disabled-elt="this">Search</button>
               <div class="htmx-indicator">Search running!</div>
             </form>
-            <div id="redacted-search-results">
-              {bestTorrentsTable}
+            <div>
+              {dat.mainContent}
             </div>
             <!-- refresh the page if the uniqueRunId is different -->
             <input
@@ -366,13 +396,13 @@ htmlUi = do
                 type="text"
                 id="autorefresh"
                 name="hasItBeenRestarted"
-                value={uniqueRunId}
+                value={dat.uniqueRunId}
                 hx-get="/autorefresh"
                 hx-trigger="every 5s"
                 hx-swap="none"
             />
             |]
-          )
+    )
 
 -- | Run two actions concurrently, and add them to the current Otel trace
 concurrentlyTraced :: (MonadUnliftIO m) => m a -> m b -> m (a, b)
