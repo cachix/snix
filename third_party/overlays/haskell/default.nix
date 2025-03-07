@@ -36,19 +36,6 @@ in
           ansi-wl-pprint = hsSelf.prettyprinter;
         });
 
-      ihp-hsx = lib.pipe hsSuper.ihp-hsx [
-        (haskellLib.overrideSrc {
-          version = "unstable-2023-03-28";
-          src = "${self.fetchFromGitHub {
-            owner = "digitallyinduced";
-            repo = "ihp";
-            rev = "ab4ecd05f4e7b6b3c4b74b82d39fc6c5cc48766b";
-            sha256 = "1fj5q9lygnmvqqv2fwqdj12sv63gkdfv5ha6fi190sv07dp9n9an";
-          }}/ihp-hsx";
-        })
-        haskellLib.doJailbreak
-      ];
-
       pa-prelude = hsSelf.callPackage ./extra-pkgs/pa-prelude.nix { };
       pa-error-tree = hsSelf.callPackage ./extra-pkgs/pa-error-tree-0.1.0.0.nix { };
       pa-field-parser = hsSelf.callPackage ./extra-pkgs/pa-field-parser.nix { };
