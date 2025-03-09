@@ -156,20 +156,23 @@ htmlUi = do
                                  res <- t
                                  (table, settings) <-
                                    concurrentlyTraced
-                                     ( getBestTorrentsTable
-                                         (t2 #groupByReleaseType True #limitResults Nothing)
-                                         ( Just
-                                             ( E21
-                                                 (label @"onlyTheseTorrents" res.newTorrents)
-                                             ) ::
-                                             Maybe
-                                               ( E2
-                                                   "onlyTheseTorrents"
-                                                   [Label "torrentId" Int]
-                                                   "artistRedactedId"
-                                                   Int
-                                               )
-                                         )
+                                     ( do
+                                         d <-
+                                           getBestTorrentsData
+                                             (t2 #limitResults Nothing #ordering BySeedingWeight)
+                                             ( Just
+                                                 ( E21
+                                                     (label @"onlyTheseTorrents" res.newTorrents)
+                                                 ) ::
+                                                 Maybe
+                                                   ( E2
+                                                       "onlyTheseTorrents"
+                                                       [Label "torrentId" Int]
+                                                       "artistRedactedId"
+                                                       Int
+                                                   )
+                                             )
+                                         pure $ mkBestTorrentsTableByReleaseType d
                                      )
                                      (getSettings)
                                  pure $
@@ -376,7 +379,12 @@ htmlUi = do
       --     <&> renderJsonld
       (bestTorrentsTable, settings) <-
         concurrentlyTraced
-          (getBestTorrentsTable (t2 #groupByReleaseType False #limitResults (Just 1000)) Nothing)
+          ( do
+              d <- getBestTorrentsData (t2 #limitResults (Just 30) #ordering ByLastReleases) Nothing
+              pure $ case d & nonEmpty of
+                Nothing -> [hsx|<h1>Last Releases</h1><p>No torrents found</p>|]
+                Just d' -> mkBestTorrentsTableSection (lbl #sectionName "Last Releases") d'
+          )
           (getSettings)
       -- transmissionTorrentsTable <- lift @Transaction getTransmissionTorrentsTable
       pure $
@@ -420,7 +428,7 @@ mainHtml' dat = do
               {dat.mainContent}
             </div>
             <!-- refresh the page if the uniqueRunId is different -->
-            <input
+            <!-- <input
                 hidden
                 type="text"
                 id="autorefresh"
@@ -429,7 +437,7 @@ mainHtml' dat = do
                 hx-get="/autorefresh"
                 hx-trigger="every 5s"
                 hx-swap="none"
-            />
+            /> -->
             |]
 
 withAsyncTraced :: (MonadUnliftIO m) => m a -> (Async a -> m b) -> m b
@@ -580,11 +588,11 @@ artistPage dat = runTransaction $ do
   (fresh, settings) <-
     concurrentlyTraced
       ( getBestTorrentsData
-          (label @"limitResults" Nothing)
+          (t2 #limitResults Nothing #ordering BySeedingWeight)
           (Just $ E22 (getLabel @"artistRedactedId" dat))
       )
       (getSettings)
-  let torrents = mkBestTorrentsTable (label @"groupByReleaseType" True) fresh
+  let torrents = mkBestTorrentsTableByReleaseType fresh
 
   let returnUrl =
         textToBytesUtf8 $
@@ -809,22 +817,6 @@ data ArtistFilter = ArtistFilter
   { onlyArtist :: Maybe (Label "artistId" Text)
   }
 
-getBestTorrentsTable ::
-  ( MonadTransmission m,
-    MonadThrow m,
-    MonadLogger m,
-    MonadPostgres m,
-    MonadOtel m,
-    HasField "groupByReleaseType" opts Bool,
-    HasField "limitResults" opts (Maybe Natural)
-  ) =>
-  opts ->
-  Maybe (E2 "onlyTheseTorrents" [Label "torrentId" Int] "artistRedactedId" Int) ->
-  Transaction m Html
-getBestTorrentsTable opts dat = do
-  fresh <- getBestTorrentsData opts dat
-  pure $ mkBestTorrentsTable opts fresh
-
 doIfJust :: (Applicative f) => (a -> f ()) -> Maybe a -> f ()
 doIfJust = traverse_
 
@@ -834,7 +826,8 @@ getBestTorrentsData ::
     MonadLogger m,
     MonadPostgres m,
     MonadOtel m,
-    HasField "limitResults" opts (Maybe Natural)
+    HasField "limitResults" opts (Maybe Natural),
+    HasField "ordering" opts BestTorrentsOrdering
   ) =>
   opts ->
   Maybe (E2 "onlyTheseTorrents" [Label "torrentId" Int] "artistRedactedId" Int) ->
@@ -846,6 +839,7 @@ getBestTorrentsData opts filters = inSpan' "get torrents table data" $ \span -> 
   onlyTheseTorrents & doIfJust (\a -> addAttribute span "torrent-filter.ids" (a <&> (getLabel @"torrentId") & showToText & Otel.toAttribute))
   let limitResults = getField @"limitResults" opts
 
+  let ordering = opts.ordering
   let getBest = getBestTorrents GetBestTorrentsFilter {..}
   bestStale :: [TorrentData ()] <- getBest
   (statusInfo, transmissionStatus) <-
@@ -894,12 +888,25 @@ getBestTorrentsData opts filters = inSpan' "get torrents table data" $ \span -> 
               NoTorrentFileYet -> td {torrentStatus = NoTorrentFileYet}
           )
 
-mkBestTorrentsTable ::
-  (HasField "groupByReleaseType" opts Bool) =>
-  opts ->
+mkBestTorrentsTableByReleaseType ::
   [TorrentData (Label "percentDone" Percentage)] ->
   Html
-mkBestTorrentsTable opts fresh = do
+mkBestTorrentsTableByReleaseType fresh =
+  fresh
+    & toList
+    & groupAllWithComparison ((.releaseType) >$< releaseTypeComparison)
+    & foldMap
+      ( \ts -> do
+          let releaseType = ts & NonEmpty.head & (.releaseType.stringKey)
+          mkBestTorrentsTableSection (lbl #sectionName [fmt|{releaseType}s|]) ts
+      )
+
+mkBestTorrentsTableSection ::
+  (HasField "sectionName" opts Text) =>
+  opts ->
+  NonEmpty (TorrentData (Label "percentDone" Percentage)) ->
+  Html
+mkBestTorrentsTableSection opts torrents = do
   let localTorrent b = case b.torrentStatus of
         NoTorrentFileYet ->
           [hsx|
@@ -949,11 +956,9 @@ mkBestTorrentsTable opts fresh = do
                   </tr>
                 |]
             )
-  let section :: NonEmpty (TorrentData (Label "percentDone" Percentage)) -> Html
-      section rows = do
-        let releaseType = rows & NonEmpty.head & (.releaseType.stringKey)
-        [hsx|
-        <h2>{releaseType}s</h2>
+
+  [hsx|
+        <h2>{opts.sectionName}</h2>
         <table class="table">
           <thead>
             <tr>
@@ -969,22 +974,10 @@ mkBestTorrentsTable opts fresh = do
             </tr>
           </thead>
           <tbody>
-            {bestRows rows}
+            {bestRows torrents}
           </tbody>
         </table>
       |]
-
-  case fresh & nonEmpty of
-    Nothing -> [hsx|No torrents found|]
-    Just fresh' -> do
-      ( if opts.groupByReleaseType
-          then
-            fresh'
-              & toList
-              & groupAllWithComparison ((.releaseType) >$< releaseTypeComparison)
-          else [fresh']
-        )
-        & foldMap section
 
 mkLinkList :: [T2 "url" Text "content" Html] -> Html
 mkLinkList xs =
@@ -1509,6 +1502,10 @@ caseE2 m e2 = do
 t2 :: forall l1 t1 l2 t2. LabelPrx l1 -> t1 -> LabelPrx l2 -> t2 -> T2 l1 t1 l2 t2
 {-# INLINE t2 #-}
 t2 LabelPrx a LabelPrx b = T2 (label @l1 a) (label @l2 b)
+
+t3 :: forall l1 t1 l2 t2 l3 t3. LabelPrx l1 -> t1 -> LabelPrx l2 -> t2 -> LabelPrx l3 -> t3 -> T3 l1 t1 l2 t2 l3 t3
+{-# INLINE t3 #-}
+t3 LabelPrx a LabelPrx b LabelPrx c = T3 (label @l1 a) (label @l2 b) (label @l3 c)
 
 lbl :: forall l t. LabelPrx l -> t -> Label l t
 {-# INLINE lbl #-}

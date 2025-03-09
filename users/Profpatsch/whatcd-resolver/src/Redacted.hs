@@ -622,8 +622,11 @@ getTorrentById dat = do
 data GetBestTorrentsFilter = GetBestTorrentsFilter
   { onlyArtist :: Maybe (Label "artistRedactedId" Int),
     onlyTheseTorrents :: Maybe ([Label "torrentId" Int]),
-    limitResults :: Maybe Natural
+    limitResults :: Maybe Natural,
+    ordering :: BestTorrentsOrdering
   }
+
+data BestTorrentsOrdering = BySeedingWeight | ByLastReleases
 
 -- | Find the best torrent for each torrent group (based on the seeding_weight)
 getBestTorrents ::
@@ -632,7 +635,7 @@ getBestTorrents ::
   Transaction m [TorrentData ()]
 getBestTorrents opts = do
   queryWith
-    [sql|
+    ( [sql|
       WITH filtered_torrents AS (
         SELECT DISTINCT ON (torrent_group)
           id
@@ -669,9 +672,14 @@ getBestTorrents opts = do
       FROM filtered_torrents f
       JOIN redacted.torrents t ON t.id = f.id
       JOIN redacted.torrent_groups tg ON tg.id = t.torrent_group
-      ORDER BY seeding_weight DESC
+    |]
+        <> case opts.ordering of
+          BySeedingWeight -> [fmt|ORDER BY seeding_weight DESC|] <> "\n"
+          ByLastReleases -> [fmt|ORDER BY tg.group_id DESC|] <> "\n"
+        <> [sql|
       LIMIT ?::int
     |]
+    )
     ( do
         let (onlyArtistB, onlyArtistId) = case opts.onlyArtist of
               Nothing -> (True, 0)
