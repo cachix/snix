@@ -1107,7 +1107,6 @@ migrate = inSpan "Database Migration" $ do
     ALTER TABLE redacted.torrents_json
     ADD COLUMN IF NOT EXISTS transmission_torrent_hash text NULL;
 
-
     -- the seeding weight is used to find the best torrent in a group.
     CREATE OR REPLACE FUNCTION calc_seeding_weight(full_json_result jsonb) RETURNS int AS $$
     BEGIN
@@ -1147,6 +1146,19 @@ migrate = inSpan "Database Migration" $ do
     ALTER TABLE redacted.torrents_json
     ADD COLUMN IF NOT EXISTS seeding_weight int NOT NULL GENERATED ALWAYS AS (calc_seeding_weight(full_json_result)) STORED;
 
+    CREATE OR REPLACE FUNCTION artist_record_to_id(artists jsonb) RETURNS int[]
+    as $$
+      SELECT array_agg(x::int) from jsonb_path_query(artists, '$[*].id') j(x);
+    $$ LANGUAGE sql IMMUTABLE;
+
+    ALTER TABLE redacted.torrents_json
+    ADD COLUMN IF NOT EXISTS artist_ids int[] NOT NULL GENERATED ALWAYS AS (COALESCE(artist_record_to_id(full_json_result->'artists'), ARRAY[]::int[])) STORED;
+    ALTER TABLE redacted.torrent_groups
+    ADD COLUMN IF NOT EXISTS artist_ids int[] NOT NULL GENERATED ALWAYS AS (COALESCE(artist_record_to_id(full_json_result->'artists'), ARRAY[]::int[])) STORED;
+
+    CREATE INDEX IF NOT EXISTS torrents_json_artist_ids ON redacted.torrents_json USING GIN (artist_ids);
+    CREATE INDEX IF NOT EXISTS torrent_groups_artist_ids ON redacted.torrent_groups USING GIN (artist_ids);
+
     -- inflect out values of the full json
     CREATE OR REPLACE VIEW redacted.torrents AS
     SELECT
@@ -1157,9 +1169,9 @@ migrate = inSpan "Database Migration" $ do
       t.seeding_weight,
       t.full_json_result,
       t.torrent_file,
-      t.transmission_torrent_hash
+      t.transmission_torrent_hash,
+      t.artist_ids
     FROM redacted.torrents_json t;
-
 
     CREATE INDEX IF NOT EXISTS torrents_json_seeding ON redacted.torrents_json(((full_json_result->'seeding')::integer));
     CREATE INDEX IF NOT EXISTS torrents_json_snatches ON redacted.torrents_json(((full_json_result->'snatches')::integer));
@@ -1169,6 +1181,27 @@ migrate = inSpan "Database Migration" $ do
       artist_id INTEGER NOT NULL,
       UNIQUE(artist_id)
     );
+
+    -- for easier query lookup, a mapping from artist ids to names
+    CREATE OR REPLACE VIEW redacted.artist_names AS
+    SELECT
+      t.artist_id, x.name as artist_name
+    FROM
+      (SELECT unnest(artist_ids) as artist_id, * FROM redacted.torrents t) as t
+      join LATERAL
+      jsonb_to_recordset(full_json_result->'artists') as x(id int, name text)
+      ON x.id = t.artist_id
+      WHERE x.id = t.artist_id
+    UNION ALL
+    SELECT
+      t.artist_id, x.name as artist_name
+    FROM
+      (SELECT unnest(artist_ids) as artist_id, * FROM redacted.torrent_groups t) as t
+      join LATERAL
+      jsonb_to_recordset(full_json_result->'artists') as x(id int, name text)
+      ON x.id = t.artist_id
+      WHERE x.id = t.artist_id;
+
   |]
     ()
 

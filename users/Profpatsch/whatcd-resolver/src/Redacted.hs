@@ -638,11 +638,28 @@ getBestTorrents ::
 getBestTorrents opts = do
   queryWith
     ( [sql|
-      WITH filtered_torrents AS (
+      WITH
+      artist_has_been_snatched AS (
+        SELECT DISTINCT artist_id
+        FROM (
+          SELECT
+            UNNEST(artist_ids) as artist_id,
+            t.torrent_file IS NOT NULL as has_torrent_file
+          FROM redacted.torrents t) as _
+        WHERE has_torrent_file
+      ),
+      filtered_torrents AS (
         SELECT DISTINCT ON (torrent_group)
           id
         FROM
           redacted.torrents
+        JOIN LATERAL
+          -- filter everything that’s not a favourite if requested
+          (SELECT (
+            artist_ids && ARRAY(SELECT artist_id FROM redacted.artist_favourites)
+            OR artist_ids && ARRAY(SELECT artist_id FROM artist_has_been_snatched)
+          ) as is_favourite) as _
+          ON (NOT ?::bool OR is_favourite)
         WHERE
           -- filter by artist id
           (?::bool OR (to_jsonb(?::int) <@ (jsonb_path_query_array(full_json_result, '$.artists[*].id'))))
@@ -667,6 +684,7 @@ getBestTorrents opts = do
             tg.full_json_result->'artists',
             '[]'::jsonb
           ) as artists,
+          t.artist_ids || tg.artist_ids as artist_ids,
           tg.full_json_result->>'groupName' AS group_name,
           tg.full_json_result->>'groupYear' AS group_year,
           t.torrent_file IS NOT NULL AS has_torrent_file,
@@ -677,16 +695,6 @@ getBestTorrents opts = do
         JOIN redacted.torrent_groups tg ON tg.id = t.torrent_group
         WHERE
           tg.full_json_result->>'releaseType' <> ALL (?::text[])
-      ),
-      prepare2 AS MATERIALIZED (
-        -- extract the json artist ids field into an array of ints
-        SELECT *, array(select id from jsonb_to_recordset(artists) as (id int)) as artist_ids
-        FROM prepare1
-      ),
-      artist_has_been_snatched AS MATERIALIZED (
-        SELECT DISTINCT artist_id
-        FROM (SELECT UNNEST(artist_ids) as artist_id, has_torrent_file from prepare2) as _
-        WHERE has_torrent_file
       )
       SELECT
         group_id,
@@ -699,14 +707,7 @@ getBestTorrents opts = do
         has_torrent_file,
         transmission_torrent_hash,
         torrent_format
-      FROM prepare2
-      JOIN LATERAL
-        (SELECT (
-          artist_ids && ARRAY(SELECT artist_id FROM artist_has_been_snatched)
-          OR artist_ids && ARRAY(SELECT artist_id FROM redacted.artist_favourites)
-        ) as is_favourite) as _
-        -- filter everything that’s not a favourite if requested
-        ON (NOT ?::bool OR is_favourite)
+      FROM prepare1
     |]
         <> case opts.ordering of
           BySeedingWeight -> [fmt|ORDER BY seeding_weight DESC|] <> "\n"
@@ -722,12 +723,12 @@ getBestTorrents opts = do
         let (onlyTheseTorrentsB, onlyTheseTorrents) = case opts.onlyTheseTorrents of
               Nothing -> (True, PGArray [])
               Just a -> (False, a <&> (.torrentId) & PGArray)
-        ( onlyArtistB :: Bool,
+        ( opts.onlyFavourites :: Bool,
+          onlyArtistB :: Bool,
           onlyArtistId :: Int,
           onlyTheseTorrentsB :: Bool,
           onlyTheseTorrents,
           (opts.disallowedReleaseTypes & concatMap (\rt -> [rt.stringKey, rt.intKey & buildText intDecimalT]) & PGArray :: PGArray Text),
-          opts.onlyFavourites :: Bool,
           opts.limitResults <&> naturalToInteger :: Maybe Integer
           )
     )
@@ -772,19 +773,8 @@ getArtistNameById :: (MonadPostgres m, HasField "artistId" r Int) => r -> Transa
 getArtistNameById dat = do
   queryFirstRowWithMaybe
     [sql|
-    explain analyze WITH mapping as (
-        SELECT x.id, x.name FROM
-          redacted.torrents t
-          join LATERAL
-          jsonb_to_recordset(full_json_result->'artists') as x(id int, name text) on true
-        UNION
-        SELECT x.id, x.name FROM
-          redacted.torrent_groups tg
-          join LATERAL
-          jsonb_to_recordset(full_json_result->'artists') as x(id int, name text) on true
-        )
-        SELECT name FROM mapping
-        WHERE id = ?::int
+        SELECT artist_name FROM redacted.artist_names
+        WHERE artist_id = ?::int
         LIMIT 1
   |]
     (getLabel @"artistId" dat)
