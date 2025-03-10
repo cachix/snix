@@ -1,9 +1,8 @@
 # Module that configures CLBot, our Gerrit->IRC info bridge.
-{ depot, config, lib, pkgs, ... }:
+{ depot, config, lib, utils, ... }:
 
 let
-  inherit (builtins) attrValues concatStringsSep mapAttrs readFile;
-  inherit (pkgs) runCommand;
+  inherit (builtins) attrValues concatStringsSep mapAttrs;
 
   inherit (lib)
     listToAttrs
@@ -11,7 +10,6 @@ let
     mkEnableOption
     mkIf
     mkOption
-    removeSuffix
     types;
 
   description = "Bot to forward CL notifications";
@@ -21,13 +19,8 @@ let
     concatStringsSep " "
       (attrValues (mapAttrs (key: value: "-${key} \"${toString value}\"") flags));
 
-  # Escapes a unit name for use in systemd
-  systemdEscape = name: removeSuffix "\n" (readFile (runCommand "unit-name" { } ''
-    ${pkgs.systemd}/bin/systemd-escape '${name}' >> $out
-  ''));
-
   mkUnit = channel: channelFlags: {
-    name = "clbot-${systemdEscape channel}";
+    name = "clbot-${utils.escapeSystemdPath channel}";
     value = {
       description = "${description} to ${channel}";
       wantedBy = [ "multi-user.target" ];
