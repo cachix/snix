@@ -772,21 +772,20 @@ getArtistNameById :: (MonadPostgres m, HasField "artistId" r Int) => r -> Transa
 getArtistNameById dat = do
   queryFirstRowWithMaybe
     [sql|
-       WITH json as (
-        SELECT
-          -- TODO: different endpoints handle this differently (e.g. action=search and action=artist), we should unify this while parsing
-          COALESCE(
-            t.full_json_result->'artists',
-            tg.full_json_result->'artists',
-            '[]'::jsonb
-          ) as artists
-        FROM redacted.torrents t
-        JOIN redacted.torrent_groups tg ON tg.id = t.torrent_group
-      )
-      select name from json
-        join lateral jsonb_to_recordset(artists) as x(id int, name text) on true
-        where id = ?::int
-        limit 1
+    explain analyze WITH mapping as (
+        SELECT x.id, x.name FROM
+          redacted.torrents t
+          join LATERAL
+          jsonb_to_recordset(full_json_result->'artists') as x(id int, name text) on true
+        UNION
+        SELECT x.id, x.name FROM
+          redacted.torrent_groups tg
+          join LATERAL
+          jsonb_to_recordset(full_json_result->'artists') as x(id int, name text) on true
+        )
+        SELECT name FROM mapping
+        WHERE id = ?::int
+        LIMIT 1
   |]
     (getLabel @"artistId" dat)
     (Dec.fromField @Text)
