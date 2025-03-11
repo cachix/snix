@@ -53,7 +53,6 @@ import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp qualified as Warp
 import Network.Wai.Parse (parseContentType)
 import OpenTelemetry.Attributes qualified as Otel
-import OpenTelemetry.Context.ThreadLocal qualified as Otel
 import OpenTelemetry.Trace qualified as Otel hiding (getTracer, inSpan, inSpan')
 import OpenTelemetry.Trace.Monad qualified as Otel
 import Parse (Parse, showContext)
@@ -148,9 +147,8 @@ htmlUi = do
                          \dat _span ->
                            ( pure $ htmlPageChrome ourHtmlIntegrities [fmt|whatcd-resolver – Search – {dat.queryArgs.searchstr & bytesToTextUtf8Lenient}|],
                              do
-                               t <- redactedSearchAndInsert [("searchstr", dat.queryArgs.searchstr)]
                                runTransaction $ do
-                                 res <- t
+                                 res <- redactedSearchAndInsert [("searchstr", dat.queryArgs.searchstr)]
                                  (table, settings) <-
                                    concurrentlyTraced
                                      ( do
@@ -336,9 +334,7 @@ htmlUi = do
                                          >>> (Field.bounded @Int "Int")
                                      )
                                )
-                           t <- redactedRefreshArtist dat
-                           runTransaction $ do
-                             t
+                           runTransaction $ redactedRefreshArtist dat
                            pure $ E22 (label @"redirectTo" $ textToBytesUtf8 $ mkArtistLink dat)
                      ),
                      ( "autorefresh",
@@ -458,40 +454,6 @@ mainHtml' dat = do
                 hx-swap="none"
             /> -->
             |]
-
-withAsyncTraced :: (MonadUnliftIO m) => m a -> (Async a -> m b) -> m b
-withAsyncTraced act f = do
-  ctx <- Otel.getContext
-  withAsync
-    ( do
-        _old <- Otel.attachContext ctx
-        act
-    )
-    f
-
--- | Run two actions concurrently, and add them to the current Otel trace
-concurrentlyTraced :: (MonadUnliftIO m) => m a -> m b -> m (a, b)
-concurrentlyTraced act1 act2 = do
-  ctx <- Otel.getContext
-  concurrently
-    ( do
-        _old <- Otel.attachContext ctx
-        act1
-    )
-    ( do
-        _old <- Otel.attachContext ctx
-        act2
-    )
-
-mapConcurrentlyTraced :: (MonadUnliftIO m, Traversable t) => (a -> m b) -> t a -> m (t b)
-mapConcurrentlyTraced f t = do
-  ctx <- Otel.getContext
-  mapConcurrently
-    ( \a -> do
-        _old <- Otel.attachContext ctx
-        f a
-    )
-    t
 
 parseMultipartOrThrow :: (MonadLogger m, MonadIO m, MonadThrow m) => Otel.Span -> Wai.Request -> Multipart.MultipartParseT m a -> m a
 parseMultipartOrThrow span req parser =

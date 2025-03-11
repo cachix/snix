@@ -7,6 +7,8 @@ import Arg
 import Bencode
 import Builder
 import Comparison
+import Conduit (ConduitT)
+import Conduit qualified as Cond
 import Control.Monad.Logger.CallStack
 import Control.Monad.Reader
 import Data.Aeson qualified as Json
@@ -14,6 +16,7 @@ import Data.Aeson.BetterErrors qualified as Json
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.BEncode (BEncode)
+import Data.Conduit ((.|))
 import Data.Error.Tree
 import Data.List qualified as List
 import Data.List.NonEmpty qualified as NonEmpty
@@ -23,6 +26,7 @@ import Data.Time (NominalDiffTime, UTCTime)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Database.PostgreSQL.Simple (Binary (Binary), Only (..))
 import Database.PostgreSQL.Simple.Types (PGArray (PGArray))
+import FieldParser (FieldParser)
 import FieldParser qualified as Field
 import Http qualified
 import Json qualified
@@ -38,6 +42,7 @@ import Parse qualified
 import Postgres.Decoder qualified as Dec
 import Postgres.MonadPostgres
 import Pretty
+import UnliftIO (MonadUnliftIO)
 import Prelude hiding (length, span)
 
 class MonadRedacted m where
@@ -155,9 +160,9 @@ redactedGetTorrentFile dat = inSpan' "Redacted Get Torrent File" $ \span -> do
 mkRedactedTorrentLink :: Arg "torrentGroupId" Int -> Text
 mkRedactedTorrentLink torrentId = [fmt|https://redacted.sh/torrents.php?id={torrentId.unArg}|]
 
-exampleSearch :: (MonadThrow m, MonadLogger m, MonadPostgres m, MonadOtel m, MonadRedacted m) => m (Transaction m ())
+exampleSearch :: (MonadThrow m, MonadLogger m, MonadPostgres m, MonadOtel m, MonadRedacted m) => Transaction m ()
 exampleSearch = do
-  x1 <-
+  _x1 <-
     redactedSearchAndInsert
       [ ("searchstr", "cherish"),
         ("artistname", "kirinji"),
@@ -166,7 +171,7 @@ exampleSearch = do
         -- ("releasetype", "album"),
         ("order_by", "year")
       ]
-  x3 <-
+  _x3 <-
     redactedSearchAndInsert
       [ ("searchstr", "mouss et hakim"),
         ("artistname", "mouss et hakim"),
@@ -175,7 +180,7 @@ exampleSearch = do
         -- ("releasetype", "album"),
         ("order_by", "year")
       ]
-  x2 <-
+  _x2 <-
     redactedSearchAndInsert
       [ ("searchstr", "thriller"),
         ("artistname", "michael jackson"),
@@ -184,7 +189,7 @@ exampleSearch = do
         -- ("releasetype", "album"),
         ("order_by", "year")
       ]
-  pure (x1 >> x2 >> x3 >> pure ())
+  pure ()
 
 redactedRefreshArtist ::
   ( MonadLogger m,
@@ -195,7 +200,7 @@ redactedRefreshArtist ::
     HasField "artistId" dat Int
   ) =>
   dat ->
-  m (Transaction m (Label "newTorrents" [Label "torrentId" Int]))
+  Transaction m (Label "newTorrents" [Label "torrentId" Int])
 redactedRefreshArtist dat = do
   redactedPagedSearchAndInsert
     ( Json.key "torrentgroup" $
@@ -219,7 +224,7 @@ redactedRefreshArtist dat = do
 redactedSearchAndInsert ::
   (MonadLogger m, MonadPostgres m, MonadThrow m, MonadOtel m, MonadRedacted m) =>
   [(ByteString, ByteString)] ->
-  m (Transaction m (Label "newTorrents" [Label "torrentId" Int]))
+  Transaction m (Label "newTorrents" [Label "torrentId" Int])
 redactedSearchAndInsert extraArguments =
   redactedPagedSearchAndInsert
     (Json.key "results" $ parseTourGroups (T2 (label @"torrentFieldName" "torrents") (label @"torrentIdName" "torrentId")))
@@ -260,11 +265,19 @@ type TourGroups =
       "tourGroups"
       [ T2
           "tourGroup"
-          (T3 "groupId" Int "groupName" Text "fullJsonResult" Json.Value)
+          TourGroup
           "torrents"
           [T2 "torrentId" Int "fullJsonResult" Json.Value]
       ]
   )
+
+data TourGroup = TourGroup
+  { groupId :: Int,
+    groupName :: Text,
+    fullJsonResult :: Json.Value,
+    -- | Needed for sm0rt request recursion
+    groupArtists :: [Label "artistId" Int]
+  }
 
 parseTourGroups ::
   ( Monad m,
@@ -282,16 +295,18 @@ parseTourGroups opts =
                       -- not a torrent group, maybe some files or something (e.g. guitar tabs see Dream Theater Systematic Chaos)
                       Nothing -> pure Nothing
                       Just () -> do
-                        groupId <- Json.keyLabel @"groupId" "groupId" (Json.asIntegral @_ @Int)
-                        groupName <- Json.keyLabel @"groupName" "groupName" Json.asText
+                        groupId <- Json.key "groupId" (Json.asIntegral @_ @Int)
+                        groupName <- Json.key "groupName" Json.asText
+                        groupArtists <-
+                          Json.keyMayMempty "artists" $
+                            Json.eachInArray $
+                              lbl #artistId <$> Json.key "id" (Json.asIntegral @_ @Int)
                         fullJsonResult <-
-                          label @"fullJsonResult"
-                            <$> ( Json.asObject
-                                    -- remove torrents cause they are inserted separately below
-                                    <&> KeyMap.filterWithKey (\k _ -> k /= (opts.torrentFieldName & Key.fromText))
-                                    <&> Json.Object
-                                )
-                        let tourGroup = T3 groupId groupName fullJsonResult
+                          Json.asObject
+                            -- remove torrents cause they are inserted separately below
+                            <&> KeyMap.filterWithKey (\k _ -> k /= (opts.torrentFieldName & Key.fromText))
+                            <&> Json.Object
+                        let tourGroup = TourGroup {..}
                         torrents <- Json.keyLabel @"torrents" opts.torrentFieldName $
                           Json.eachInArray $ do
                             torrentId <- Json.keyLabel @"torrentId" opts.torrentIdName (Json.asIntegral @_ @Int)
@@ -318,7 +333,8 @@ parseTourGroups opts =
 redactedPagedSearchAndInsert ::
   forall m.
   ( MonadLogger m,
-    MonadPostgres m
+    MonadPostgres m,
+    MonadUnliftIO m
   ) =>
   Json.Parse ErrorTree TourGroups ->
   -- | A redacted request that returns a paged result
@@ -327,33 +343,45 @@ redactedPagedSearchAndInsert ::
     Json.Parse ErrorTree a ->
     m a
   ) ->
-  m (Transaction m (Label "newTorrents" [Label "torrentId" Int]))
+  Transaction m (Label "newTorrents" [Label "torrentId" Int])
 redactedPagedSearchAndInsert innerParser pagedRequest = do
   -- The first search returns the amount of pages, so we use that to query all results piece by piece.
   firstPage <- go Nothing
   let remainingPages = firstPage.pages - 1
   logInfo [fmt|Got the first page, found {remainingPages} more pages|]
   let otherPagesNum = [(2 :: Natural) .. remainingPages]
-  otherPages <- traverse go (Just <$> otherPagesNum)
-  pure $
-    (firstPage : otherPages)
-      & concatMap (.response.tourGroups)
-      & \case
-        IsNonEmpty tgs -> do
-          tgs & insertTourGroupsAndTorrents
-          pure $ label @"newTorrents" (tgs & concatMap (\tg -> tg.torrents <&> getLabel @"torrentId"))
-        IsEmpty -> pure $ label @"newTorrents" []
+  let withFirst = do
+        firstBlock <- Cond.await
+        Cond.yield (firstBlock & maybe [firstPage] (firstPage :))
+        Cond.awaitForever pure
+  Cond.runConduit @(Transaction m) $
+    runConcurrentlyBunched (lbl #batchSize 5) (go . Just <$> otherPagesNum)
+      .| withFirst
+      .| Cond.mapMC
+        ( \block ->
+            block
+              & concatMap (.response.tourGroups)
+              & \case
+                IsNonEmpty tgs -> do
+                  tgs & insertTourGroupsAndTorrents
+                  pure $ tgs & concatMap (\tg -> tg.torrents <&> getLabel @"torrentId")
+                IsEmpty -> pure []
+        )
+      .| Cond.concatC
+      .| Cond.sinkList
+        <&> label @"newTorrents"
   where
     go mpage =
-      pagedRequest
-        (label @"page" mpage)
-        ( parseRedactedReplyStatus $ innerParser
-        )
+      lift @Transaction $
+        pagedRequest
+          (label @"page" mpage)
+          ( parseRedactedReplyStatus $ innerParser
+          )
     insertTourGroupsAndTorrents ::
       NonEmpty
         ( T2
             "tourGroup"
-            (T3 "groupId" Int "groupName" Text "fullJsonResult" Json.Value)
+            TourGroup
             "torrents"
             [T2 "torrentId" Int "fullJsonResult" Json.Value]
         ) ->
@@ -370,15 +398,7 @@ redactedPagedSearchAndInsert innerParser pagedRequest = do
                       (label @"torrents" (torrents & toList))
             )
     insertTourGroups ::
-      NonEmpty
-        ( T3
-            "groupId"
-            Int
-            "groupName"
-            Text
-            "fullJsonResult"
-            Json.Value
-        ) ->
+      NonEmpty TourGroup ->
       Transaction m [Label "tourGroupIdPg" Int]
     insertTourGroups dats = do
       let groupNames =
@@ -471,6 +491,34 @@ redactedPagedSearchAndInsert innerParser pagedRequest = do
               @Json.Value
         )
       pure ()
+
+-- | Traverse over the given function in parallel, but only allow a certain amount of concurrent requests.
+runConcurrentlyBunched ::
+  forall m opts a.
+  ( MonadUnliftIO m,
+    HasField "batchSize" opts Natural
+  ) =>
+  opts ->
+  -- | list of actions to run
+  [m a] ->
+  ConduitT () [a] m ()
+runConcurrentlyBunched opts acts = do
+  let batchSize = assertField (boundedNatural @Int) opts.batchSize
+  let go :: [m a] -> ConduitT () [a] m ()
+      go [] = pure ()
+      go acts' = do
+        let (batch, rest) = splitAt batchSize acts'
+        res <- lift $ mapConcurrentlyTraced id batch
+        Cond.yield res
+        go rest
+  go acts
+
+-- | Run the field parser and throw an uncatchable assertion error if it fails.
+assertField :: (HasCallStack) => FieldParser from to -> from -> to
+assertField parser from = Field.runFieldParser parser from & unwrapError
+
+boundedNatural :: forall i. (Integral i, Bounded i) => FieldParser Natural i
+boundedNatural = lmap naturalToInteger (Field.bounded @i "boundedNatural")
 
 redactedGetTorrentFileAndInsert ::
   ( HasField "torrentId" r Int,

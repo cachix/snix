@@ -213,11 +213,11 @@ asUtcTimeLenient = Field.toJsonParser (Field.jsonString >>> Field.utcTimeLenient
 -- We don’t provide a version that infers the json object key,
 -- since that conflates internal naming with the external API, which is dangerous.
 --
--- @@
+-- @
 -- do
 --   txt <- keyLabel @"myLabel" "jsonKeyName" Json.asText
 --   pure (txt :: Label "myLabel" Text)
--- @@
+-- @
 keyLabel ::
   forall label err m a.
   (Monad m) =>
@@ -230,11 +230,11 @@ keyLabel = do
 -- | Parse a key from the object, à la 'Json.key', return a labelled value.
 -- Version of 'keyLabel' that requires a proxy.
 --
--- @@
+-- @
 -- do
 --   txt <- keyLabel' (Proxy @"myLabel") "jsonKeyName" Json.asText
 --   pure (txt :: Label "myLabel" Text)
--- @@
+-- @
 keyLabel' ::
   forall label err m a.
   (Monad m) =>
@@ -249,11 +249,11 @@ keyLabel' Proxy key parser = label @label <$> Json.key key parser
 -- We don’t provide a version that infers the json object key,
 -- since that conflates internal naming with the external API, which is dangerous.
 --
--- @@
+-- @
 -- do
 --   txt <- keyLabelMay @"myLabel" "jsonKeyName" Json.asText
 --   pure (txt :: Label "myLabel" (Maybe Text))
--- @@
+-- @
 keyLabelMay ::
   forall label err m a.
   (Monad m) =>
@@ -263,14 +263,33 @@ keyLabelMay ::
 keyLabelMay = do
   keyLabelMay' (Proxy @label)
 
+-- | Parse an optional key from the object. The inner parser’s return value has to be a Monoid,
+-- and we collapse the missing key into its 'mempty'.
+--
+-- For example, if the inner parser returns a list, the missing key will be parsed as an empty list.
+--
+-- @
+-- do
+--   txt <- keyMay' "jsonKeyName" (Json.eachInArray Json.asText)
+--   pure (txt :: [Text])
+-- @
+--
+-- will return @[]@ if the key is missing or if the value is the empty array.
+keyMayMempty ::
+  (Monad m, Monoid a) =>
+  Text ->
+  Json.ParseT err m a ->
+  Json.ParseT err m a
+keyMayMempty key parser = Json.keyMay key parser <&> fromMaybe mempty
+
 -- | Parse an optional key from the object, à la 'Json.keyMay', return a labelled value.
 -- Version of 'keyLabelMay' that requires a proxy.
 --
--- @@
+-- @
 -- do
 --   txt <- keyLabelMay' (Proxy @"myLabel") "jsonKeyName" Json.asText
 --   pure (txt :: Label "myLabel" (Maybe Text))
--- @@
+-- @
 keyLabelMay' ::
   forall label err m a.
   (Monad m) =>

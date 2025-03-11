@@ -25,6 +25,7 @@ import Json.Enc
 import Json.Enc qualified as Enc
 import Label
 import MyPrelude
+import OpenTelemetry.Context.ThreadLocal qualified as Otel
 import OpenTelemetry.Trace qualified as Otel hiding (getTracer, inSpan, inSpan')
 import OpenTelemetry.Trace.Core qualified as Otel hiding (inSpan, inSpan')
 import OpenTelemetry.Trace.Monad qualified as Otel
@@ -189,6 +190,42 @@ recordException span dat = liftIO $ do
             ],
         ..
       }
+
+-- * Async wrappers with Otel tracing
+
+withAsyncTraced :: (MonadUnliftIO m) => m a -> (Async a -> m b) -> m b
+withAsyncTraced act f = do
+  ctx <- Otel.getContext
+  withAsync
+    ( do
+        _old <- Otel.attachContext ctx
+        act
+    )
+    f
+
+-- | Run two actions concurrently, and add them to the current Otel trace
+concurrentlyTraced :: (MonadUnliftIO m) => m a -> m b -> m (a, b)
+concurrentlyTraced act1 act2 = do
+  ctx <- Otel.getContext
+  concurrently
+    ( do
+        _old <- Otel.attachContext ctx
+        act1
+    )
+    ( do
+        _old <- Otel.attachContext ctx
+        act2
+    )
+
+mapConcurrentlyTraced :: (MonadUnliftIO m, Traversable t) => (a -> m b) -> t a -> m (t b)
+mapConcurrentlyTraced f t = do
+  ctx <- Otel.getContext
+  mapConcurrently
+    ( \a -> do
+        _old <- Otel.attachContext ctx
+        f a
+    )
+    t
 
 -- * Postgres
 
