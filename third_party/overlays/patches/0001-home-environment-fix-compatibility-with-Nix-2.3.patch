@@ -1,0 +1,32 @@
+From ade86998762034b7b8699c6f6919a40da902294d Mon Sep 17 00:00:00 2001
+From: Vincent Ambo <mail@tazj.in>
+Date: Fri, 21 Feb 2025 17:45:23 +0300
+Subject: [PATCH] home-environment: fix compatibility with Nix 2.3
+
+---
+ modules/home-environment.nix | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/modules/home-environment.nix b/modules/home-environment.nix
+index 652ac086..eacb8605 100644
+--- a/modules/home-environment.nix
++++ b/modules/home-environment.nix
+@@ -755,13 +755,13 @@ in
+ 
+           # Create a temporary GC root to prevent collection during activation.
+           trap 'run rm -f $VERBOSE_ARG "$newGenGcPath"' EXIT
+-          run --silence nix-store --realise "$newGenPath" --add-root "$newGenGcPath"
++          run --quiet nix-store --realise "$newGenPath" --add-root "$newGenGcPath" --indirect
+ 
+           ${activationCmds}
+ 
+           ${lib.optionalString (!config.uninstall) ''
+             # Create the "current generation" GC root.
+-            run --silence nix-store --realise "$newGenPath" --add-root "$currentGenGcPath"
++            run --silence nix-store --realise "$newGenPath" --add-root "$currentGenGcPath" --indirect
+ 
+             if [[ -e "$legacyGenGcPath" ]]; then
+               run rm $VERBOSE_ARG "$legacyGenGcPath"
+-- 
+2.48.1
+
