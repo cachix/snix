@@ -168,21 +168,17 @@ fn handle_fixed_output(
 #[builtins(state = "Rc<TvixStoreIO>")]
 pub(crate) mod derivation_builtins {
     use std::collections::BTreeMap;
-    use std::io::Cursor;
+
+    use bstr::ByteSlice;
+
+    use nix_compat::store_path::hash_placeholder;
+    use tvix_eval::generators::Gen;
+    use tvix_eval::{NixContext, NixContextElement, NixString};
 
     use crate::builtins::utils::{select_string, strong_importing_coerce_to_string};
     use crate::fetchurl::fetchurl_derivation_to_fetch;
 
     use super::*;
-    use bstr::ByteSlice;
-    use md5::Digest;
-    use nix_compat::nixhash::CAHash;
-    use nix_compat::store_path::{build_ca_path, hash_placeholder};
-    use sha2::Sha256;
-    use tvix_castore::Node;
-    use tvix_eval::generators::Gen;
-    use tvix_eval::{NixContext, NixContextElement, NixString};
-    use tvix_store::pathinfoservice::PathInfo;
 
     #[builtin("placeholder")]
     async fn builtin_placeholder(co: GenCo, input: Value) -> Result<Value, ErrorKind> {
@@ -524,96 +520,5 @@ pub(crate) mod derivation_builtins {
         known_paths.add_derivation(drv_path, drv);
 
         Ok(out)
-    }
-
-    #[builtin("toFile")]
-    async fn builtin_to_file(
-        state: Rc<TvixStoreIO>,
-        co: GenCo,
-        name: Value,
-        content: Value,
-    ) -> Result<Value, ErrorKind> {
-        if name.is_catchable() {
-            return Ok(name);
-        }
-
-        if content.is_catchable() {
-            return Ok(content);
-        }
-
-        let name = name
-            .to_str()
-            .context("evaluating the `name` parameter of builtins.toFile")?;
-        let content = content
-            .to_contextful_str()
-            .context("evaluating the `content` parameter of builtins.toFile")?;
-
-        if content.iter_ctx_derivation().count() > 0
-            || content.iter_ctx_single_outputs().count() > 0
-        {
-            return Err(ErrorKind::UnexpectedContext);
-        }
-
-        let store_path = state.tokio_handle.block_on(async {
-            // upload contents to the blobservice and create a root node
-            let mut blob_writer = state.blob_service.open_write().await;
-
-            let mut r = Cursor::new(&content);
-
-            let blob_size = tokio::io::copy(&mut r, &mut blob_writer).await?;
-            let blob_digest = blob_writer.close().await?;
-            let ca_hash = CAHash::Text(Sha256::digest(&content).into());
-
-            let root_node = Node::File {
-                digest: blob_digest,
-                size: blob_size,
-                executable: false,
-            };
-
-            // calculate the nar hash
-            let (nar_size, nar_sha256) = state
-                .nar_calculation_service
-                .calculate_nar(&root_node)
-                .await
-                .map_err(|e| ErrorKind::TvixError(Rc::new(e)))?;
-
-            // persist via pathinfo service.
-            state
-                .path_info_service
-                .put(PathInfo {
-                    store_path: build_ca_path(
-                        name.to_str()?,
-                        &ca_hash,
-                        content.iter_ctx_plain(),
-                        false,
-                    )
-                    .map_err(|_e| {
-                        nix_compat::derivation::DerivationError::InvalidOutputName(
-                            name.to_str_lossy().into_owned(),
-                        )
-                    })
-                    .map_err(DerivationError::InvalidDerivation)?,
-                    node: root_node,
-                    // assemble references from plain context.
-                    references: content
-                        .iter_ctx_plain()
-                        .map(|elem| StorePath::from_absolute_path(elem.as_bytes()))
-                        .collect::<Result<_, _>>()
-                        .map_err(|e| ErrorKind::TvixError(Rc::new(e)))?,
-                    nar_size,
-                    nar_sha256,
-                    signatures: vec![],
-                    deriver: None,
-                    ca: Some(ca_hash),
-                })
-                .await
-                .map_err(|e| ErrorKind::TvixError(Rc::new(e)))
-                .map(|path_info| path_info.store_path)
-        })?;
-
-        let abs_path = store_path.to_absolute_path();
-        let context: NixContext = NixContextElement::Plain(abs_path.clone()).into();
-
-        Ok(Value::from(NixString::new_context_from(context, abs_path)))
     }
 }
