@@ -7,7 +7,7 @@ use reqwest_tracing::{SpanBackendWithUrl, TracingMiddleware};
 /// If otlp feature is disabled, this will not insert a `traceparent` into the header. It will
 /// basically function as a noop.
 ///
-/// `traceparent` => https://www.w3.org/TR/trace-context/#trace-context-http-headers-format
+/// `traceparent` => <https://www.w3.org/TR/trace-context/#trace-context-http-headers-format>
 pub fn tracing_middleware() -> TracingMiddleware<SpanBackendWithUrl> {
     TracingMiddleware::<SpanBackendWithUrl>::new()
 }
