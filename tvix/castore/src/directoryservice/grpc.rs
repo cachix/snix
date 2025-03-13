@@ -196,21 +196,22 @@ where
 
     #[instrument(skip_all)]
     fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + 'static)> {
-        let mut grpc_client = self.grpc_client.clone();
-
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
 
-        let task: JoinHandle<Result<proto::PutDirectoryResponse, Status>> = spawn(
-            async move {
-                let s = grpc_client
-                    .put(UnboundedReceiverStream::new(rx))
-                    .await?
-                    .into_inner();
+        let task = spawn({
+            let mut grpc_client = self.grpc_client.clone();
 
-                Ok(s)
-            } // instrument the task with the current span, this is not done by default
-            .in_current_span(),
-        );
+            async move {
+                Ok::<_, Status>(
+                    grpc_client
+                        .put(UnboundedReceiverStream::new(rx))
+                        .await?
+                        .into_inner(),
+                )
+            }
+            // instrument the task with the current span, this is not done by default
+            .in_current_span()
+        });
 
         Box::new(GRPCPutter {
             rq: Some((task, tx)),
