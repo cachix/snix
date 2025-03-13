@@ -78,8 +78,8 @@ fn derive_blob_path(base_path: &Path, digest: &B3Digest) -> Path {
     base_path
         .child("blobs")
         .child("b3")
-        .child(HEXLOWER.encode(&digest.as_slice()[..2]))
-        .child(HEXLOWER.encode(digest.as_slice()))
+        .child(HEXLOWER.encode(&digest[..2]))
+        .child(HEXLOWER.encode(&digest[..]))
 }
 
 #[instrument(level=Level::TRACE, skip_all,fields(base_path=%base_path,chunk.digest=%digest),ret(Display))]
@@ -87,8 +87,8 @@ fn derive_chunk_path(base_path: &Path, digest: &B3Digest) -> Path {
     base_path
         .child("chunks")
         .child("b3")
-        .child(HEXLOWER.encode(&digest.as_slice()[..2]))
-        .child(HEXLOWER.encode(digest.as_slice()))
+        .child(HEXLOWER.encode(&digest[..2]))
+        .child(HEXLOWER.encode(&digest[..]))
 }
 
 #[async_trait]

@@ -2,10 +2,13 @@ use bytes::Bytes;
 use data_encoding::BASE64;
 use thiserror::Error;
 
-pub const B3_LEN: usize = blake3::OUT_LEN;
-
 #[derive(PartialEq, Eq, Hash)]
-pub struct B3Digest([u8; B3_LEN]);
+#[repr(transparent)]
+pub struct B3Digest([u8; Self::LENGTH]);
+
+impl B3Digest {
+    pub const LENGTH: usize = blake3::OUT_LEN;
+}
 
 // TODO: allow converting these errors to crate::Error
 #[derive(Error, Debug, PartialEq)]
@@ -14,9 +17,17 @@ pub enum Error {
     InvalidDigestLen(usize),
 }
 
-impl B3Digest {
-    pub fn as_slice(&self) -> &[u8] {
-        &self.0[..]
+impl AsRef<[u8; B3Digest::LENGTH]> for B3Digest {
+    fn as_ref(&self) -> &[u8; Self::LENGTH] {
+        &self.0
+    }
+}
+
+impl std::ops::Deref for B3Digest {
+    type Target = [u8; Self::LENGTH];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -67,13 +78,13 @@ impl TryFrom<Vec<u8>> for B3Digest {
     }
 }
 
-impl From<&[u8; B3_LEN]> for B3Digest {
-    fn from(value: &[u8; B3_LEN]) -> Self {
+impl From<&[u8; B3Digest::LENGTH]> for B3Digest {
+    fn from(value: &[u8; B3Digest::LENGTH]) -> Self {
         Self(*value)
     }
 }
 
-impl From<B3Digest> for [u8; B3_LEN] {
+impl From<B3Digest> for [u8; B3Digest::LENGTH] {
     fn from(value: B3Digest) -> Self {
         value.0
     }

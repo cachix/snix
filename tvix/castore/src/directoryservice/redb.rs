@@ -11,10 +11,10 @@ use super::{
 };
 use crate::{
     composition::{CompositionContext, ServiceBuilder},
-    digests, proto, B3Digest, Error,
+    proto, B3Digest, Error,
 };
 
-const DIRECTORY_TABLE: TableDefinition<[u8; digests::B3_LEN], Vec<u8>> =
+const DIRECTORY_TABLE: TableDefinition<[u8; B3Digest::LENGTH], Vec<u8>> =
     TableDefinition::new("directory");
 
 #[derive(Clone)]
@@ -81,11 +81,11 @@ impl DirectoryService for RedbDirectoryService {
 
         // Retrieves the protobuf-encoded Directory for the corresponding digest.
         let db_get_resp = tokio::task::spawn_blocking({
-            let digest_as_array: [u8; digests::B3_LEN] = digest.to_owned().into();
+            let digest = *digest.as_ref();
             move || -> Result<_, redb::Error> {
                 let txn = db.begin_read()?;
                 let table = txn.open_table(DIRECTORY_TABLE)?;
-                Ok(table.get(digest_as_array)?)
+                Ok(table.get(digest)?)
             }
         })
         .await?
@@ -139,9 +139,8 @@ impl DirectoryService for RedbDirectoryService {
                 let txn = db.begin_write()?;
                 {
                     let mut table = txn.open_table(DIRECTORY_TABLE)?;
-                    let digest_as_array: [u8; digests::B3_LEN] = digest.clone().into();
                     table.insert(
-                        digest_as_array,
+                        digest.as_ref(),
                         proto::Directory::from(directory).encode_to_vec(),
                     )?;
                 }
@@ -225,10 +224,8 @@ impl DirectoryPutter for RedbDirectoryPutter<'_> {
                             // Looping over all the verified directories, queuing them up for a
                             // batch insertion.
                             for directory in directories {
-                                let digest_as_array: [u8; digests::B3_LEN] =
-                                    directory.digest().into();
                                 table.insert(
-                                    digest_as_array,
+                                    directory.digest().as_ref(),
                                     proto::Directory::from(directory).encode_to_vec(),
                                 )?;
                             }
