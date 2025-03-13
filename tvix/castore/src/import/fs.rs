@@ -78,7 +78,8 @@ where
 ///
 /// The produced stream is buffered, so uploads can happen concurrently.
 ///
-/// The root is the [Path] in the filesystem that is being ingested into the castore.
+/// The root is the [std::path::Path] in the filesystem that is being ingested
+/// into castore.
 pub fn dir_entries_to_ingestion_stream<'a, BS, I, P>(
     blob_service: BS,
     iter: I,

@@ -6,9 +6,9 @@ use crate::B3Digest;
 pub use directory::Directory;
 pub use symlink_target::{SymlinkTarget, SymlinkTargetError};
 
-/// A Node is either a [DirectoryNode], [FileNode] or [SymlinkNode].
+/// A Node is either a directory, file or symlink.
 /// Nodes themselves don't have names, what gives them names is either them
-/// being inside a [Directory], or a root node with its own name attached to it.
+/// being inside a [Directory], or a root node with a name attached adjacently.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Node {
     /// A DirectoryNode is a pointer to a [Directory], by its [Directory::digest].

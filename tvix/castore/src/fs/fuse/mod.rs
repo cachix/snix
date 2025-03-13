@@ -51,7 +51,7 @@ where
     }
 }
 
-/// Starts a [Filesystem] with the specified number of threads, and provides
+/// Starts a [FileSystem] with the specified number of threads, and provides
 /// functions to unmount, and wait for it to have completed.
 #[derive(Clone)]
 pub struct FuseDaemon {

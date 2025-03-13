@@ -251,7 +251,7 @@ impl PathBuf {
         PathBuf { inner: bytes }
     }
 
-    /// Convert from a [&std::path::Path] to [Self].
+    /// Convert from a [std::path::Path] to [PathBuf].
     ///
     /// - Self uses `/` as path separator.
     /// - Absolute paths are always rejected, are are these with custom prefixes.

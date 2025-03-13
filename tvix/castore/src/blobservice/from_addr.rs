@@ -11,9 +11,9 @@ use super::BlobService;
 /// Constructs a new instance of a [BlobService] from an URI.
 ///
 /// The following schemes are supported by the following services:
-/// - `memory://` ([MemoryBlobService])
-/// - `grpc+*://` ([GRPCBlobService])
-/// - `objectstore+*://` ([ObjectStoreBlobService])
+/// - `memory://` ([super::MemoryBlobService])
+/// - `grpc+*://` ([super::GRPCBlobService])
+/// - `objectstore+*://` ([super::ObjectStoreBlobService])
 ///
 /// See their `from_url` methods for more details about their syntax.
 pub async fn from_addr(

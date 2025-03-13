@@ -77,7 +77,7 @@ impl Directory {
     /// will yield an error, as well as exceeding the maximum size.
     ///
     /// In case you want to construct a [Directory] from multiple elements, use
-    /// [from_iter] instead.
+    /// [Directory::try_from_iter] instead.
     pub fn add(&mut self, name: PathComponent, node: Node) -> Result<(), DirectoryError> {
         check_insert_node(self.size(), &mut self.nodes, name, node)?;
         Ok(())
