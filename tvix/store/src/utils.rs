@@ -31,7 +31,7 @@ pub struct CompositionConfigs {
     >,
 }
 
-/// Provides a set clap arguments to configure tvix-[ca]store services.
+/// Provides a set of clap arguments to configure tvix-\[ca\]store services.
 ///
 /// This particular variant has defaults tailored for usecases accessing data
 /// directly locally, like the `tvix-store daemon` command.
@@ -52,7 +52,7 @@ pub struct ServiceUrls {
     experimental_store_composition: Option<String>,
 }
 
-/// Provides a set clap arguments to configure tvix-[ca]store services.
+/// Provides a set of clap arguments to configure tvix-\[ca\]store services.
 ///
 /// This particular variant has defaults tailored for usecases accessing data
 /// from another running tvix daemon, via gRPC.
@@ -70,7 +70,7 @@ pub struct ServiceUrlsGrpc {
     experimental_store_composition: Option<String>,
 }
 
-/// Provides a set clap arguments to configure tvix-[ca]store services.
+/// Provides a set of clap arguments to configure tvix-\[ca\]store services.
 ///
 /// This particular variant has defaults tailored for usecases keeping all data
 /// in memory.

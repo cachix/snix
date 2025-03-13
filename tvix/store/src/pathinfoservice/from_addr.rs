@@ -28,8 +28,8 @@ use url::Url;
 /// - `grpc+http://host:port`, `grpc+https://host:port`
 ///    Connects to a (remote) tvix-store gRPC service.
 ///
-/// As the [PathInfoService] needs to talk to [BlobService] and [DirectoryService],
-/// these also need to be passed in.
+/// As the [PathInfoService] needs to talk to [tvix_castore::blobservice::BlobService] and
+/// [tvix_castore::directoryservice::DirectoryService], these also need to be passed in.
 pub async fn from_addr(
     uri: &str,
     context: Option<&CompositionContext<'_>>,
