@@ -13,6 +13,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use tonic::transport::Server;
 use tower::ServiceBuilder;
+use tower_http::classify::{GrpcCode, GrpcErrorsAsFailures, SharedClassifier};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{debug, info, info_span, instrument, warn, Instrument, Level, Span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
@@ -180,7 +181,12 @@ async fn run_cli(
             let mut server = Server::builder().layer(
                 ServiceBuilder::new()
                     .layer(
-                        TraceLayer::new_for_grpc().make_span_with(
+                        TraceLayer::new(SharedClassifier::new(
+                            GrpcErrorsAsFailures::new()
+                                .with_success(GrpcCode::InvalidArgument)
+                                .with_success(GrpcCode::NotFound),
+                        ))
+                        .make_span_with(
                             DefaultMakeSpan::new()
                                 .level(Level::INFO)
                                 .include_headers(true),
