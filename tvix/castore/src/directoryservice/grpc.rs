@@ -195,10 +195,7 @@ where
     }
 
     #[instrument(skip_all)]
-    fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + 'static)>
-    where
-        Self: Clone,
-    {
+    fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + 'static)> {
         let mut grpc_client = self.grpc_client.clone();
 
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
