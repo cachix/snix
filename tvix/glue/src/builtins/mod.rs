@@ -49,7 +49,6 @@ pub fn add_import_builtins<'co, 'ro, 'env, IO>(
     eval_builder: tvix_eval::EvaluationBuilder<'co, 'ro, 'env, IO>,
     io: Rc<TvixStoreIO>,
 ) -> tvix_eval::EvaluationBuilder<'co, 'ro, 'env, IO> {
-    // TODO(raitobezarius): evaluate expressing filterSource as Nix code using path (b/372)
     eval_builder.add_builtins(import::import_builtins(io))
 }
 
