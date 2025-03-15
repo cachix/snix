@@ -11,28 +11,27 @@ my name is aspen smith and i'm a software engineer and musician.
 
 * work
 
-i'm currently a software engineer at jane street.
+i'm currently a software engineer at jane street, working on the ocaml compiler
+frontend and foundations for data-race free parallel programming
 
 previously, i worked on database internals at [[https://readyset.io/][readyset]], an incrementally
 maintained, partially stateful materialized view maintenance system for sql
 that's wire-compatible with postgresql and mysql, based on [[https://github.com/mit-pdos/noria][noria]].
 
-* projects
+# * projects
 
-- [[https://windtunnel.ci/][windtunnel]], a continuous benchmarking software-as-a-service currently
-  accepting early alpha users (send me an email if you want to try it out!)
-- [[https://tvix.dev/][tvix]], a project to reimplement nix in rust with a focus on better performance,
-  maintainability, and extensibility. i'm a committer to the project, and mostly
-  focus on the implementation of the language evaluator.
-- [[https://code.tvl.fyi/tree/users/aspen/achilles][achilles]], a compiler for (what I plan to become) a dependently typed,
-  low-level functional programming language targeting LLVM
-- [[https://code.tvl.fyi/tree/users/aspen/xanthous][xanthous]], a terminal roguelike in haskell that I work on intermittently and
-  exclusively for fun
+# # - [[https://windtunnel.ci/][windtunnel]], a continuous benchmarking software-as-a-service currently
+# #   accepting early alpha users (send me an email if you want to try it out!)
+# - [[https://tvix.dev/][tvix]], a project to reimplement nix in rust with a focus on better performance,
+#   maintainability, and extensibility. i'm a committer to the project, and mostly
+#   focus on the implementation of the language evaluator.
+# # - [[https://code.tvl.fyi/tree/users/aspen/achilles][achilles]], a compiler for (what I plan to become) a dependently typed,
+# #   low-level functional programming language targeting LLVM
+# - [[https://code.tvl.fyi/tree/users/aspen/xanthous][xanthous]], a terminal roguelike in haskell that I work on intermittently and
+#   exclusively for fun
 
 * music
 
-- https://sacrosanct.bandcamp.com/, a post-rock project with a [[https://bandcamp.com/h34rken][friend of mine]]
-- [[https://soundcloud.com/missingggg][my current soundcloud]], releasing instrumental music under the name *missing*
 - i play bass in [[https://goodcry.band][good cry]], a rock band based in brooklyn
 - my friend [[https://tasshin.com/][tasshin]] and i wrote, recorded and made music videos for 6 songs
   together:
@@ -42,6 +41,8 @@ that's wire-compatible with postgresql and mysql, based on [[https://github.com/
   - [[https://www.youtube.com/watch?v=ew-rhBQmGpY&list=PLXcbtcE8U1zcQsIWV7uzz-fUm2o9ggSbW&index=2][gonna]]
   - [[https://www.youtube.com/watch?v=GJBTaH2EozQ&list=PLXcbtcE8U1zcQsIWV7uzz-fUm2o9ggSbW&index=1][love like there's no tomorrow]]
   - [[https://www.youtube.com/watch?v=K7UElh21py4][holy]]
+- https://sacrosanct.bandcamp.com/, a post-rock project with a [[https://bandcamp.com/h34rken][friend of mine]]
+- [[https://soundcloud.com/missingggg][my current soundcloud]], releasing instrumental music under the name *missing*
 - you can also find a log of all the music I listen to [[https://www.last.fm/user/wildgriffin45][on last.fm]]
 
 * contact
