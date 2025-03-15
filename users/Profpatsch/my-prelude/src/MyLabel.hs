@@ -26,6 +26,14 @@ caseE2 m e2 = do
     E21 a -> f1 $ getField @l1 a
     E22 b -> f2 $ getField @l2 b
 
+e21 :: forall l1 t1 l2 t2. LabelPrx l1 -> t1 -> E2 l1 t1 l2 t2
+{-# INLINE e21 #-}
+e21 LabelPrx a = E21 (label @l1 a)
+
+e22 :: forall l1 t1 l2 t2. LabelPrx l2 -> t2 -> E2 l1 t1 l2 t2
+{-# INLINE e22 #-}
+e22 LabelPrx b = E22 (label @l2 b)
+
 t2 :: forall l1 t1 l2 t2. LabelPrx l1 -> t1 -> LabelPrx l2 -> t2 -> T2 l1 t1 l2 t2
 {-# INLINE t2 #-}
 t2 LabelPrx a LabelPrx b = T2 (label @l1 a) (label @l2 b)

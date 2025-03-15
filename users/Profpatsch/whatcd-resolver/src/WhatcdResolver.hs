@@ -515,20 +515,13 @@ prefetchHtmlIntegrities :: (MonadOtel m, MonadThrow m) => m (OurHtmlIntegrities 
 prefetchHtmlIntegrities = do
   let resources =
         [ HtmlIntegrity
-            { integrityName = "Bootstrap CSS",
-              integrityUrl = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
-              integrityHash = "sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM",
-              localPath = "resources/bootstrap.min.css",
-              provideSourceMap = True,
-              isTag = E21 (label @"link" ())
-            },
-          HtmlIntegrity
-            { integrityName = "Bootstrap JS",
-              integrityUrl = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js",
-              integrityHash = "sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz",
-              localPath = "resources/bootstrap.bundle.min.js",
-              provideSourceMap = True,
-              isTag = E22 (label @"script" ())
+            { integrityName = "Stylize CSS",
+              integrityUrl = "https://raw.githubusercontent.com/vasanthv/stylize.css/master/stylize.css",
+              integrityHash = "sha384-EsaVGfq7QMIquv7LCLomD9pQFZbPh2fOY3gcgN9MW/AlV2aQk/miZ1/EbrcwMr67",
+              localPath = "resources/stylize.css",
+              provideSourceMap = False,
+              isTag = e21 #link (),
+              ignoreUpstreamContentType = True
             },
           HtmlIntegrity
             { integrityName = "htmx",
@@ -536,7 +529,8 @@ prefetchHtmlIntegrities = do
               integrityHash = "sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h",
               localPath = "resources/htmx.js",
               provideSourceMap = False,
-              isTag = E22 (label @"script" ())
+              isTag = e22 #script (),
+              ignoreUpstreamContentType = False
             }
         ]
   resources
@@ -1425,7 +1419,9 @@ data HtmlIntegrity = HtmlIntegrity
     -- | Whether there is a resource map at the URL + `.map`
     provideSourceMap :: Bool,
     -- | is @<link>@ or @<script>@ tag?
-    isTag :: E2 "link" () "script" ()
+    isTag :: E2 "link" () "script" (),
+    -- | ignore upstream content type
+    ignoreUpstreamContentType :: Bool
   }
 
 -- | Fetch a resource, calculate its integrity hash, and return a html @<link>@ snippet and a handler to return the resource.
@@ -1504,7 +1500,7 @@ prefetchResourceIntegrity dat = inSpan' [fmt|prefetching resource {dat.integrity
                       Wai.responseLBS
                         Http.ok200
                         [ ( "Content-Type",
-                            mContentType
+                            (if dat.ignoreUpstreamContentType then mempty else mContentType)
                               & fromMaybe
                                 ( tagMatch
                                     #script
