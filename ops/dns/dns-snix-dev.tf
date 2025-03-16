@@ -93,6 +93,21 @@ resource "digitalocean_record" "snix_dev_public01" {
   for_each = toset(local.public01_services)
 }
 
+# A snix.dev pointing to public01
+resource "digitalocean_record" "snix_dev_public01_apex_a" {
+  domain   = digitalocean_domain.snix_dev.id
+  type     = "A"
+  value    = var.public01_ipv4
+  name     = "@"
+}
+# AAAA for snix.dev pointing to public01
+resource "digitalocean_record" "snix_dev_public01_apex_aaaa" {
+  domain   = digitalocean_domain.snix_dev.id
+  type     = "AAAA"
+  value    = var.public01_ipv6
+  name     = "@"
+}
+
 # Explicit records for all services running on gerrit01
 resource "digitalocean_record" "snix_dev_gerrit01" {
   domain   = digitalocean_domain.snix_dev.id

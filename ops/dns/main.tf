@@ -65,6 +65,7 @@ variable "meta01_ipv6" {
 locals {
   public01_services = [
     "auth",
+    "bolt",
     "git",
     "status"
   ]

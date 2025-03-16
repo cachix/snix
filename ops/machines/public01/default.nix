@@ -15,6 +15,8 @@ in
     # Automatically enable metric and log collection.
     (mod "o11y/agent.nix")
     (mod "o11y/grafana.nix")
+    (mod "www/snix.dev.nix")
+    (mod "www/bolt.snix.dev.nix")
     (mod "www/status.snix.dev.nix")
     (mod "www/auth.snix.dev.nix")
     (mod "www/git.snix.dev.nix")
@@ -193,9 +195,7 @@ in
   # Required for prometheus to be able to scrape stats
   services.nginx.statusPage = true;
 
-  users = {
-    users.root.openssh.authorizedKeys.keys = with depot.users; flokli.keys.all ++ edef.keys.all ++ raito.keys.all;
-  };
+  users.users.root.openssh.authorizedKeys.keys = with depot.users; flokli.keys.all ++ edef.keys.all ++ raito.keys.all;
 
   boot.initrd.systemd.enable = true;
   zramSwap.enable = true;
