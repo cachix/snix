@@ -24,6 +24,11 @@
           proxy_set_header  Host $host:443;
         }
 
+        # Retro-compatibility to TVL shortlinks.
+        location ~ "^/q/([1-2]?[0-9]{1,4}|30000)$" {
+          return 302 https://cl.tvl.fyi$request_uri;
+        }
+
         location = /robots.txt {
           return 200 'User-agent: *\nAllow: /';
         }
