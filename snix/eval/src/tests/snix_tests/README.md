@@ -1,4 +1,4 @@
-These tests are "native" to Tvix and exist in addition to the Nix test
+These tests are "native" to Snix and exist in addition to the Nix test
 suite.
 
 All of these are straightforward code snippets which are expected to
