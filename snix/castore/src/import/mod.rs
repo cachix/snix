@@ -19,6 +19,7 @@ pub use error::IngestionError;
 pub mod archive;
 pub mod blobs;
 pub mod fs;
+pub mod git;
 
 /// Ingests [IngestionEntry] from the given stream into a the passed [DirectoryService].
 /// On success, returns the root [Node].

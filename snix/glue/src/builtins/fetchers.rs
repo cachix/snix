@@ -2,16 +2,151 @@
 
 use super::utils::select_string;
 use crate::{
-    fetchers::{url_basename, Fetch},
+    fetchers::{url_basename, Fetch, FetchGitArgs},
     snix_store_io::SnixStoreIO,
 };
+use bstr::{BString, ByteSlice};
 use nix_compat::nixhash;
 use snix_eval::builtin_macros::builtins;
 use snix_eval::generators::Gen;
 use snix_eval::generators::GenCo;
+use snix_eval::NixAttrs;
 use snix_eval::{CatchableErrorKind, ErrorKind, Value};
 use std::rc::Rc;
 use url::Url;
+
+/// Metadata returned by fetchers
+#[derive(Debug, Clone)]
+pub struct FetcherMetadata {
+    /// Unix timestamp of the last modification in seconds
+    pub last_modified: u64,
+    /// Date of the last modification in YYYYMMDDHHmmss format
+    pub last_modified_date: String,
+    /// Fetcher specific metadata
+    pub fetcher: FetchGitResult,
+}
+
+#[derive(Debug, Clone)]
+pub struct FetchGitResult {
+    /// The path to the output in the Nix store
+    pub out_path: String,
+    /// The full Git revision hash
+    pub rev: BString,
+    /// The number of commits in the repository
+    pub rev_count: i64,
+    /// The abbreviated Git revision hash (typically first 7 characters)
+    pub short_rev: BString,
+    /// Whether submodules are included in the fetch
+    pub submodules: bool,
+    /// The NAR hash of the output
+    pub nar_hash: Option<String>,
+}
+
+impl From<FetchGitResult> for Value {
+    fn from(value: FetchGitResult) -> Self {
+        // Create a vector with the order preserved
+        let mut attrs_vec: Vec<(String, Value)> = Vec::new();
+
+        // Add attributes in the expected order
+        // IMPORTANT: This matches the order in the test .exp file
+        attrs_vec.push(("outPath".to_string(), Value::from(value.out_path)));
+
+        if let Some(nar_hash) = value.nar_hash {
+            attrs_vec.push(("narHash".to_string(), Value::from(nar_hash)));
+        }
+
+        attrs_vec.push(("rev".to_string(), Value::from(value.rev.clone())));
+        attrs_vec.push(("revCount".to_string(), Value::from(value.rev_count)));
+        attrs_vec.push(("shortRev".to_string(), Value::from(value.short_rev)));
+        attrs_vec.push(("submodules".to_string(), Value::from(value.submodules)));
+
+        // Convert to NixAttrs - the order is preserved
+        Value::Attrs(Box::new(NixAttrs::from_iter(attrs_vec)))
+    }
+}
+
+fn to_bstring(value: &Value) -> Result<BString, ErrorKind> {
+    match value {
+        Value::String(s) => Ok(s.clone().into_bstring()),
+        Value::Thunk(thunk) => to_bstring(&thunk.value()),
+        value => Err(ErrorKind::TypeError {
+            expected: "string",
+            actual: value.type_of(),
+        }),
+    }
+}
+
+fn to_string(value: &Value) -> Result<String, ErrorKind> {
+    match value {
+        Value::String(s) => Ok(s.clone().into_bstring().as_bstr().to_string()),
+        Value::Thunk(thunk) => to_string(&thunk.value()),
+        value => Err(ErrorKind::TypeError {
+            expected: "string",
+            actual: value.type_of(),
+        }),
+    }
+}
+
+fn select<'a>(attrs: &'a NixAttrs, key: &str) -> Result<&'a Value, ErrorKind> {
+    attrs
+        .select(key)
+        .ok_or_else(|| ErrorKind::AttributeNotFound { name: key.into() })
+}
+
+fn extract_fetch_git_args_from_attrs(attrs: &NixAttrs) -> Result<FetchGitArgs, ErrorKind> {
+    Ok(FetchGitArgs {
+        url: to_bstring(select(attrs, "url")?)?,
+        name: attrs
+            .select("name")
+            .map(to_string)
+            .transpose()?
+            .unwrap_or("source".to_string()),
+        rev: attrs.select("rev").map(to_bstring).transpose()?,
+        r#ref: attrs
+            .select("ref")
+            .map(to_bstring)
+            .transpose()?
+            .unwrap_or("HEAD".into()),
+        shallow: attrs
+            .select("shallow")
+            .map(|v| v.as_bool())
+            .transpose()?
+            .unwrap_or(false),
+        all_refs: attrs
+            .select("allRefs")
+            .map(|v| v.as_bool())
+            .transpose()?
+            .unwrap_or(false),
+        submodules: attrs
+            .select("submodules")
+            .map(|v| v.as_bool())
+            .transpose()?
+            .unwrap_or(false),
+    })
+}
+
+fn extract_fetch_git_args_from_string(url: BString) -> Result<FetchGitArgs, ErrorKind> {
+    Ok(FetchGitArgs {
+        url,
+        name: "source".into(),
+        rev: None,
+        r#ref: "HEAD".into(),
+        shallow: false,
+        all_refs: false,
+        submodules: false,
+    })
+}
+
+async fn extract_fetch_git_args(co: &GenCo, value: Value) -> Result<FetchGitArgs, ErrorKind> {
+    match snix_eval::generators::request_deep_force(co, value).await {
+        Value::Attrs(attrs) => extract_fetch_git_args_from_attrs(attrs.as_ref()),
+        Value::String(url) => extract_fetch_git_args_from_string(url.into_bstring()),
+        value => Err(ErrorKind::TypeError {
+            expected: "attribute set or contextless string",
+            actual: value.type_of(),
+        }),
+    }
+}
 
 // Used as a return type for extract_fetch_args, which is sharing some
 // parsing code between the fetchurl and fetchTarball builtins.
@@ -100,9 +235,15 @@ pub(crate) mod fetcher_builtins {
     /// queue the fetch to be fetched lazily, and return the store path.
     /// If there's not enough info to calculate it, do the fetch now, and then
     /// return the store path.
-    fn fetch_lazy(state: Rc<SnixStoreIO>, name: String, fetch: Fetch) -> Result<Value, ErrorKind> {
+    ///
+    /// For Git fetches, also returns metadata about the repository.
+    fn fetch_lazy(
+        state: Rc<SnixStoreIO>,
+        name: String,
+        fetch: Fetch,
+    ) -> Result<(Value, Option<FetcherMetadata>), ErrorKind> {
         match fetch
-            .store_path(&name)
+            .compute_store_path(&name)
             .map_err(|e| ErrorKind::SnixError(Rc::new(e)))?
         {
             Some(store_path) => {
@@ -119,16 +260,22 @@ pub(crate) mod fetcher_builtins {
                 );
 
                 // Emit the calculated Store Path.
-                Ok(Value::Path(Box::new(store_path.to_absolute_path().into())))
+                Ok((
+                    Value::Path(Box::new(store_path.to_absolute_path().into())),
+                    None,
+                ))
             }
             None => {
                 // If we don't have enough info, do the fetch now.
-                let (store_path, _path_info) = state
+                let (store_path, _root_node, _nar_hash, metadata) = state
                     .tokio_handle
                     .block_on(async { state.fetcher.ingest_and_persist(&name, fetch).await })
                     .map_err(|e| ErrorKind::SnixError(Rc::new(e)))?;
 
-                Ok(Value::Path(Box::new(store_path.to_absolute_path().into())))
+                Ok((
+                    Value::Path(Box::new(store_path.to_absolute_path().into())),
+                    metadata,
+                ))
             }
         }
     }
@@ -149,14 +296,16 @@ pub(crate) mod fetcher_builtins {
             .name
             .unwrap_or_else(|| url_basename(&args.url).to_owned());
 
-        fetch_lazy(
+        let (path_value, _) = fetch_lazy(
             state,
             name,
             Fetch::URL {
                 url: args.url,
                 exp_hash: args.sha256.map(nixhash::NixHash::Sha256),
             },
-        )
+        )?;
+
+        Ok(path_value)
     }
 
     #[builtin("fetchTarball")]
@@ -176,14 +325,16 @@ pub(crate) mod fetcher_builtins {
             .name
             .unwrap_or_else(|| DEFAULT_NAME_FETCH_TARBALL.to_owned());
 
-        fetch_lazy(
+        let (path_value, _) = fetch_lazy(
             state,
             name,
             Fetch::Tarball {
                 url: args.url,
                 exp_nar_sha256: args.sha256,
             },
-        )
+        )?;
+
+        Ok(path_value)
     }
 
     #[builtin("fetchGit")]
@@ -192,7 +343,61 @@ pub(crate) mod fetcher_builtins {
         co: GenCo,
         args: Value,
     ) -> Result<Value, ErrorKind> {
-        Err(ErrorKind::NotImplemented("fetchGit"))
+        let fetch_git_args = extract_fetch_git_args(&co, args).await?;
+
+        // Create the fetch object with a reference to the metadata
+        let fetch = Fetch::Git {
+            args: fetch_git_args.clone(),
+            hash: None,
+        };
+
+        let Some(rev) = fetch_git_args.rev else {
+            return Err(ErrorKind::NotImplemented(format!(
+                "fetchGit: rev is currently required: {}",
+                fetch_git_args.url
+            )));
+        };
+
+        // Use the same approach as fetchTree - do the fetch up front
+        let (store_path, _root_node, nar_hash, metadata) = state
+            .tokio_handle
+            .block_on(async {
+                state
+                    .fetcher
+                    .ingest_and_persist(&fetch_git_args.name, fetch)
+                    .await
+            })
+            .map_err(|e| ErrorKind::SnixError(Rc::new(e)))?;
+
+        let out_path = store_path.to_absolute_path().to_string();
+
+        // Extract metadata
+        let rev_count = metadata.as_ref().map_or(0, |m| m.fetcher.rev_count);
+
+        // Convert short_rev to BString if available, or use first 7 chars of rev
+        let short_rev = metadata.as_ref().map_or_else(
+            || BString::from(&rev.as_bytes()[0..7]),
+            |m| BString::from(&m.fetcher.short_rev.as_bytes()[0..7]),
+        );
+
+        // We'll use the full rev from the metadata if available
+        let actual_rev = metadata
+            .as_ref()
+            .map_or_else(|| rev.clone(), |m| m.fetcher.rev.clone());
+
+        let submodules = metadata
+            .as_ref()
+            .map_or_else(|| fetch_git_args.submodules, |m| m.fetcher.submodules);
+
+        Ok(FetchGitResult {
+            out_path,
+            rev: actual_rev,
+            rev_count,
+            submodules,
+            short_rev,
+            nar_hash: Some(nar_hash.to_string()),
+        }
+        .into())
     }
 
     // FUTUREWORK: make it a feature flag once #64 is implemented

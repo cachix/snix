@@ -268,7 +268,7 @@ to a missing value in the attribute set(s) included via `with`."#
     /// not actually implemented yet, and without which eval can not
     /// proceed.
     #[error("feature not yet implemented in Snix: {0}")]
-    NotImplemented(&'static str),
+    NotImplemented(String),
 
     /// Internal variant which should disappear during error construction.
     #[error("internal ErrorKind::WithContext variant leaked")]
@@ -323,13 +323,13 @@ impl From<ParseIntError> for ErrorKind {
 
 impl From<Utf8Error> for ErrorKind {
     fn from(_: Utf8Error) -> Self {
-        Self::NotImplemented("FromUtf8Error not handled: https://b.tvl.fyi/issues/189")
+        Self::NotImplemented("FromUtf8Error not handled: https://b.tvl.fyi/issues/189".to_string())
     }
 }
 
 impl From<FromUtf8Error> for ErrorKind {
     fn from(_: FromUtf8Error) -> Self {
-        Self::NotImplemented("FromUtf8Error not handled: https://b.tvl.fyi/issues/189")
+        Self::NotImplemented("FromUtf8Error not handled: https://b.tvl.fyi/issues/189".to_string())
     }
 }
 

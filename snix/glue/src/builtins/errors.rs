@@ -55,6 +55,9 @@ pub enum FetcherError {
     #[error(transparent)]
     Import(#[from] snix_castore::import::IngestionError<import::archive::Error>),
 
+    #[error(transparent)]
+    Git(#[from] snix_castore::import::IngestionError<import::git::Error>),
+
     #[error("Error calculating store path for fetcher output: {0}")]
     StorePath(#[from] BuildStorePathError),
 }

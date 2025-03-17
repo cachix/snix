@@ -13,6 +13,7 @@ async-compression = { workspace = true, features = [
 async-stream.workspace = true
 bstr.workspace = true
 bytes.workspace = true
+chrono = "0.4.35"
 data-encoding.workspace = true
 futures.workspace = true
 magic.workspace = true

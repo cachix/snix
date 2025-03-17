@@ -11,6 +11,7 @@ mod import;
 mod utils;
 
 pub use errors::{DerivationError, FetcherError, ImportError};
+pub use fetchers::{FetchGitResult, FetcherMetadata};
 
 /// Adds derivation-related builtins to the passed [snix_eval::EvaluationBuilder]:
 ///
