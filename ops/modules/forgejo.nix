@@ -144,6 +144,10 @@ in
           OPENID_CONNECT_SCOPES = "email profile";
         };
 
+        repository = {
+          DISABLE_DOWNLOAD_SOURCE_ARCHIVES = true;
+        };
+
         cache = {
           ADAPTER = "redis";
           HOST = "redis+socket://${config.services.redis.servers.forgejo.unixSocket}";
