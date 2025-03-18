@@ -363,7 +363,7 @@ if you meant to pass these arguments to nix, please separate them with
 
 (define (main args)
   (match args
-         [() (print usage)]
+         [(or ("help") ()) (print usage)]
          [("build" . _) (build (cdr args))]
          [("shell" . _) (shell (cdr args))]
          [("path" . _) (path (cdr args))]
