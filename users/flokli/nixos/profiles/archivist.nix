@@ -1,4 +1,4 @@
-# Set of unconditional config options applicable to all archeology machines.
+# Set of unconditional config options applicable to all archivist machines.
 
 { pkgs, ... }:
 

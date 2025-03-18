@@ -3,7 +3,7 @@
 {
   imports = [
     "${modulesPath}/virtualisation/amazon-image.nix"
-    ../profiles/archeology.nix
+    ../profiles/archivist.nix
   ];
 
   systemd.timers.parse-bucket-logs = {
@@ -12,7 +12,7 @@
   };
 
   systemd.services.parse-bucket-logs = {
-    path = [ depot.users.flokli.archeology.parse-bucket-logs ];
+    path = [ depot.users.flokli.archivist.parse-bucket-logs ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = (pkgs.writers.writePython3 "parse-bucket-logs-continuously"
@@ -25,10 +25,10 @@
   };
 
   environment.systemPackages = [
-    depot.users.flokli.archeology.parse-bucket-logs
+    depot.users.flokli.archivist.parse-bucket-logs
   ];
 
-  networking.hostName = "archeology-ec2";
+  networking.hostName = "archivist-ec2";
 
   system.stateVersion = "23.05"; # Did you read the comment?
 }

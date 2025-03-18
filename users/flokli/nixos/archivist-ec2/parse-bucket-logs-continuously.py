@@ -47,7 +47,7 @@ while True:
     # Invoke parse-bucket-logs script inside a tempdir and upload on success.
     with tempfile.TemporaryDirectory() as td:
         work_file_name = os.path.join(td, "output.parquet")
-        args = ["archeology-parse-bucket-logs", src, work_file_name]
+        args = ["archivist-parse-bucket-logs", src, work_file_name]
         subprocess.run(
             args,
             check=True  # throw exception if nonzero exit code

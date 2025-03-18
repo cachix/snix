@@ -1,4 +1,4 @@
-{ depot, pkgs, lib, ... }:
+{ depot, pkgs, ... }:
 
 let
   # assumes `name` is configured appropriately in your .ssh/config
@@ -11,13 +11,13 @@ let
 
 in
 depot.nix.readTree.drvTargets rec {
-  archeologyEc2System = (depot.ops.nixos.nixosFor ({ ... }: {
+  archivistEc2System = (depot.ops.nixos.nixosFor ({ ... }: {
     imports = [
-      ./archeology-ec2/configuration.nix
+      ./archivist-ec2/configuration.nix
     ];
   })).config.system.build.toplevel;
 
-  deploy-archeology-ec2 = (deployScript "archeology-ec2" archeologyEc2System);
+  deploy-archivist-ec2 = (deployScript "archivist-ec2" archivistEc2System);
 
   nixosTvixCacheSystem = (depot.ops.nixos.nixosFor ({ ... }: {
     imports = [
@@ -28,7 +28,7 @@ depot.nix.readTree.drvTargets rec {
   deploy-nixos-tvix-cache = (deployScript "root@nixos.tvix.store" nixosTvixCacheSystem);
 
   deps = (depot.nix.lazy-deps {
-    deploy-archeology-ec2.attr = "users.flokli.nixos.deploy-archeology-ec2";
+    deploy-archivist-ec2.attr = "users.flokli.nixos.deploy-archivist-ec2";
     aws.attr = "third_party.nixpkgs.awscli";
   });
 
