@@ -1,10 +1,10 @@
 # Nix helpers for projects under //snix
-{ pkgs, lib, depot, ... }:
+{ pkgs, lib, depot, here, ... }:
 
 let
   # Load the crate2nix crate tree.
   crates = pkgs.callPackage ./Cargo.nix {
-    defaultCrateOverrides = depot.snix.utils.defaultCrateOverridesForPkgs pkgs;
+    defaultCrateOverrides = here.utils.defaultCrateOverridesForPkgs pkgs;
   };
 
   # Cargo dependencies to be used with nixpkgs rustPlatform functions.
@@ -30,9 +30,9 @@ let
   protos = pkgs.symlinkJoin {
     name = "snix-all-protos";
     paths = [
-      depot.snix.build.protos.protos
-      depot.snix.castore.protos.protos
-      depot.snix.store.protos.protos
+      here.build.protos.protos
+      here.castore.protos.protos
+      here.store.protos.protos
     ];
   };
 
@@ -112,7 +112,7 @@ in
 
   crate2nix-check =
     let
-      crate2nix-check = depot.snix.utils.mkCrate2nixCheck ./Cargo.nix;
+      crate2nix-check = here.utils.mkCrate2nixCheck ./Cargo.nix;
     in
     crate2nix-check.command.overrideAttrs {
       meta.ci.extraSteps = {

@@ -134,6 +134,13 @@ let
     (assertEq "default.nix drv is not changed by readTree"
       tree-tl.default-nix.can-be-drv
       (import ./test-tree-traversal/default-nix/can-be-drv/default.nix { }))
+    (assertEq "`here` argument represents the attrset a given file is part of"
+      (builtins.removeAttrs tree-tl.here-arg [ "__readTree" "__readTreeChildren" "subdir" ])
+      {
+        attr1 = "foo";
+        attr2 = "foo";
+        attr3 = "sibl1";
+      })
   ];
 
   # these each call readTree themselves because the throws have to happen inside assertThrows

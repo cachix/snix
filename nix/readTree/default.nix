@@ -125,7 +125,7 @@ let
       self =
         if rootDir
         then { __readTree = [ ]; }
-        else importFile args scopedArgs initPath parts argsFilter;
+        else importFile (args // { here = result; }) scopedArgs initPath parts argsFilter;
 
       # Import subdirectories of the current one, unless any skip
       # instructions exist.
@@ -162,7 +162,7 @@ let
           let
             p = joinChild (c + ".nix");
             childParts = parts ++ [ c ];
-            imported = importFile args scopedArgs p childParts argsFilter;
+            imported = importFile (args // { here = result; }) scopedArgs p childParts argsFilter;
           in
           {
             name = c;
@@ -181,14 +181,16 @@ let
         else nixChildren ++ children
       );
 
+      result =
+        if isAttrs nodeValue
+        then merge nodeValue (allChildren // (marker parts allChildren))
+        else nodeValue;
+
     in
     if skipTree
     then { skip = true; }
     else {
-      ok =
-        if isAttrs nodeValue
-        then merge nodeValue (allChildren // (marker parts allChildren))
-        else nodeValue;
+      ok = result;
     };
 
   # Top-level implementation of readTree itself.

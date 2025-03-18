@@ -84,9 +84,15 @@ the tree as empty nodes (`{}`).
   imported files via `builtins.scopedImport`. This will forcefully
   override the given values in the import scope, use with care!
 
-The package headers in this repository follow the form `{ pkgs, ... }:` where
-`pkgs` is a fixed-point of the entire package tree (see the `default.nix` at the
-root of the depot).
+The package headers in this repository follow the form
+`{depot, pkgs, lib, here, ... }:` where:
+
+* `depot` is a fixed-point of the entire package tree (see the `default.nix`
+  at the root of the depot).
+* `pkgs` is the nixpkgs used in the repo, see `third_party/nixpkgs`
+* `lib` is essentially a shortcut to `pkgs.lib` exposed for convenience
+* `here` is a special argument that points to the current location in the
+  tree. Useful to avoid specifying dependencies from the very top of the `depot`
 
 In theory `readTree` can pass arguments of different shapes, but I have found
 this to be a good solution for the most part.
