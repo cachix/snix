@@ -8,7 +8,7 @@ edition = "2021"
 async = ["tokio"]
 # code emitting low-level packets used in the daemon protocol.
 wire = ["tokio", "pin-project-lite", "bytes"]
-
+flakeref = ["url"]
 # nix-daemon protocol handling
 daemon = ["tokio", "nix-compat-derive", "futures"]
 test = []
@@ -34,9 +34,14 @@ sha2.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 bytes = { workspace = true, optional = true }
-tokio = { workspace = true, features = ["io-util", "macros", "sync"], optional = true }
+tokio = { workspace = true, features = [
+    "io-util",
+    "macros",
+    "sync",
+], optional = true }
 pin-project-lite = { workspace = true, optional = true }
 num_enum = "0.7.3"
+url = { workspace = true, optional = true }
 
 [dependencies.nix-compat-derive]
 path = "../nix-compat-derive"

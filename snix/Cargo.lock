@@ -2607,6 +2607,7 @@ dependencies = [
  "tokio",
  "tokio-test",
  "tracing",
+ "url",
  "zstd",
 ]
 

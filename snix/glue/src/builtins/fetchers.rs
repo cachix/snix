@@ -89,7 +89,9 @@ async fn extract_fetch_args(
 #[allow(unused_variables)] // for the `state` arg, for now
 #[builtins(state = "Rc<SnixStoreIO>")]
 pub(crate) mod fetcher_builtins {
-    use nix_compat::nixhash::NixHash;
+    use bstr::ByteSlice;
+    use nix_compat::flakeref;
+    use std::collections::BTreeMap;
 
     use super::*;
 
@@ -152,7 +154,7 @@ pub(crate) mod fetcher_builtins {
             name,
             Fetch::URL {
                 url: args.url,
-                exp_hash: args.sha256.map(NixHash::Sha256),
+                exp_hash: args.sha256.map(nixhash::NixHash::Sha256),
             },
         )
     }
@@ -191,5 +193,70 @@ pub(crate) mod fetcher_builtins {
         args: Value,
     ) -> Result<Value, ErrorKind> {
         Err(ErrorKind::NotImplemented("fetchGit"))
+    }
+
+    // FUTUREWORK: make it a feature flag once #64 is implemented
+    #[builtin("parseFlakeRef")]
+    async fn builtin_parse_flake_ref(
+        state: Rc<SnixStoreIO>,
+        co: GenCo,
+        value: Value,
+    ) -> Result<Value, ErrorKind> {
+        let flake_ref_str = value.to_str()?.into_bstring().as_bstr().to_string();
+
+        let fetch_args = match flake_ref_str.parse() {
+            Ok(args) => args,
+            Err(err) => {
+                return Err(ErrorKind::SnixError(Rc::new(err)));
+            }
+        };
+
+        // Convert the FlakeRef to our Value format
+        let mut attrs = BTreeMap::new();
+
+        // Extract type and url based on the variant
+        match &fetch_args {
+            flakeref::FlakeRef::Git { url, .. } => {
+                attrs.insert("type".into(), Value::from("git"));
+                attrs.insert("url".into(), Value::from(url.to_string()));
+            }
+            flakeref::FlakeRef::GitHub {
+                owner, repo, r#ref, ..
+            } => {
+                attrs.insert("type".into(), Value::from("github"));
+                attrs.insert("owner".into(), Value::from(owner.clone()));
+                attrs.insert("repo".into(), Value::from(repo.clone()));
+                if let Some(ref_name) = r#ref {
+                    attrs.insert("ref".into(), Value::from(ref_name.clone()));
+                }
+            }
+            flakeref::FlakeRef::GitLab { owner, repo, .. } => {
+                attrs.insert("type".into(), Value::from("gitlab"));
+                attrs.insert("owner".into(), Value::from(owner.clone()));
+                attrs.insert("repo".into(), Value::from(repo.clone()));
+            }
+            flakeref::FlakeRef::File { url, .. } => {
+                attrs.insert("type".into(), Value::from("file"));
+                attrs.insert("url".into(), Value::from(url.to_string()));
+            }
+            flakeref::FlakeRef::Tarball { url, .. } => {
+                attrs.insert("type".into(), Value::from("tarball"));
+                attrs.insert("url".into(), Value::from(url.to_string()));
+            }
+            flakeref::FlakeRef::Path { path, .. } => {
+                attrs.insert("type".into(), Value::from("path"));
+                attrs.insert(
+                    "path".into(),
+                    Value::from(path.to_string_lossy().into_owned()),
+                );
+            }
+            _ => {
+                // For all other ref types, return a simple type/url attributes
+                attrs.insert("type".into(), Value::from("indirect"));
+                attrs.insert("url".into(), Value::from(flake_ref_str));
+            }
+        }
+
+        Ok(Value::Attrs(Box::new(attrs.into())))
     }
 }

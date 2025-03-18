@@ -4,19 +4,24 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-async-compression = { workspace = true, features = ["tokio", "gzip", "bzip2", "xz"] }
+async-compression = { workspace = true, features = [
+    "tokio",
+    "gzip",
+    "bzip2",
+    "xz",
+] }
 bstr.workspace = true
 bytes.workspace = true
 data-encoding.workspace = true
 futures.workspace = true
 magic.workspace = true
-nix-compat = { path = "../nix-compat" }
+nix-compat = { path = "../nix-compat", features = ["flakeref"] }
 pin-project.workspace = true
 reqwest = { workspace = true, features = ["rustls-tls-native-roots"] }
-snix-build = { path = "../build", default-features = false, features = []}
+snix-build = { path = "../build", default-features = false, features = [] }
 snix-eval = { path = "../eval" }
 snix-castore = { path = "../castore" }
-snix-store = { path = "../store", default-features = false, features = []}
+snix-store = { path = "../store", default-features = false, features = [] }
 snix-tracing = { path = "../tracing" }
 tracing.workspace = true
 tracing-indicatif.workspace = true

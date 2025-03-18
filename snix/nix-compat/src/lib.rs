@@ -19,3 +19,5 @@ pub mod wire;
 pub mod nix_daemon;
 #[cfg(feature = "daemon")]
 pub use nix_daemon::worker_protocol;
+#[cfg(feature = "flakeref")]
+pub mod flakeref;

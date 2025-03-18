@@ -1,0 +1,1 @@
+[ { type = "git"; url = "https://github.com/example/repo.git"; } { owner = "user"; repo = "project"; type = "github"; } { owner = "user"; ref = "branch"; repo = "project"; type = "github"; } { owner = "user"; ref = "branch"; repo = "project"; type = "github"; } { owner = "user"; repo = "project"; type = "gitlab"; } { path = "/path/to/project"; type = "path"; } ]

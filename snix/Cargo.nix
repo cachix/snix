@@ -8259,6 +8259,11 @@ rec {
             name = "tracing";
             packageId = "tracing";
           }
+          {
+            name = "url";
+            packageId = "url";
+            optional = true;
+          }
         ];
         devDependencies = [
           {
@@ -8315,13 +8320,15 @@ rec {
           "bytes" = [ "dep:bytes" ];
           "daemon" = [ "tokio" "nix-compat-derive" "futures" ];
           "default" = [ "async" "daemon" "wire" "nix-compat-derive" ];
+          "flakeref" = [ "url" ];
           "futures" = [ "dep:futures" ];
           "nix-compat-derive" = [ "dep:nix-compat-derive" ];
           "pin-project-lite" = [ "dep:pin-project-lite" ];
           "tokio" = [ "dep:tokio" ];
+          "url" = [ "dep:url" ];
           "wire" = [ "tokio" "pin-project-lite" "bytes" ];
         };
-        resolvedDefaultFeatures = [ "async" "bytes" "daemon" "default" "futures" "nix-compat-derive" "pin-project-lite" "test" "tokio" "wire" ];
+        resolvedDefaultFeatures = [ "async" "bytes" "daemon" "default" "flakeref" "futures" "nix-compat-derive" "pin-project-lite" "test" "tokio" "url" "wire" ];
       };
       "nix-compat-derive" = rec {
         crateName = "nix-compat-derive";
@@ -14208,6 +14215,7 @@ rec {
           {
             name = "nix-compat";
             packageId = "nix-compat";
+            features = [ "flakeref" ];
           }
           {
             name = "pin-project";
