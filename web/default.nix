@@ -9,13 +9,22 @@
     ];
   };
 
-  website = depot.third_party.npmlock2nix.v2.build {
+  website = pkgs.buildNpmPackage {
     pname = "snix-website";
     version = "0.0.0";
 
+    nativeBuildInputs = [
+      pkgs.hugo
+    ];
+
     src = depot.third_party.gitignoreSource ./.;
 
+    npmDeps = pkgs.importNpmLock {
+      npmRoot = ./.;
+    };
+
+    npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+
     installPhase = "cp -r public/. $out";
-    buildCommands = [ "PATH=\"$PATH:${pkgs.hugo}/bin\" npm run build" ];
   };
 }
