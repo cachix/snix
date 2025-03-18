@@ -51,7 +51,6 @@ in
   "alertmanager-irc-relay-environment.age" = meta01Default;
   "mimir-environment.age" = meta01Default;
   "mimir-webhook-url.age" = meta01Default;
-  "loki-environment.age" = meta01Default;
 
   "tf-dns.age" = terraform;
   "tf-keycloak.age" = terraform;
