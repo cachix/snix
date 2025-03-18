@@ -69,6 +69,10 @@ in
         src = filterRustCrateSrc { root = prev.src.origSrc; };
       };
 
+      nix-daemon = prev: {
+        src = depot.snix.utils.filterRustCrateSrc { root = prev.src.origSrc; };
+      };
+
       snix-build = prev: {
         src = filterRustCrateSrc rec {
           root = prev.src.origSrc;
