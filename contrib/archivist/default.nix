@@ -35,7 +35,6 @@ depot.nix.readTree.drvTargets {
       --prefix PATH : ${pkgs.lib.makeBinPath [ clickhouseLocalFixedAWS ]}
   '';
 
-
   # A shell, by default pointing us to the archivist SSO profile / account by default.
   shell = pkgs.mkShell {
     name = "archivist-shell";

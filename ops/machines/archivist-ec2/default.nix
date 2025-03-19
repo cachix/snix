@@ -1,9 +1,13 @@
-{ depot, pkgs, modulesPath, ... }:
+{ depot, pkgs, ... }: # readTree options
+{ modulesPath, ... }: # passed by module system
 
+let
+  mod = name: depot.path.origSrc + ("/ops/modules/" + name);
+in
 {
   imports = [
     "${modulesPath}/virtualisation/amazon-image.nix"
-    ../profiles/archivist.nix
+    (mod "archivist.nix")
   ];
 
   nixpkgs.hostPlatform = "x86_64-linux";
@@ -14,7 +18,7 @@
   };
 
   systemd.services.parse-bucket-logs = {
-    path = [ depot.users.flokli.archivist.parse-bucket-logs ];
+    path = [ depot.contrib.archivist.parse-bucket-logs ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = (pkgs.writers.writePython3 "parse-bucket-logs-continuously"
@@ -27,7 +31,7 @@
   };
 
   environment.systemPackages = [
-    depot.users.flokli.archivist.parse-bucket-logs
+    depot.contrib.archivist.parse-bucket-logs
   ];
 
   networking.hostName = "archivist-ec2";

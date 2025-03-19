@@ -1,6 +1,8 @@
 { depot, ... }:
 
 (with depot.ops.machines; [
+  # Archivist EC2 machine
+  archivist-ec2
   # Gerrit instance
   gerrit01
   # Public-facing services
