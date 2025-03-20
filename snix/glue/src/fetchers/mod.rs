@@ -210,6 +210,7 @@ impl Fetch {
 }
 
 /// Knows how to fetch a given [Fetch].
+#[derive(Clone)]
 pub struct Fetcher<BS, DS, PS, NS> {
     http_client: reqwest::Client,
     blob_service: BS,

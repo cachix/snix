@@ -5534,9 +5534,9 @@ rec {
       };
       "gix" = rec {
         crateName = "gix";
-        version = "0.67.0";
+        version = "0.70.0";
         edition = "2021";
-        sha256 = "0zziyg31w7knv6cdizhm3fgxi8xg5ay64a5wpzix6s63va6ygly7";
+        sha256 = "0s3b5407lqx9nf81xfrmka6l269551kkwm9blmpabwq5cxii8vvk";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
         ];
@@ -5547,23 +5547,23 @@ rec {
           }
           {
             name = "gix-archive";
-            packageId = "gix-archive";
+            packageId = "gix-archive 0.19.0";
             optional = true;
             usesDefaultFeatures = false;
           }
           {
             name = "gix-attributes";
-            packageId = "gix-attributes";
+            packageId = "gix-attributes 0.24.0";
             optional = true;
           }
           {
             name = "gix-command";
-            packageId = "gix-command";
+            packageId = "gix-command 0.4.1";
             optional = true;
           }
           {
             name = "gix-commitgraph";
-            packageId = "gix-commitgraph";
+            packageId = "gix-commitgraph 0.26.0";
           }
           {
             name = "gix-config";
@@ -5571,7 +5571,7 @@ rec {
           }
           {
             name = "gix-credentials";
-            packageId = "gix-credentials";
+            packageId = "gix-credentials 0.27.0";
             optional = true;
           }
           {
@@ -5594,29 +5594,29 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.40.0";
             features = [ "progress" "once_cell" ];
           }
           {
             name = "gix-filter";
-            packageId = "gix-filter";
+            packageId = "gix-filter 0.17.0";
             optional = true;
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
           }
           {
             name = "gix-glob";
-            packageId = "gix-glob";
+            packageId = "gix-glob 0.18.0";
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-hashtable";
-            packageId = "gix-hashtable";
+            packageId = "gix-hashtable 0.7.0";
           }
           {
             name = "gix-ignore";
@@ -5638,19 +5638,13 @@ rec {
             optional = true;
           }
           {
-            name = "gix-merge";
-            packageId = "gix-merge";
-            optional = true;
-            usesDefaultFeatures = false;
-          }
-          {
             name = "gix-negotiate";
             packageId = "gix-negotiate";
             optional = true;
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-odb";
@@ -5673,13 +5667,12 @@ rec {
           }
           {
             name = "gix-prompt";
-            packageId = "gix-prompt";
+            packageId = "gix-prompt 0.9.1";
             optional = true;
           }
           {
             name = "gix-protocol";
-            packageId = "gix-protocol";
-            optional = true;
+            packageId = "gix-protocol 0.48.0";
           }
           {
             name = "gix-ref";
@@ -5696,11 +5689,15 @@ rec {
           }
           {
             name = "gix-revwalk";
-            packageId = "gix-revwalk";
+            packageId = "gix-revwalk 0.18.0";
           }
           {
             name = "gix-sec";
             packageId = "gix-sec";
+          }
+          {
+            name = "gix-shallow";
+            packageId = "gix-shallow";
           }
           {
             name = "gix-status";
@@ -5724,16 +5721,16 @@ rec {
           }
           {
             name = "gix-transport";
-            packageId = "gix-transport";
+            packageId = "gix-transport 0.45.0";
             optional = true;
           }
           {
             name = "gix-traverse";
-            packageId = "gix-traverse";
+            packageId = "gix-traverse 0.44.0";
           }
           {
             name = "gix-url";
-            packageId = "gix-url";
+            packageId = "gix-url 0.29.0";
           }
           {
             name = "gix-utils";
@@ -5756,7 +5753,7 @@ rec {
           }
           {
             name = "gix-worktree-stream";
-            packageId = "gix-worktree-stream";
+            packageId = "gix-worktree-stream 0.19.0";
             optional = true;
           }
           {
@@ -5787,24 +5784,24 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
         features = {
-          "async-network-client" = [ "gix-protocol/async-client" "gix-pack/streaming-input" "attributes" "credentials" ];
+          "async-network-client" = [ "gix-protocol/async-client" "gix-pack/streaming-input" "dep:gix-transport" "attributes" "credentials" ];
           "async-network-client-async-std" = [ "async-std" "async-network-client" "gix-transport/async-std" ];
           "async-std" = [ "dep:async-std" ];
           "attributes" = [ "excludes" "dep:gix-filter" "dep:gix-pathspec" "dep:gix-attributes" "dep:gix-submodule" "gix-worktree?/attributes" "command" ];
           "basic" = [ "blob-diff" "revision" "index" ];
+          "blame" = [ "dep:gix-blame" ];
           "blob-diff" = [ "gix-diff/blob" "attributes" ];
-          "blob-merge" = [ "dep:gix-merge" "gix-merge/blob" "attributes" ];
           "blocking-http-transport-curl" = [ "blocking-network-client" "gix-transport/http-client-curl" ];
           "blocking-http-transport-curl-rustls" = [ "blocking-http-transport-curl" "gix-transport/http-client-curl-rust-tls" ];
           "blocking-http-transport-reqwest" = [ "blocking-network-client" "gix-transport/http-client-reqwest" ];
           "blocking-http-transport-reqwest-native-tls" = [ "blocking-http-transport-reqwest" "gix-transport/http-client-reqwest-native-tls" ];
           "blocking-http-transport-reqwest-rust-tls" = [ "blocking-http-transport-reqwest" "gix-transport/http-client-reqwest-rust-tls" ];
           "blocking-http-transport-reqwest-rust-tls-trust-dns" = [ "blocking-http-transport-reqwest" "gix-transport/http-client-reqwest-rust-tls-trust-dns" ];
-          "blocking-network-client" = [ "gix-protocol/blocking-client" "gix-pack/streaming-input" "attributes" "credentials" ];
+          "blocking-network-client" = [ "gix-protocol/blocking-client" "gix-pack/streaming-input" "dep:gix-transport" "attributes" "credentials" ];
           "cache-efficiency-debug" = [ "gix-features/cache-efficiency-debug" ];
           "comfort" = [ "gix-features/progress-unit-bytes" "gix-features/progress-unit-human-numbers" ];
           "command" = [ "dep:gix-command" ];
@@ -5813,12 +5810,10 @@ rec {
           "dirwalk" = [ "dep:gix-dir" "attributes" "excludes" ];
           "document-features" = [ "dep:document-features" ];
           "excludes" = [ "dep:gix-ignore" "dep:gix-worktree" "index" ];
-          "extras" = [ "worktree-stream" "worktree-archive" "revparse-regex" "mailmap" "excludes" "attributes" "worktree-mutation" "credentials" "interrupt" "status" "dirwalk" "blob-merge" ];
+          "extras" = [ "worktree-stream" "worktree-archive" "revparse-regex" "mailmap" "excludes" "attributes" "worktree-mutation" "credentials" "interrupt" "status" "dirwalk" ];
           "fast-sha1" = [ "gix-features/fast-sha1" ];
           "gix-archive" = [ "dep:gix-archive" ];
-          "gix-protocol" = [ "dep:gix-protocol" ];
           "gix-status" = [ "dep:gix-status" ];
-          "gix-transport" = [ "dep:gix-transport" ];
           "gix-worktree-stream" = [ "dep:gix-worktree-stream" ];
           "hp-tempfile-registry" = [ "gix-tempfile/hp-hashmap" ];
           "index" = [ "dep:gix-index" ];
@@ -5827,7 +5822,8 @@ rec {
           "max-control" = [ "parallel" "pack-cache-lru-static" "pack-cache-lru-dynamic" ];
           "max-performance" = [ "max-performance-safe" "zlib-ng" "fast-sha1" ];
           "max-performance-safe" = [ "max-control" ];
-          "need-more-recent-msrv" = [ "tree-editor" ];
+          "merge" = [ "tree-editor" "blob-diff" "dep:gix-merge" "attributes" ];
+          "need-more-recent-msrv" = [ "merge" "tree-editor" ];
           "pack-cache-lru-dynamic" = [ "gix-pack/pack-cache-lru-dynamic" ];
           "pack-cache-lru-static" = [ "gix-pack/pack-cache-lru-static" ];
           "parallel" = [ "gix-features/parallel" ];
@@ -5837,8 +5833,8 @@ rec {
           "regex" = [ "dep:regex" ];
           "revision" = [ "gix-revision/describe" "gix-revision/merge_base" "index" ];
           "revparse-regex" = [ "regex" "revision" ];
-          "serde" = [ "dep:serde" "gix-pack/serde" "gix-object/serde" "gix-protocol?/serde" "gix-transport?/serde" "gix-ref/serde" "gix-odb/serde" "gix-index?/serde" "gix-mailmap?/serde" "gix-url/serde" "gix-attributes?/serde" "gix-ignore?/serde" "gix-revision/serde" "gix-worktree?/serde" "gix-commitgraph/serde" "gix-credentials?/serde" ];
-          "status" = [ "gix-status" "dirwalk" "index" "blob-diff" ];
+          "serde" = [ "dep:serde" "gix-pack/serde" "gix-object/serde" "gix-protocol/serde" "gix-transport?/serde" "gix-ref/serde" "gix-odb/serde" "gix-index?/serde" "gix-mailmap?/serde" "gix-url/serde" "gix-attributes?/serde" "gix-ignore?/serde" "gix-revision/serde" "gix-worktree?/serde" "gix-commitgraph/serde" "gix-credentials?/serde" ];
+          "status" = [ "gix-status" "dirwalk" "index" "blob-diff" "gix-diff/index" ];
           "tracing" = [ "gix-features/tracing" ];
           "tracing-detail" = [ "gix-features/tracing-detail" "tracing" ];
           "verbose-object-parsing-errors" = [ "gix-object/verbose-object-parsing-errors" ];
@@ -5849,7 +5845,7 @@ rec {
           "zlib-ng-compat" = [ "gix-features/zlib-ng-compat" ];
           "zlib-stock" = [ "gix-features/zlib-stock" ];
         };
-        resolvedDefaultFeatures = [ "attributes" "basic" "blob-diff" "blob-merge" "blocking-http-transport-reqwest" "blocking-network-client" "comfort" "command" "credentials" "default" "dirwalk" "excludes" "extras" "gix-archive" "gix-protocol" "gix-status" "gix-transport" "gix-worktree-stream" "index" "interrupt" "mailmap" "max-control" "max-performance-safe" "pack-cache-lru-dynamic" "pack-cache-lru-static" "parallel" "regex" "revision" "revparse-regex" "status" "worktree-archive" "worktree-mutation" "worktree-stream" ];
+        resolvedDefaultFeatures = [ "attributes" "basic" "blob-diff" "blocking-http-transport-reqwest" "blocking-network-client" "comfort" "command" "credentials" "default" "dirwalk" "excludes" "extras" "gix-archive" "gix-status" "gix-worktree-stream" "index" "interrupt" "mailmap" "max-control" "max-performance-safe" "pack-cache-lru-dynamic" "pack-cache-lru-static" "parallel" "regex" "revision" "revparse-regex" "status" "worktree-archive" "worktree-mutation" "worktree-stream" ];
       };
       "gix-actor" = rec {
         crateName = "gix-actor";
@@ -5894,7 +5890,7 @@ rec {
           "serde" = [ "dep:serde" "bstr/serde" "gix-date/serde" ];
         };
       };
-      "gix-archive" = rec {
+      "gix-archive 0.16.0" = rec {
         crateName = "gix-archive";
         version = "0.16.0";
         edition = "2021";
@@ -5920,7 +5916,7 @@ rec {
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.45.0";
           }
           {
             name = "gix-path";
@@ -5929,7 +5925,7 @@ rec {
           }
           {
             name = "gix-worktree-stream";
-            packageId = "gix-worktree-stream";
+            packageId = "gix-worktree-stream 0.16.0";
           }
           {
             name = "jiff";
@@ -5963,7 +5959,53 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "tar" "tar_gz" "zip" ];
       };
-      "gix-attributes" = rec {
+      "gix-archive 0.19.0" = rec {
+        crateName = "gix-archive";
+        version = "0.19.0";
+        edition = "2021";
+        sha256 = "1kh725mg9hq05nhw9jx48aaln1ll898vx7hmfnln211mvgncc8ix";
+        libName = "gix_archive";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "gix-date";
+            packageId = "gix-date";
+          }
+          {
+            name = "gix-object";
+            packageId = "gix-object 0.47.0";
+          }
+          {
+            name = "gix-worktree-stream";
+            packageId = "gix-worktree-stream 0.19.0";
+          }
+          {
+            name = "jiff";
+            packageId = "jiff";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+          }
+        ];
+        features = {
+          "default" = [ "tar" "tar_gz" "zip" ];
+          "document-features" = [ "dep:document-features" ];
+          "tar" = [ "dep:tar" "dep:gix-path" ];
+          "tar_gz" = [ "tar" "dep:flate2" ];
+          "zip" = [ "dep:zip" ];
+        };
+      };
+      "gix-attributes 0.23.1" = rec {
         crateName = "gix-attributes";
         version = "0.23.1";
         edition = "2021";
@@ -5981,7 +6023,61 @@ rec {
           }
           {
             name = "gix-glob";
-            packageId = "gix-glob";
+            packageId = "gix-glob 0.17.1";
+          }
+          {
+            name = "gix-path";
+            packageId = "gix-path";
+          }
+          {
+            name = "gix-quote";
+            packageId = "gix-quote";
+          }
+          {
+            name = "gix-trace";
+            packageId = "gix-trace";
+          }
+          {
+            name = "kstring";
+            packageId = "kstring";
+          }
+          {
+            name = "smallvec";
+            packageId = "smallvec";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+          }
+          {
+            name = "unicode-bom";
+            packageId = "unicode-bom";
+          }
+        ];
+        features = {
+          "document-features" = [ "dep:document-features" ];
+          "serde" = [ "dep:serde" "bstr/serde" "gix-glob/serde" "kstring/serde" ];
+        };
+      };
+      "gix-attributes 0.24.0" = rec {
+        crateName = "gix-attributes";
+        version = "0.24.0";
+        edition = "2021";
+        sha256 = "0f6vdp77d5z98bv3w6i71zlaqcgf8bch4qfa3rj5zvv2yq5h0lgi";
+        libName = "gix_attributes";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" "unicode" ];
+          }
+          {
+            name = "gix-glob";
+            packageId = "gix-glob 0.18.0";
           }
           {
             name = "gix-path";
@@ -6051,7 +6147,7 @@ rec {
         ];
 
       };
-      "gix-command" = rec {
+      "gix-command 0.3.11" = rec {
         crateName = "gix-command";
         version = "0.3.11";
         edition = "2021";
@@ -6082,7 +6178,38 @@ rec {
         ];
 
       };
-      "gix-commitgraph" = rec {
+      "gix-command 0.4.1" = rec {
+        crateName = "gix-command";
+        version = "0.4.1";
+        edition = "2021";
+        sha256 = "1wcdm6f8v28y2rv5lmz7kh4lnkdzplc92nh2c9gb8papss20nhfb";
+        libName = "gix_command";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" "unicode" ];
+          }
+          {
+            name = "gix-path";
+            packageId = "gix-path";
+          }
+          {
+            name = "gix-trace";
+            packageId = "gix-trace";
+          }
+          {
+            name = "shell-words";
+            packageId = "shell-words";
+          }
+        ];
+
+      };
+      "gix-commitgraph 0.25.1" = rec {
         crateName = "gix-commitgraph";
         version = "0.25.1";
         edition = "2021";
@@ -6105,12 +6232,56 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.39.1";
             features = [ "rustsha1" ];
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.15.1";
+          }
+          {
+            name = "memmap2";
+            packageId = "memmap2";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+          }
+        ];
+        features = {
+          "document-features" = [ "dep:document-features" ];
+          "serde" = [ "dep:serde" "gix-hash/serde" "bstr/serde" ];
+        };
+      };
+      "gix-commitgraph 0.26.0" = rec {
+        crateName = "gix-commitgraph";
+        version = "0.26.0";
+        edition = "2021";
+        sha256 = "0xs85svhri8b40paa3zjjxfqzl6g3ganxnxg1nhjcq51v318wfp2";
+        libName = "gix_commitgraph";
+        authors = [
+          "Conor Davis <gitoxide@conor.fastmail.fm>"
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "gix-chunk";
+            packageId = "gix-chunk";
+          }
+          {
+            name = "gix-features";
+            packageId = "gix-features 0.40.0";
+            features = [ "rustsha1" ];
+          }
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "memmap2";
@@ -6128,9 +6299,9 @@ rec {
       };
       "gix-config" = rec {
         crateName = "gix-config";
-        version = "0.41.0";
+        version = "0.43.0";
         edition = "2021";
-        sha256 = "0pj4mijnx46s2lq1sw78w82nq0brvvhfh1vjspllp6bv3jzx3v8b";
+        sha256 = "1sfry54k4f35ar6y0d7n52ccwyq9r192kkdkw1lx9m8l43yiwz1p";
         libName = "gix_config";
         authors = [
           "Edward Shen <code@eddie.sh>"
@@ -6148,11 +6319,11 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.40.0";
           }
           {
             name = "gix-glob";
-            packageId = "gix-glob";
+            packageId = "gix-glob 0.18.0";
           }
           {
             name = "gix-path";
@@ -6180,7 +6351,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
           {
             name = "unicode-bom";
@@ -6236,11 +6407,11 @@ rec {
           "serde" = [ "dep:serde" "bstr/serde" ];
         };
       };
-      "gix-credentials" = rec {
+      "gix-credentials 0.24.5" = rec {
         crateName = "gix-credentials";
-        version = "0.25.1";
+        version = "0.24.5";
         edition = "2021";
-        sha256 = "0wdfnq6y3za7h1xqj32af84zdzwg0r2irxrf0gkydiszd2w7ps1b";
+        sha256 = "0y6f5g8ny3rh80vw12qxzzvisw6588yll71hmvqq51wn0p9r3qwc";
         libName = "gix_credentials";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -6254,7 +6425,7 @@ rec {
           }
           {
             name = "gix-command";
-            packageId = "gix-command";
+            packageId = "gix-command 0.3.11";
           }
           {
             name = "gix-config-value";
@@ -6266,7 +6437,7 @@ rec {
           }
           {
             name = "gix-prompt";
-            packageId = "gix-prompt";
+            packageId = "gix-prompt 0.8.9";
           }
           {
             name = "gix-sec";
@@ -6278,7 +6449,61 @@ rec {
           }
           {
             name = "gix-url";
-            packageId = "gix-url";
+            packageId = "gix-url 0.27.5";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 1.0.69";
+          }
+        ];
+        features = {
+          "document-features" = [ "dep:document-features" ];
+          "serde" = [ "dep:serde" "bstr/serde" "gix-sec/serde" ];
+        };
+      };
+      "gix-credentials 0.27.0" = rec {
+        crateName = "gix-credentials";
+        version = "0.27.0";
+        edition = "2021";
+        sha256 = "0icymf6v01y2r07bmwaw3vb1mx59m2x54lcb732bj2v9w6g0z5fg";
+        libName = "gix_credentials";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "gix-command";
+            packageId = "gix-command 0.4.1";
+          }
+          {
+            name = "gix-config-value";
+            packageId = "gix-config-value";
+          }
+          {
+            name = "gix-path";
+            packageId = "gix-path";
+          }
+          {
+            name = "gix-prompt";
+            packageId = "gix-prompt 0.9.1";
+          }
+          {
+            name = "gix-sec";
+            packageId = "gix-sec";
+          }
+          {
+            name = "gix-trace";
+            packageId = "gix-trace";
+          }
+          {
+            name = "gix-url";
+            packageId = "gix-url 0.29.0";
           }
           {
             name = "thiserror";
@@ -6326,9 +6551,9 @@ rec {
       };
       "gix-diff" = rec {
         crateName = "gix-diff";
-        version = "0.47.0";
+        version = "0.50.0";
         edition = "2021";
-        sha256 = "03i6v91k0bwyzzyjl2jp9rsx780v149hs4wydzdi7wasq780z1f9";
+        sha256 = "0kbwn5js7qwnqxxva52hrhxrkwhvxfr6a86rvblz9k8arbsbgbv2";
         libName = "gix_diff";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -6340,31 +6565,46 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "gix-attributes";
+            packageId = "gix-attributes 0.24.0";
+            optional = true;
+          }
+          {
             name = "gix-command";
-            packageId = "gix-command";
+            packageId = "gix-command 0.4.1";
             optional = true;
           }
           {
             name = "gix-filter";
-            packageId = "gix-filter";
+            packageId = "gix-filter 0.17.0";
             optional = true;
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
             optional = true;
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
+          }
+          {
+            name = "gix-index";
+            packageId = "gix-index";
+            optional = true;
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-path";
             packageId = "gix-path";
+            optional = true;
+          }
+          {
+            name = "gix-pathspec";
+            packageId = "gix-pathspec";
             optional = true;
           }
           {
@@ -6379,7 +6619,7 @@ rec {
           }
           {
             name = "gix-traverse";
-            packageId = "gix-traverse";
+            packageId = "gix-traverse 0.44.0";
             optional = true;
           }
           {
@@ -6396,23 +6636,24 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
         features = {
           "blob" = [ "dep:imara-diff" "dep:gix-filter" "dep:gix-worktree" "dep:gix-path" "dep:gix-fs" "dep:gix-command" "dep:gix-tempfile" "dep:gix-trace" "dep:gix-traverse" ];
-          "default" = [ "blob" ];
+          "default" = [ "blob" "index" ];
           "document-features" = [ "dep:document-features" ];
-          "serde" = [ "dep:serde" "gix-hash/serde" "gix-object/serde" ];
+          "index" = [ "dep:gix-index" "dep:gix-pathspec" "dep:gix-attributes" ];
+          "serde" = [ "dep:serde" "gix-hash/serde" "gix-object/serde" "gix-index?/serde" ];
           "wasm" = [ "dep:getrandom" ];
         };
-        resolvedDefaultFeatures = [ "blob" ];
+        resolvedDefaultFeatures = [ "blob" "index" ];
       };
       "gix-dir" = rec {
         crateName = "gix-dir";
-        version = "0.9.0";
+        version = "0.12.0";
         edition = "2021";
-        sha256 = "18rlpbjy14ljv1sq839skfn2x8f121gaspwjsjb3kbvvy6dw5xmv";
+        sha256 = "0yymdfbdhsl5fwfbsf2py8zb1amcxy27n148nz8zf4ksjarqvmy1";
         libName = "gix_dir";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -6429,7 +6670,7 @@ rec {
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
           }
           {
             name = "gix-ignore";
@@ -6441,7 +6682,7 @@ rec {
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-path";
@@ -6467,16 +6708,16 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
 
       };
       "gix-discover" = rec {
         crateName = "gix-discover";
-        version = "0.36.0";
+        version = "0.38.0";
         edition = "2021";
-        sha256 = "1xkijvasm2c9a1pwjjc05xq8ydy5fc4f255hvw4syl4g8lgy68n5";
+        sha256 = "1n35pfcr4didkxswigy4lvwkqrhyvbgjk82sb87lw1h4vx5l3hnh";
         libName = "gix_discover";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -6495,11 +6736,11 @@ rec {
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-path";
@@ -6515,16 +6756,140 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
 
       };
-      "gix-features" = rec {
+      "gix-features 0.38.2" = rec {
+        crateName = "gix-features";
+        version = "0.38.2";
+        edition = "2021";
+        sha256 = "0sfw6zs3qgmlqjkj4cvyfz6q6dgdlw1d16c7yckwgyg5kyn4aw5c";
+        libName = "gix_features";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.14.2";
+          }
+          {
+            name = "gix-trace";
+            packageId = "gix-trace";
+          }
+          {
+            name = "libc";
+            packageId = "libc";
+            target = { target, features }: (target."unix" or false);
+          }
+          {
+            name = "prodash";
+            packageId = "prodash 28.0.0";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "crc32" = [ "dep:crc32fast" ];
+          "document-features" = [ "dep:document-features" ];
+          "fast-sha1" = [ "dep:sha1" ];
+          "fs-read-dir" = [ "dep:gix-utils" ];
+          "fs-walkdir-parallel" = [ "dep:jwalk" "dep:gix-utils" ];
+          "io-pipe" = [ "dep:bytes" ];
+          "once_cell" = [ "dep:once_cell" ];
+          "parallel" = [ "dep:crossbeam-channel" "dep:parking_lot" ];
+          "prodash" = [ "dep:prodash" ];
+          "progress" = [ "prodash" ];
+          "progress-unit-bytes" = [ "dep:bytesize" "prodash?/unit-bytes" ];
+          "progress-unit-human-numbers" = [ "prodash?/unit-human" ];
+          "rustsha1" = [ "dep:sha1_smol" ];
+          "tracing" = [ "gix-trace/tracing" ];
+          "tracing-detail" = [ "gix-trace/tracing-detail" ];
+          "walkdir" = [ "dep:walkdir" "dep:gix-utils" ];
+          "zlib" = [ "dep:flate2" "flate2?/rust_backend" "dep:thiserror" ];
+          "zlib-ng" = [ "zlib" "flate2?/zlib-ng" ];
+          "zlib-ng-compat" = [ "zlib" "flate2?/zlib-ng-compat" ];
+          "zlib-rust-backend" = [ "zlib" "flate2?/rust_backend" ];
+          "zlib-stock" = [ "zlib" "flate2?/zlib" ];
+        };
+        resolvedDefaultFeatures = [ "default" "prodash" "progress" ];
+      };
+      "gix-features 0.39.1" = rec {
         crateName = "gix-features";
         version = "0.39.1";
         edition = "2021";
         sha256 = "07yqby9y0icx2l7kwbvxfg6z8b7gfznknwd4vd0a68p0y9rxd1bx";
+        libName = "gix_features";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bytes";
+            packageId = "bytes";
+            optional = true;
+          }
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.15.1";
+          }
+          {
+            name = "gix-trace";
+            packageId = "gix-trace";
+          }
+          {
+            name = "gix-utils";
+            packageId = "gix-utils";
+            optional = true;
+          }
+          {
+            name = "libc";
+            packageId = "libc";
+            target = { target, features }: (target."unix" or false);
+          }
+          {
+            name = "prodash";
+            packageId = "prodash 29.0.1";
+            optional = true;
+          }
+          {
+            name = "sha1_smol";
+            packageId = "sha1_smol";
+            optional = true;
+          }
+        ];
+        features = {
+          "crc32" = [ "dep:crc32fast" ];
+          "document-features" = [ "dep:document-features" ];
+          "fast-sha1" = [ "dep:sha1" ];
+          "fs-read-dir" = [ "dep:gix-utils" ];
+          "fs-walkdir-parallel" = [ "dep:jwalk" "dep:gix-utils" ];
+          "io-pipe" = [ "dep:bytes" ];
+          "once_cell" = [ "dep:once_cell" ];
+          "parallel" = [ "dep:crossbeam-channel" "dep:parking_lot" ];
+          "prodash" = [ "dep:prodash" ];
+          "progress" = [ "prodash" ];
+          "progress-unit-bytes" = [ "dep:bytesize" "prodash?/unit-bytes" ];
+          "progress-unit-human-numbers" = [ "prodash?/unit-human" ];
+          "rustsha1" = [ "dep:sha1_smol" ];
+          "tracing" = [ "gix-trace/tracing" ];
+          "tracing-detail" = [ "gix-trace/tracing-detail" ];
+          "walkdir" = [ "dep:walkdir" "dep:gix-utils" ];
+          "zlib" = [ "dep:flate2" "flate2?/rust_backend" "dep:thiserror" ];
+          "zlib-ng" = [ "zlib" "flate2?/zlib-ng" ];
+          "zlib-ng-compat" = [ "zlib" "flate2?/zlib-ng-compat" ];
+          "zlib-rust-backend" = [ "zlib" "flate2?/rust_backend" ];
+          "zlib-stock" = [ "zlib" "flate2?/zlib" ];
+        };
+        resolvedDefaultFeatures = [ "default" "fs-read-dir" "io-pipe" "prodash" "progress" "rustsha1" ];
+      };
+      "gix-features 0.40.0" = rec {
+        crateName = "gix-features";
+        version = "0.40.0";
+        edition = "2021";
+        sha256 = "0m6mf6f341shzs5b1iy79klkw00x84kba34z5i4bshldia1x9zcb";
         libName = "gix_features";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -6558,7 +6923,7 @@ rec {
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-trace";
@@ -6587,7 +6952,7 @@ rec {
           }
           {
             name = "prodash";
-            packageId = "prodash";
+            packageId = "prodash 29.0.1";
             optional = true;
           }
           {
@@ -6631,7 +6996,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "crc32" "default" "fs-read-dir" "io-pipe" "once_cell" "parallel" "prodash" "progress" "progress-unit-bytes" "progress-unit-human-numbers" "rustsha1" "walkdir" "zlib" ];
       };
-      "gix-filter" = rec {
+      "gix-filter 0.14.0" = rec {
         crateName = "gix-filter";
         version = "0.14.0";
         edition = "2021";
@@ -6653,19 +7018,19 @@ rec {
           }
           {
             name = "gix-attributes";
-            packageId = "gix-attributes";
+            packageId = "gix-attributes 0.23.1";
           }
           {
             name = "gix-command";
-            packageId = "gix-command";
+            packageId = "gix-command 0.3.11";
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.15.1";
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.45.0";
           }
           {
             name = "gix-packetline-blocking";
@@ -6699,7 +7064,75 @@ rec {
         ];
 
       };
-      "gix-fs" = rec {
+      "gix-filter 0.17.0" = rec {
+        crateName = "gix-filter";
+        version = "0.17.0";
+        edition = "2021";
+        sha256 = "1frbjkmwrafbp7psbnh9rp9szlakcn44b1jmqc7fsqxwgp6kdk5x";
+        libName = "gix_filter";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "encoding_rs";
+            packageId = "encoding_rs";
+          }
+          {
+            name = "gix-attributes";
+            packageId = "gix-attributes 0.24.0";
+          }
+          {
+            name = "gix-command";
+            packageId = "gix-command 0.4.1";
+          }
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.16.0";
+          }
+          {
+            name = "gix-object";
+            packageId = "gix-object 0.47.0";
+          }
+          {
+            name = "gix-packetline-blocking";
+            packageId = "gix-packetline-blocking";
+            rename = "gix-packetline";
+          }
+          {
+            name = "gix-path";
+            packageId = "gix-path";
+          }
+          {
+            name = "gix-quote";
+            packageId = "gix-quote";
+          }
+          {
+            name = "gix-trace";
+            packageId = "gix-trace";
+          }
+          {
+            name = "gix-utils";
+            packageId = "gix-utils";
+          }
+          {
+            name = "smallvec";
+            packageId = "smallvec";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+          }
+        ];
+
+      };
+      "gix-fs 0.12.1" = rec {
         crateName = "gix-fs";
         version = "0.12.1";
         edition = "2021";
@@ -6717,7 +7150,7 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.39.1";
             features = [ "fs-read-dir" ];
           }
           {
@@ -6729,7 +7162,37 @@ rec {
           "serde" = [ "dep:serde" ];
         };
       };
-      "gix-glob" = rec {
+      "gix-fs 0.13.0" = rec {
+        crateName = "gix-fs";
+        version = "0.13.0";
+        edition = "2021";
+        sha256 = "0g86cb2i18c7jnj8i9691a3h07nz7hvinig7ryvzyi6zpykpybhq";
+        libName = "gix_fs";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "fastrand";
+            packageId = "fastrand";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "gix-features";
+            packageId = "gix-features 0.40.0";
+            features = [ "fs-read-dir" ];
+          }
+          {
+            name = "gix-utils";
+            packageId = "gix-utils";
+          }
+        ];
+        features = {
+          "serde" = [ "dep:serde" ];
+        };
+      };
+      "gix-glob 0.17.1" = rec {
         crateName = "gix-glob";
         version = "0.17.1";
         edition = "2021";
@@ -6751,7 +7214,7 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.39.1";
           }
           {
             name = "gix-path";
@@ -6763,7 +7226,66 @@ rec {
           "serde" = [ "dep:serde" "bstr/serde" "bitflags/serde" ];
         };
       };
-      "gix-hash" = rec {
+      "gix-glob 0.18.0" = rec {
+        crateName = "gix-glob";
+        version = "0.18.0";
+        edition = "2021";
+        sha256 = "0kii7bpz1vcdykb0x1k9zmhn22hynwyk4n5acfrzjy0az94p572f";
+        libName = "gix_glob";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bitflags";
+            packageId = "bitflags 2.9.0";
+          }
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "gix-features";
+            packageId = "gix-features 0.40.0";
+          }
+          {
+            name = "gix-path";
+            packageId = "gix-path";
+          }
+        ];
+        features = {
+          "document-features" = [ "dep:document-features" ];
+          "serde" = [ "dep:serde" "bstr/serde" "bitflags/serde" ];
+        };
+      };
+      "gix-hash 0.14.2" = rec {
+        crateName = "gix-hash";
+        version = "0.14.2";
+        edition = "2021";
+        sha256 = "0pjdlxbqxd9lbkccryfw2ghifiq3gz9h8ylliw0va8b16vvpsggr";
+        libName = "gix_hash";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "faster-hex";
+            packageId = "faster-hex";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 1.0.69";
+          }
+        ];
+        features = {
+          "document-features" = [ "dep:document-features" ];
+          "serde" = [ "dep:serde" ];
+        };
+      };
+      "gix-hash 0.15.1" = rec {
         crateName = "gix-hash";
         version = "0.15.1";
         edition = "2021";
@@ -6787,7 +7309,31 @@ rec {
           "serde" = [ "dep:serde" ];
         };
       };
-      "gix-hashtable" = rec {
+      "gix-hash 0.16.0" = rec {
+        crateName = "gix-hash";
+        version = "0.16.0";
+        edition = "2021";
+        sha256 = "1y79zcwja9b1bqlr27awndla5wcmzd7a8rnh7qdq5ca9hv25w778";
+        libName = "gix_hash";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "faster-hex";
+            packageId = "faster-hex";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+          }
+        ];
+        features = {
+          "document-features" = [ "dep:document-features" ];
+          "serde" = [ "dep:serde" ];
+        };
+      };
+      "gix-hashtable 0.6.0" = rec {
         crateName = "gix-hashtable";
         version = "0.6.0";
         edition = "2021";
@@ -6799,7 +7345,34 @@ rec {
         dependencies = [
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.15.1";
+          }
+          {
+            name = "hashbrown";
+            packageId = "hashbrown 0.14.5";
+            usesDefaultFeatures = false;
+            features = [ "inline-more" "raw" ];
+          }
+          {
+            name = "parking_lot";
+            packageId = "parking_lot";
+          }
+        ];
+
+      };
+      "gix-hashtable 0.7.0" = rec {
+        crateName = "gix-hashtable";
+        version = "0.7.0";
+        edition = "2021";
+        sha256 = "1l8jq85fkfw4inmpd6w2pk1dq67krsqmmp100lpd1k1a6yy3148q";
+        libName = "gix_hashtable";
+        authors = [
+          "Pascal Kuthe <pascal.kuthe@semimod.de>"
+        ];
+        dependencies = [
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "hashbrown";
@@ -6816,9 +7389,9 @@ rec {
       };
       "gix-ignore" = rec {
         crateName = "gix-ignore";
-        version = "0.12.1";
+        version = "0.13.0";
         edition = "2021";
-        sha256 = "12mv0lgq8aviy6fc4mdxr7r0ra0l1kb729wf8fkhmbx4s8jgpcdn";
+        sha256 = "0vyz5jfqd72b4pygwqrssr96jvfzi32hm7y4lz05b65zh35rsljg";
         libName = "gix_ignore";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -6832,7 +7405,7 @@ rec {
           }
           {
             name = "gix-glob";
-            packageId = "gix-glob";
+            packageId = "gix-glob 0.18.0";
           }
           {
             name = "gix-path";
@@ -6854,9 +7427,9 @@ rec {
       };
       "gix-index" = rec {
         crateName = "gix-index";
-        version = "0.36.0";
+        version = "0.38.0";
         edition = "2021";
-        sha256 = "0agycrg9hywdn89sj8hxbhx1c2aszbsp64h4hpc3z8qyr84r0q97";
+        sha256 = "1n45vkbmkpc4m570rdanyqz62a68mihsrqpz1wqnk4w74qv2xldc";
         libName = "gix_index";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -6885,16 +7458,16 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.40.0";
             features = [ "rustsha1" "progress" ];
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-lock";
@@ -6902,11 +7475,11 @@ rec {
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-traverse";
-            packageId = "gix-traverse";
+            packageId = "gix-traverse 0.44.0";
           }
           {
             name = "gix-utils";
@@ -6946,7 +7519,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
         features = {
@@ -6956,9 +7529,9 @@ rec {
       };
       "gix-lock" = rec {
         crateName = "gix-lock";
-        version = "15.0.1";
+        version = "16.0.0";
         edition = "2021";
-        sha256 = "0h6r088yv5fk0d14zihssfh1zfhdyc8cpnpbygcn7nsjlilaplqw";
+        sha256 = "0hn696w506zwqfl9pjhijaqkshzr5lb4v0j1hjb40sgzf1982fcp";
         libName = "gix_lock";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -7015,94 +7588,11 @@ rec {
           "serde" = [ "dep:serde" "bstr/serde" "gix-actor/serde" ];
         };
       };
-      "gix-merge" = rec {
-        crateName = "gix-merge";
-        version = "0.0.0";
-        edition = "2021";
-        sha256 = "0j00zbka50r268kqmbf7cqiisb48103a7pvkznajv8d5s230rw7y";
-        libName = "gix_merge";
-        authors = [
-          "Sebastian Thiel <sebastian.thiel@icloud.com>"
-        ];
-        dependencies = [
-          {
-            name = "bstr";
-            packageId = "bstr";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "gix-command";
-            packageId = "gix-command";
-            optional = true;
-          }
-          {
-            name = "gix-filter";
-            packageId = "gix-filter";
-            optional = true;
-          }
-          {
-            name = "gix-fs";
-            packageId = "gix-fs";
-            optional = true;
-          }
-          {
-            name = "gix-hash";
-            packageId = "gix-hash";
-          }
-          {
-            name = "gix-object";
-            packageId = "gix-object";
-          }
-          {
-            name = "gix-path";
-            packageId = "gix-path";
-            optional = true;
-          }
-          {
-            name = "gix-quote";
-            packageId = "gix-quote";
-            optional = true;
-          }
-          {
-            name = "gix-tempfile";
-            packageId = "gix-tempfile";
-            optional = true;
-          }
-          {
-            name = "gix-trace";
-            packageId = "gix-trace";
-            optional = true;
-          }
-          {
-            name = "gix-worktree";
-            packageId = "gix-worktree";
-            optional = true;
-            usesDefaultFeatures = false;
-            features = [ "attributes" ];
-          }
-          {
-            name = "imara-diff";
-            packageId = "imara-diff";
-            optional = true;
-          }
-          {
-            name = "thiserror";
-            packageId = "thiserror 1.0.69";
-          }
-        ];
-        features = {
-          "blob" = [ "dep:imara-diff" "dep:gix-filter" "dep:gix-worktree" "dep:gix-path" "dep:gix-fs" "dep:gix-command" "dep:gix-tempfile" "dep:gix-trace" "dep:gix-quote" ];
-          "default" = [ "blob" ];
-          "document-features" = [ "dep:document-features" ];
-          "serde" = [ "dep:serde" "gix-hash/serde" "gix-object/serde" ];
-        };
-        resolvedDefaultFeatures = [ "blob" ];
-      };
       "gix-negotiate" = rec {
         crateName = "gix-negotiate";
-        version = "0.16.0";
+        version = "0.18.0";
         edition = "2021";
-        sha256 = "1gfhnzjv0q2gj27xwgdx576q8kw5zx0diiirm6g39hrq30lhcj21";
+        sha256 = "107gh0yn4z1lnzljlr538gg5bs9k9mzjncam1g9h7qxvywgaza56";
         libName = "gix_negotiate";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -7114,7 +7604,7 @@ rec {
           }
           {
             name = "gix-commitgraph";
-            packageId = "gix-commitgraph";
+            packageId = "gix-commitgraph 0.26.0";
           }
           {
             name = "gix-date";
@@ -7122,15 +7612,15 @@ rec {
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-revwalk";
-            packageId = "gix-revwalk";
+            packageId = "gix-revwalk 0.18.0";
           }
           {
             name = "smallvec";
@@ -7138,12 +7628,12 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
 
       };
-      "gix-object" = rec {
+      "gix-object 0.45.0" = rec {
         crateName = "gix-object";
         version = "0.45.0";
         edition = "2021";
@@ -7169,16 +7659,16 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.39.1";
             features = [ "rustsha1" "progress" ];
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.15.1";
           }
           {
             name = "gix-hashtable";
-            packageId = "gix-hashtable";
+            packageId = "gix-hashtable 0.6.0";
           }
           {
             name = "gix-utils";
@@ -7213,11 +7703,85 @@ rec {
           "verbose-object-parsing-errors" = [ "winnow/std" ];
         };
       };
+      "gix-object 0.47.0" = rec {
+        crateName = "gix-object";
+        version = "0.47.0";
+        edition = "2021";
+        sha256 = "0s7xwm1nmx2zp10qnrlxh8vmw5nakjkvfzrl4bzg0i220jhb7i6x";
+        libName = "gix_object";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" "unicode" ];
+          }
+          {
+            name = "gix-actor";
+            packageId = "gix-actor";
+          }
+          {
+            name = "gix-date";
+            packageId = "gix-date";
+          }
+          {
+            name = "gix-features";
+            packageId = "gix-features 0.40.0";
+            features = [ "rustsha1" "progress" ];
+          }
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.16.0";
+          }
+          {
+            name = "gix-hashtable";
+            packageId = "gix-hashtable 0.7.0";
+          }
+          {
+            name = "gix-path";
+            packageId = "gix-path";
+          }
+          {
+            name = "gix-utils";
+            packageId = "gix-utils";
+          }
+          {
+            name = "gix-validate";
+            packageId = "gix-validate";
+          }
+          {
+            name = "itoa";
+            packageId = "itoa";
+          }
+          {
+            name = "smallvec";
+            packageId = "smallvec";
+            features = [ "write" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+          }
+          {
+            name = "winnow";
+            packageId = "winnow 0.6.26";
+            features = [ "simd" ];
+          }
+        ];
+        features = {
+          "document-features" = [ "dep:document-features" ];
+          "serde" = [ "dep:serde" "bstr/serde" "smallvec/serde" "gix-hash/serde" "gix-actor/serde" ];
+          "verbose-object-parsing-errors" = [ "winnow/std" ];
+        };
+      };
       "gix-odb" = rec {
         crateName = "gix-odb";
-        version = "0.64.0";
+        version = "0.67.0";
         edition = "2021";
-        sha256 = "0q8gwv4mdm8jqmfr73q0z009fvvh151wjkqvc20gkcpiyynnmf0b";
+        sha256 = "06ww8mc10iydvqxdin0miny89g9z8i7zmsccc1rrbl4wyrylb4ry";
         libName = "gix_odb";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -7233,24 +7797,24 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.40.0";
             features = [ "rustsha1" "walkdir" "zlib" "crc32" ];
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-hashtable";
-            packageId = "gix-hashtable";
+            packageId = "gix-hashtable 0.7.0";
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-pack";
@@ -7275,7 +7839,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
         features = {
@@ -7285,9 +7849,9 @@ rec {
       };
       "gix-pack" = rec {
         crateName = "gix-pack";
-        version = "0.54.0";
+        version = "0.57.0";
         edition = "2021";
-        sha256 = "0sq240glmpvp0x1bpsngrlk82iz2d3dkk0a0f8v29fjmm1cnwgin";
+        sha256 = "05d57xpzk35i2cclnb9iclvm1gvrc20mzcvz04bmcwyvndss84zw";
         libName = "gix_pack";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -7304,21 +7868,21 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.40.0";
             features = [ "crc32" "rustsha1" "progress" "zlib" ];
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-hashtable";
-            packageId = "gix-hashtable";
+            packageId = "gix-hashtable 0.7.0";
             optional = true;
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-path";
@@ -7347,7 +7911,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
           {
             name = "uluru";
@@ -7368,7 +7932,47 @@ rec {
         };
         resolvedDefaultFeatures = [ "object-cache-dynamic" "pack-cache-lru-dynamic" "pack-cache-lru-static" "streaming-input" ];
       };
-      "gix-packetline" = rec {
+      "gix-packetline 0.17.6" = rec {
+        crateName = "gix-packetline";
+        version = "0.17.6";
+        edition = "2021";
+        sha256 = "0jay9kgy8fgc809xcipgwhz430a4pyywhcb7c0n25yp2bx6yyhwc";
+        libName = "gix_packetline";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "faster-hex";
+            packageId = "faster-hex";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "gix-trace";
+            packageId = "gix-trace";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 1.0.69";
+          }
+        ];
+        features = {
+          "async-io" = [ "futures-io" "futures-lite" "pin-project-lite" ];
+          "document-features" = [ "dep:document-features" ];
+          "futures-io" = [ "dep:futures-io" ];
+          "futures-lite" = [ "dep:futures-lite" ];
+          "pin-project-lite" = [ "dep:pin-project-lite" ];
+          "serde" = [ "dep:serde" "bstr/serde" ];
+        };
+        resolvedDefaultFeatures = [ "blocking-io" "default" ];
+      };
+      "gix-packetline 0.18.3" = rec {
         crateName = "gix-packetline";
         version = "0.18.3";
         edition = "2021";
@@ -7478,9 +8082,9 @@ rec {
       };
       "gix-pathspec" = rec {
         crateName = "gix-pathspec";
-        version = "0.8.1";
+        version = "0.9.0";
         edition = "2021";
-        sha256 = "07mqfl6232285yzsmym2vr7vndwh3ivx9p7xgv7nzsd4wkxjsisc";
+        sha256 = "0v7q0b55fn0raaj52cg75bi5yc8pijkzl1lq05crv3n0hskd6c34";
         libName = "gix_pathspec";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -7498,7 +8102,7 @@ rec {
           }
           {
             name = "gix-attributes";
-            packageId = "gix-attributes";
+            packageId = "gix-attributes 0.24.0";
           }
           {
             name = "gix-config-value";
@@ -7506,7 +8110,7 @@ rec {
           }
           {
             name = "gix-glob";
-            packageId = "gix-glob";
+            packageId = "gix-glob 0.18.0";
           }
           {
             name = "gix-path";
@@ -7519,7 +8123,7 @@ rec {
         ];
 
       };
-      "gix-prompt" = rec {
+      "gix-prompt 0.8.9" = rec {
         crateName = "gix-prompt";
         version = "0.8.9";
         edition = "2021";
@@ -7531,7 +8135,7 @@ rec {
         dependencies = [
           {
             name = "gix-command";
-            packageId = "gix-command";
+            packageId = "gix-command 0.3.11";
           }
           {
             name = "gix-config-value";
@@ -7555,11 +8159,47 @@ rec {
         ];
 
       };
-      "gix-protocol" = rec {
-        crateName = "gix-protocol";
-        version = "0.46.1";
+      "gix-prompt 0.9.1" = rec {
+        crateName = "gix-prompt";
+        version = "0.9.1";
         edition = "2021";
-        sha256 = "1jmq10azisdp4k1i18hif4cdxchrm4ppwacc8k9k39fyl18pwzks";
+        sha256 = "0v9v9icnryhcx2z256kmm8aa1p31ipghjx80kac2nlg1b1ciiwkr";
+        libName = "gix_prompt";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "gix-command";
+            packageId = "gix-command 0.4.1";
+          }
+          {
+            name = "gix-config-value";
+            packageId = "gix-config-value";
+          }
+          {
+            name = "parking_lot";
+            packageId = "parking_lot";
+            target = { target, features }: (target."unix" or false);
+          }
+          {
+            name = "rustix";
+            packageId = "rustix 0.38.44";
+            target = { target, features }: (target."unix" or false);
+            features = [ "termios" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+          }
+        ];
+
+      };
+      "gix-protocol 0.45.3" = rec {
+        crateName = "gix-protocol";
+        version = "0.45.3";
+        edition = "2021";
+        sha256 = "0gjf2s9ssch79jfyv7bpa8pxwgdqks6940x04bpfzd81dw0a2hyc";
         libName = "gix_protocol";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -7573,7 +8213,7 @@ rec {
           }
           {
             name = "gix-credentials";
-            packageId = "gix-credentials";
+            packageId = "gix-credentials 0.24.5";
           }
           {
             name = "gix-date";
@@ -7581,16 +8221,121 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.38.2";
             features = [ "progress" ];
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.14.2";
           }
           {
             name = "gix-transport";
-            packageId = "gix-transport";
+            packageId = "gix-transport 0.42.3";
+          }
+          {
+            name = "gix-utils";
+            packageId = "gix-utils";
+          }
+          {
+            name = "maybe-async";
+            packageId = "maybe-async";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 1.0.69";
+          }
+          {
+            name = "winnow";
+            packageId = "winnow 0.6.26";
+            features = [ "simd" ];
+          }
+        ];
+        features = {
+          "async-client" = [ "gix-transport/async-client" "async-trait" "futures-io" "futures-lite" ];
+          "async-trait" = [ "dep:async-trait" ];
+          "blocking-client" = [ "gix-transport/blocking-client" "maybe-async/is_sync" ];
+          "document-features" = [ "dep:document-features" ];
+          "futures-io" = [ "dep:futures-io" ];
+          "futures-lite" = [ "dep:futures-lite" ];
+          "serde" = [ "dep:serde" "bstr/serde" "gix-transport/serde" "gix-hash/serde" ];
+        };
+        resolvedDefaultFeatures = [ "blocking-client" ];
+      };
+      "gix-protocol 0.48.0" = rec {
+        crateName = "gix-protocol";
+        version = "0.48.0";
+        edition = "2021";
+        sha256 = "145sln6g810vab9jhwiz3r1bwr61jh1i1qj168hpvdn6mxhvsqbc";
+        libName = "gix_protocol";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" "unicode" ];
+          }
+          {
+            name = "gix-credentials";
+            packageId = "gix-credentials 0.27.0";
+            optional = true;
+          }
+          {
+            name = "gix-date";
+            packageId = "gix-date";
+          }
+          {
+            name = "gix-features";
+            packageId = "gix-features 0.40.0";
+            features = [ "progress" ];
+          }
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.16.0";
+          }
+          {
+            name = "gix-lock";
+            packageId = "gix-lock";
+            optional = true;
+          }
+          {
+            name = "gix-negotiate";
+            packageId = "gix-negotiate";
+            optional = true;
+          }
+          {
+            name = "gix-object";
+            packageId = "gix-object 0.47.0";
+            optional = true;
+          }
+          {
+            name = "gix-ref";
+            packageId = "gix-ref";
+          }
+          {
+            name = "gix-refspec";
+            packageId = "gix-refspec";
+            optional = true;
+          }
+          {
+            name = "gix-revwalk";
+            packageId = "gix-revwalk 0.18.0";
+            optional = true;
+          }
+          {
+            name = "gix-shallow";
+            packageId = "gix-shallow";
+          }
+          {
+            name = "gix-trace";
+            packageId = "gix-trace";
+            optional = true;
+          }
+          {
+            name = "gix-transport";
+            packageId = "gix-transport 0.45.0";
           }
           {
             name = "gix-utils";
@@ -7611,15 +8356,14 @@ rec {
           }
         ];
         features = {
-          "async-client" = [ "gix-transport/async-client" "async-trait" "futures-io" "futures-lite" ];
-          "async-trait" = [ "dep:async-trait" ];
-          "blocking-client" = [ "gix-transport/blocking-client" "maybe-async/is_sync" ];
+          "async-client" = [ "gix-transport/async-client" "dep:async-trait" "dep:futures-io" "dep:futures-lite" "handshake" "fetch" ];
+          "blocking-client" = [ "gix-transport/blocking-client" "maybe-async/is_sync" "handshake" "fetch" ];
           "document-features" = [ "dep:document-features" ];
-          "futures-io" = [ "dep:futures-io" ];
-          "futures-lite" = [ "dep:futures-lite" ];
-          "serde" = [ "dep:serde" "bstr/serde" "gix-transport/serde" "gix-hash/serde" ];
+          "fetch" = [ "dep:gix-negotiate" "dep:gix-object" "dep:gix-revwalk" "dep:gix-lock" "dep:gix-refspec" "dep:gix-trace" ];
+          "handshake" = [ "dep:gix-credentials" ];
+          "serde" = [ "dep:serde" "bstr/serde" "gix-transport/serde" "gix-hash/serde" "gix-shallow/serde" ];
         };
-        resolvedDefaultFeatures = [ "blocking-client" ];
+        resolvedDefaultFeatures = [ "blocking-client" "fetch" "handshake" ];
       };
       "gix-quote" = rec {
         crateName = "gix-quote";
@@ -7650,9 +8394,9 @@ rec {
       };
       "gix-ref" = rec {
         crateName = "gix-ref";
-        version = "0.48.0";
+        version = "0.50.0";
         edition = "2021";
-        sha256 = "18mfzrnp1308g5c454xwa85dz3c0913fyhp66n6dmnd23zkqawx4";
+        sha256 = "03723r9s3m3grmjzcasxp7jcz0z5xs90spg9aj2ryhikz72z9ba7";
         libName = "gix_ref";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -7664,16 +8408,16 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.40.0";
             features = [ "walkdir" ];
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-lock";
@@ -7681,7 +8425,7 @@ rec {
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-path";
@@ -7706,7 +8450,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
           {
             name = "winnow";
@@ -7721,9 +8465,9 @@ rec {
       };
       "gix-refspec" = rec {
         crateName = "gix-refspec";
-        version = "0.26.0";
+        version = "0.28.0";
         edition = "2021";
-        sha256 = "0hn4mbnvcammpwrqcawpysbqv1h2np5yzs1vfyzrl3fq165068h0";
+        sha256 = "140aif2nciz9j9a0h9lqsg8cb1pkzhbza9bsgy7gc4pnv0l04rar";
         libName = "gix_refspec";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -7737,7 +8481,7 @@ rec {
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-revision";
@@ -7754,16 +8498,16 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
 
       };
       "gix-revision" = rec {
         crateName = "gix-revision";
-        version = "0.30.0";
+        version = "0.32.0";
         edition = "2021";
-        sha256 = "1wam9d627191a4qdfjjj8lryk44z0qg7apaamxi3bkpyi10fps2f";
+        sha256 = "0lvb7rrjjdr9h21ign5g0za2jg00nimzqvkcdvbacpd5rjy8pqiz";
         libName = "gix_revision";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -7782,7 +8526,7 @@ rec {
           }
           {
             name = "gix-commitgraph";
-            packageId = "gix-commitgraph";
+            packageId = "gix-commitgraph 0.26.0";
           }
           {
             name = "gix-date";
@@ -7790,20 +8534,20 @@ rec {
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-hashtable";
-            packageId = "gix-hashtable";
+            packageId = "gix-hashtable 0.7.0";
             optional = true;
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-revwalk";
-            packageId = "gix-revwalk";
+            packageId = "gix-revwalk 0.18.0";
           }
           {
             name = "gix-trace";
@@ -7812,7 +8556,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
         features = {
@@ -7824,7 +8568,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "describe" "merge_base" ];
       };
-      "gix-revwalk" = rec {
+      "gix-revwalk 0.16.0" = rec {
         crateName = "gix-revwalk";
         version = "0.16.0";
         edition = "2021";
@@ -7836,7 +8580,7 @@ rec {
         dependencies = [
           {
             name = "gix-commitgraph";
-            packageId = "gix-commitgraph";
+            packageId = "gix-commitgraph 0.25.1";
           }
           {
             name = "gix-date";
@@ -7844,15 +8588,15 @@ rec {
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.15.1";
           }
           {
             name = "gix-hashtable";
-            packageId = "gix-hashtable";
+            packageId = "gix-hashtable 0.6.0";
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.45.0";
           }
           {
             name = "smallvec";
@@ -7861,6 +8605,47 @@ rec {
           {
             name = "thiserror";
             packageId = "thiserror 1.0.69";
+          }
+        ];
+
+      };
+      "gix-revwalk 0.18.0" = rec {
+        crateName = "gix-revwalk";
+        version = "0.18.0";
+        edition = "2021";
+        sha256 = "0iv2c479w9lkjwbngdwyial6km8dllgah8wvp7r9w7jv4c6biv6l";
+        libName = "gix_revwalk";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "gix-commitgraph";
+            packageId = "gix-commitgraph 0.26.0";
+          }
+          {
+            name = "gix-date";
+            packageId = "gix-date";
+          }
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.16.0";
+          }
+          {
+            name = "gix-hashtable";
+            packageId = "gix-hashtable 0.7.0";
+          }
+          {
+            name = "gix-object";
+            packageId = "gix-object 0.47.0";
+          }
+          {
+            name = "smallvec";
+            packageId = "smallvec";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
           }
         ];
 
@@ -7901,11 +8686,43 @@ rec {
           "serde" = [ "dep:serde" "bitflags/serde" ];
         };
       };
+      "gix-shallow" = rec {
+        crateName = "gix-shallow";
+        version = "0.2.0";
+        edition = "2021";
+        sha256 = "0rjhwcjjixfy4fbzciyz5mikkvq38rwfyny86ckya0z324q58wmb";
+        libName = "gix_shallow";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.16.0";
+          }
+          {
+            name = "gix-lock";
+            packageId = "gix-lock";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+          }
+        ];
+        features = {
+          "serde" = [ "dep:serde" "gix-hash/serde" ];
+        };
+      };
       "gix-status" = rec {
         crateName = "gix-status";
-        version = "0.14.0";
+        version = "0.17.0";
         edition = "2021";
-        sha256 = "0hq574lvvsswn15nhinwgprqgk2vs6radg6qhr61n5jhwy34hhap";
+        sha256 = "10s87zd97hvckhrq4jn7a794q5vypxwn8jmbqcrcmmvra3cc2k21";
         libName = "gix_status";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -7935,20 +8752,20 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.40.0";
             features = [ "progress" ];
           }
           {
             name = "gix-filter";
-            packageId = "gix-filter";
+            packageId = "gix-filter 0.17.0";
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-index";
@@ -7956,7 +8773,7 @@ rec {
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-path";
@@ -7979,7 +8796,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
         features = {
@@ -7990,9 +8807,9 @@ rec {
       };
       "gix-submodule" = rec {
         crateName = "gix-submodule";
-        version = "0.15.0";
+        version = "0.17.0";
         edition = "2021";
-        sha256 = "0yj9y2b7425a3bc2wp2sy7z50zialdv230pwh32kdkbk31i9kl1y";
+        sha256 = "1b532y2c7qg8axqc2nkw2mdiq8mg9hxq87mfj2aa1j3askl2z5vl";
         libName = "gix_submodule";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -8021,20 +8838,20 @@ rec {
           }
           {
             name = "gix-url";
-            packageId = "gix-url";
+            packageId = "gix-url 0.29.0";
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
 
       };
       "gix-tempfile" = rec {
         crateName = "gix-tempfile";
-        version = "15.0.0";
+        version = "16.0.0";
         edition = "2021";
-        sha256 = "10nvk82g7fhljg5y63dxpd8p7296wrfzxyssk957misc17pqdsrg";
+        sha256 = "00c5czgzzi3c8yxv24vh1rmkgf06vgb1ypf5521lmwjyjhiz8n15";
         libName = "gix_tempfile";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -8047,7 +8864,7 @@ rec {
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
           }
           {
             name = "libc";
@@ -8104,11 +8921,80 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" ];
       };
-      "gix-transport" = rec {
+      "gix-transport 0.42.3" = rec {
         crateName = "gix-transport";
-        version = "0.43.1";
+        version = "0.42.3";
         edition = "2021";
-        sha256 = "02r0fwai9pq6f2n1nn588pjc71rxh9zi9169w01nq8xpaw9s989r";
+        sha256 = "07s8lsq97r0hgg9znd2f0jaj49prm2bss9mjjxfs2h8vn35cq7a2";
+        libName = "gix_transport";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" "unicode" ];
+          }
+          {
+            name = "gix-command";
+            packageId = "gix-command 0.3.11";
+          }
+          {
+            name = "gix-features";
+            packageId = "gix-features 0.38.2";
+          }
+          {
+            name = "gix-packetline";
+            packageId = "gix-packetline 0.17.6";
+          }
+          {
+            name = "gix-quote";
+            packageId = "gix-quote";
+          }
+          {
+            name = "gix-sec";
+            packageId = "gix-sec";
+          }
+          {
+            name = "gix-url";
+            packageId = "gix-url 0.27.5";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 1.0.69";
+          }
+        ];
+        features = {
+          "async-client" = [ "gix-packetline/async-io" "async-trait" "futures-lite" "futures-io" "pin-project-lite" ];
+          "async-std" = [ "dep:async-std" ];
+          "async-trait" = [ "dep:async-trait" ];
+          "base64" = [ "dep:base64" ];
+          "blocking-client" = [ "gix-packetline/blocking-io" ];
+          "curl" = [ "dep:curl" ];
+          "document-features" = [ "dep:document-features" ];
+          "futures-io" = [ "dep:futures-io" ];
+          "futures-lite" = [ "dep:futures-lite" ];
+          "gix-credentials" = [ "dep:gix-credentials" ];
+          "http-client" = [ "base64" "gix-features/io-pipe" "blocking-client" "gix-credentials" ];
+          "http-client-curl" = [ "curl" "http-client" ];
+          "http-client-curl-rust-tls" = [ "http-client-curl" "curl/rustls" ];
+          "http-client-reqwest" = [ "reqwest" "http-client" ];
+          "http-client-reqwest-native-tls" = [ "http-client-reqwest" "reqwest/default-tls" ];
+          "http-client-reqwest-rust-tls" = [ "http-client-reqwest" "reqwest/rustls-tls" ];
+          "http-client-reqwest-rust-tls-trust-dns" = [ "http-client-reqwest" "reqwest/rustls-tls" "reqwest/trust-dns" ];
+          "pin-project-lite" = [ "dep:pin-project-lite" ];
+          "reqwest" = [ "dep:reqwest" ];
+          "serde" = [ "dep:serde" ];
+        };
+        resolvedDefaultFeatures = [ "blocking-client" "default" ];
+      };
+      "gix-transport 0.45.0" = rec {
+        crateName = "gix-transport";
+        version = "0.45.0";
+        edition = "2021";
+        sha256 = "1nb4p7jwy80g51afzc64ya1faxxcpgnimbk2p2sv2xwl90c7860i";
         libName = "gix_transport";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -8127,20 +9013,20 @@ rec {
           }
           {
             name = "gix-command";
-            packageId = "gix-command";
+            packageId = "gix-command 0.4.1";
           }
           {
             name = "gix-credentials";
-            packageId = "gix-credentials";
+            packageId = "gix-credentials 0.27.0";
             optional = true;
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.40.0";
           }
           {
             name = "gix-packetline";
-            packageId = "gix-packetline";
+            packageId = "gix-packetline 0.18.3";
           }
           {
             name = "gix-quote";
@@ -8152,7 +9038,7 @@ rec {
           }
           {
             name = "gix-url";
-            packageId = "gix-url";
+            packageId = "gix-url 0.29.0";
           }
           {
             name = "reqwest";
@@ -8190,7 +9076,7 @@ rec {
         };
         resolvedDefaultFeatures = [ "base64" "blocking-client" "default" "gix-credentials" "http-client" "http-client-reqwest" "reqwest" ];
       };
-      "gix-traverse" = rec {
+      "gix-traverse 0.42.0" = rec {
         crateName = "gix-traverse";
         version = "0.42.0";
         edition = "2021";
@@ -8206,7 +9092,7 @@ rec {
           }
           {
             name = "gix-commitgraph";
-            packageId = "gix-commitgraph";
+            packageId = "gix-commitgraph 0.25.1";
           }
           {
             name = "gix-date";
@@ -8214,19 +9100,19 @@ rec {
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.15.1";
           }
           {
             name = "gix-hashtable";
-            packageId = "gix-hashtable";
+            packageId = "gix-hashtable 0.6.0";
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.45.0";
           }
           {
             name = "gix-revwalk";
-            packageId = "gix-revwalk";
+            packageId = "gix-revwalk 0.16.0";
           }
           {
             name = "smallvec";
@@ -8239,11 +9125,60 @@ rec {
         ];
 
       };
-      "gix-url" = rec {
-        crateName = "gix-url";
-        version = "0.28.2";
+      "gix-traverse 0.44.0" = rec {
+        crateName = "gix-traverse";
+        version = "0.44.0";
         edition = "2021";
-        sha256 = "1ncj6k4lk3qb0i27ida7ngi9z06qpmrbva6v0da3zgd67drzp5nh";
+        sha256 = "1d311l7wlgpv41hvp1ni3r9hhwxn4x27xyiy5brnwn4n73jp1v1b";
+        libName = "gix_traverse";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bitflags";
+            packageId = "bitflags 2.9.0";
+          }
+          {
+            name = "gix-commitgraph";
+            packageId = "gix-commitgraph 0.26.0";
+          }
+          {
+            name = "gix-date";
+            packageId = "gix-date";
+          }
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.16.0";
+          }
+          {
+            name = "gix-hashtable";
+            packageId = "gix-hashtable 0.7.0";
+          }
+          {
+            name = "gix-object";
+            packageId = "gix-object 0.47.0";
+          }
+          {
+            name = "gix-revwalk";
+            packageId = "gix-revwalk 0.18.0";
+          }
+          {
+            name = "smallvec";
+            packageId = "smallvec";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
+          }
+        ];
+
+      };
+      "gix-url 0.27.5" = rec {
+        crateName = "gix-url";
+        version = "0.27.5";
+        edition = "2021";
+        sha256 = "128c2rp6780qspiqasmyd6a3gdmcmq6kl19axllf28pvhig0qa7x";
         libName = "gix_url";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -8257,7 +9192,49 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.38.2";
+          }
+          {
+            name = "gix-path";
+            packageId = "gix-path";
+          }
+          {
+            name = "home";
+            packageId = "home";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 1.0.69";
+          }
+          {
+            name = "url";
+            packageId = "url";
+          }
+        ];
+        features = {
+          "document-features" = [ "dep:document-features" ];
+          "serde" = [ "dep:serde" "bstr/serde" ];
+        };
+      };
+      "gix-url 0.29.0" = rec {
+        crateName = "gix-url";
+        version = "0.29.0";
+        edition = "2021";
+        sha256 = "04qb2p68886axrbx5gdjlhqwg55j0pn7zn25c08qzpakidv8q899";
+        libName = "gix_url";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "bstr";
+            packageId = "bstr";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "gix-features";
+            packageId = "gix-features 0.40.0";
           }
           {
             name = "gix-path";
@@ -8338,9 +9315,9 @@ rec {
       };
       "gix-worktree" = rec {
         crateName = "gix-worktree";
-        version = "0.37.0";
+        version = "0.39.0";
         edition = "2021";
-        sha256 = "177j311n46ysiyb52x68rwf02lp7gnavy4p9l17zwl1ma9dmwd0d";
+        sha256 = "0n49fywzh1f4gmv7gwd4d5jnq7ahiabsdv6wda3scmxagqpm2wv6";
         libName = "gix_worktree";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -8353,24 +9330,24 @@ rec {
           }
           {
             name = "gix-attributes";
-            packageId = "gix-attributes";
+            packageId = "gix-attributes 0.24.0";
             optional = true;
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.40.0";
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
           }
           {
             name = "gix-glob";
-            packageId = "gix-glob";
+            packageId = "gix-glob 0.18.0";
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-ignore";
@@ -8382,7 +9359,7 @@ rec {
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-path";
@@ -8404,9 +9381,9 @@ rec {
       };
       "gix-worktree-state" = rec {
         crateName = "gix-worktree-state";
-        version = "0.14.0";
+        version = "0.17.0";
         edition = "2021";
-        sha256 = "1nmql110n8f3m9l0p3wcw4mg8j87wyc0mhp9m9y77ggk087b0wjy";
+        sha256 = "1w2vaz776v13hrnzhnsihmcbhb6883b33gc3cq475yasmncy3xc6";
         libName = "gix_worktree_state";
         authors = [
           "Sebastian Thiel <sebastian.thiel@icloud.com>"
@@ -8419,23 +9396,23 @@ rec {
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.40.0";
           }
           {
             name = "gix-filter";
-            packageId = "gix-filter";
+            packageId = "gix-filter 0.17.0";
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.13.0";
           }
           {
             name = "gix-glob";
-            packageId = "gix-glob";
+            packageId = "gix-glob 0.18.0";
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.16.0";
           }
           {
             name = "gix-index";
@@ -8443,7 +9420,7 @@ rec {
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.47.0";
           }
           {
             name = "gix-path";
@@ -8461,12 +9438,12 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.12";
           }
         ];
 
       };
-      "gix-worktree-stream" = rec {
+      "gix-worktree-stream 0.16.0" = rec {
         crateName = "gix-worktree-stream";
         version = "0.16.0";
         edition = "2021";
@@ -8478,28 +9455,28 @@ rec {
         dependencies = [
           {
             name = "gix-attributes";
-            packageId = "gix-attributes";
+            packageId = "gix-attributes 0.23.1";
           }
           {
             name = "gix-features";
-            packageId = "gix-features";
+            packageId = "gix-features 0.39.1";
             features = [ "progress" "io-pipe" ];
           }
           {
             name = "gix-filter";
-            packageId = "gix-filter";
+            packageId = "gix-filter 0.14.0";
           }
           {
             name = "gix-fs";
-            packageId = "gix-fs";
+            packageId = "gix-fs 0.12.1";
           }
           {
             name = "gix-hash";
-            packageId = "gix-hash";
+            packageId = "gix-hash 0.15.1";
           }
           {
             name = "gix-object";
-            packageId = "gix-object";
+            packageId = "gix-object 0.45.0";
           }
           {
             name = "gix-path";
@@ -8507,7 +9484,7 @@ rec {
           }
           {
             name = "gix-traverse";
-            packageId = "gix-traverse";
+            packageId = "gix-traverse 0.42.0";
           }
           {
             name = "parking_lot";
@@ -8516,6 +9493,60 @@ rec {
           {
             name = "thiserror";
             packageId = "thiserror 1.0.69";
+          }
+        ];
+
+      };
+      "gix-worktree-stream 0.19.0" = rec {
+        crateName = "gix-worktree-stream";
+        version = "0.19.0";
+        edition = "2021";
+        sha256 = "11a4hdb79mka6hwwc5k4qalp0k9f7aqbs41aqzr0fkfgqdih86zn";
+        libName = "gix_worktree_stream";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        dependencies = [
+          {
+            name = "gix-attributes";
+            packageId = "gix-attributes 0.24.0";
+          }
+          {
+            name = "gix-features";
+            packageId = "gix-features 0.40.0";
+            features = [ "progress" "io-pipe" ];
+          }
+          {
+            name = "gix-filter";
+            packageId = "gix-filter 0.17.0";
+          }
+          {
+            name = "gix-fs";
+            packageId = "gix-fs 0.13.0";
+          }
+          {
+            name = "gix-hash";
+            packageId = "gix-hash 0.16.0";
+          }
+          {
+            name = "gix-object";
+            packageId = "gix-object 0.47.0";
+          }
+          {
+            name = "gix-path";
+            packageId = "gix-path";
+          }
+          {
+            name = "gix-traverse";
+            packageId = "gix-traverse 0.44.0";
+          }
+          {
+            name = "parking_lot";
+            packageId = "parking_lot";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror 2.0.12";
           }
         ];
 
@@ -12032,7 +13063,7 @@ rec {
         dependencies = [
           {
             name = "bitflags";
-            packageId = "bitflags 2.6.0";
+            packageId = "bitflags 2.9.0";
           }
           {
             name = "cfg-if";
@@ -14127,7 +15158,50 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "proc-macro" ];
       };
-      "prodash" = rec {
+      "prodash 28.0.0" = rec {
+        crateName = "prodash";
+        version = "28.0.0";
+        edition = "2021";
+        sha256 = "0y9d16s79168rc5k2djjb16vjcx27yargbfb6xz6m2mq4r6jcjkl";
+        authors = [
+          "Sebastian Thiel <sebastian.thiel@icloud.com>"
+        ];
+        features = {
+          "async-io" = [ "dep:async-io" ];
+          "bytesize" = [ "dep:bytesize" ];
+          "crosstermion" = [ "dep:crosstermion" ];
+          "ctrlc" = [ "dep:ctrlc" ];
+          "dashmap" = [ "dep:dashmap" ];
+          "default" = [ "progress-tree" "progress-tree-log" ];
+          "futures-core" = [ "dep:futures-core" ];
+          "futures-lite" = [ "dep:futures-lite" ];
+          "human_format" = [ "dep:human_format" ];
+          "humantime" = [ "dep:humantime" ];
+          "is-terminal" = [ "dep:is-terminal" ];
+          "local-time" = [ "time" ];
+          "log" = [ "dep:log" ];
+          "parking_lot" = [ "dep:parking_lot" ];
+          "progress-log" = [ "log" ];
+          "progress-tree" = [ "parking_lot" ];
+          "progress-tree-hp-hashmap" = [ "dashmap" ];
+          "progress-tree-log" = [ "log" ];
+          "render-line" = [ "crosstermion/color" "humantime" "unicode-width" ];
+          "render-line-autoconfigure" = [ "is-terminal" ];
+          "render-line-crossterm" = [ "crosstermion/crossterm" ];
+          "render-tui" = [ "tui" "unicode-segmentation" "unicode-width" "crosstermion/input-async" "tui-react" "futures-lite" "futures-core" "async-io" "humantime" ];
+          "render-tui-crossterm" = [ "crosstermion/tui-react-crossterm" "crosstermion/input-async-crossterm" ];
+          "signal-hook" = [ "dep:signal-hook" ];
+          "time" = [ "dep:time" ];
+          "tui" = [ "dep:tui" ];
+          "tui-react" = [ "dep:tui-react" ];
+          "unicode-segmentation" = [ "dep:unicode-segmentation" ];
+          "unicode-width" = [ "dep:unicode-width" ];
+          "unit-bytes" = [ "bytesize" ];
+          "unit-duration" = [ "humantime" ];
+          "unit-human" = [ "human_format" ];
+        };
+      };
+      "prodash 29.0.1" = rec {
         crateName = "prodash";
         version = "29.0.1";
         edition = "2021";
@@ -17909,17 +18983,17 @@ rec {
             packageId = "futures";
           }
           {
-            name = "hashbrown";
-            packageId = "hashbrown 0.15.2";
-          }
-          {
             name = "gix";
             packageId = "gix";
             features = [ "blocking-network-client" "blocking-http-transport-reqwest" ];
           }
           {
             name = "gix-archive";
-            packageId = "gix-archive";
+            packageId = "gix-archive 0.16.0";
+          }
+          {
+            name = "hashbrown";
+            packageId = "hashbrown 0.15.2";
           }
           {
             name = "hyper-util";
@@ -18581,6 +19655,24 @@ rec {
             packageId = "futures";
           }
           {
+            name = "gix";
+            packageId = "gix";
+          }
+          {
+            name = "gix-protocol";
+            packageId = "gix-protocol 0.45.3";
+            features = [ "blocking-client" ];
+          }
+          {
+            name = "gix-transport";
+            packageId = "gix-transport 0.45.0";
+            features = [ "blocking-client" "blocking-client" "http-client" ];
+          }
+          {
+            name = "gix-url";
+            packageId = "gix-url 0.29.0";
+          }
+          {
             name = "magic";
             packageId = "magic";
           }
@@ -18640,6 +19732,10 @@ rec {
           {
             name = "snix-tracing";
             packageId = "snix-tracing";
+          }
+          {
+            name = "tempfile";
+            packageId = "tempfile";
           }
           {
             name = "thiserror";
@@ -27439,3 +28535,4 @@ rec {
     #
   };
 }
+
