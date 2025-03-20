@@ -32,8 +32,7 @@ in
     ];
 
     plugins = with gerritPlugins; [
-      # TODO: re-enable once we have figured out all the email situation.
-      # code-owners
+      code-owners
       oauth
       (depot.ops.gerrit-tvl {
         gerrit = gerritPackage;
