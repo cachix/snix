@@ -13,36 +13,9 @@
 let
   readTree = import ./nix/readTree { };
 
-  # Disallow access to //users from other depot parts.
-  usersFilter = readTree.restrictFolder {
-    folder = "users";
-    reason = ''
-      Code under //users is not considered stable or dependable in the
-      wider depot context. If a project under //users is required by
-      something else, please move it to a different depot path.
-    '';
-
-    exceptions = [
-      # machines is allowed to access //users for several reasons:
-      #
-      # 1. User SSH keys are set in //users.
-      # 2. Some personal websites or demo projects are served from it.
-      [ "ops" "machines" "gerrit01" ]
-      [ "ops" "machines" "public01" ]
-      [ "ops" "machines" "build01" ]
-      [ "ops" "machines" "meta01" ]
-
-      # Due to evaluation order this also affects these targets.
-      # TODO(tazjin): Can this one be removed somehow?
-      [ "ops" "nixos" ]
-      [ "ops" "machines" "all-systems" ]
-    ];
-  };
-
   readDepot = depotArgs: readTree {
     args = depotArgs;
     path = ./.;
-    filter = parts: args: usersFilter parts args;
     scopedArgs = {
       # FIXME(Lix): this cannot work in Lix itself.
       # __findFile = _: _: throw "Do not import from NIX_PATH in the depot!";
