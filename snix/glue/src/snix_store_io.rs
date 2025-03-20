@@ -291,9 +291,9 @@ impl SnixStoreIO {
                             .zip(build_result.outputs_needles.iter())
                             .zip(drv.outputs.iter())
                         {
-                            let output_node = output
+                            let (_, output_node) = output
                                 .clone()
-                                .try_into_anonymous_node()
+                                .try_into_name_and_node()
                                 .expect("invalid node");
 
                             let output_needles: Vec<_> = output_needles
