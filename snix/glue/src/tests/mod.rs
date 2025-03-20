@@ -69,10 +69,17 @@ fn eval_test(code_path: PathBuf, expect_success: bool) {
         _ => !result.errors.is_empty(),
     };
     if expect_success && failed {
+        let error_details = result
+            .errors
+            .iter()
+            .map(|error| error.fancy_format_str())
+            .collect::<Vec<String>>();
+        let error_string = error_details.join("\n");
+
         panic!(
-            "{}: evaluation of eval-okay test should succeed, but failed with {:?}",
+            "{}: evaluation of eval-okay test should succeed, but failed with:\n{}",
             code_path.display(),
-            result.errors,
+            error_string,
         );
     }
 
