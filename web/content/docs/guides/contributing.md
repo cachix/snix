@@ -3,7 +3,7 @@ title: "Contributing"
 description: ""
 summary: ""
 date: 2025-03-14T14:14:35+01:00
-lastmod: 2025-03-14T14:14:35+01:00
+lastmod: 2025-03-21T14:12:42+00:00
 draft: false
 weight: 12
 toc: true
@@ -124,3 +124,58 @@ $ git push origin HEAD:refs/for/canon%r=alice,cc=bob,l=Autosubmit+1,publish-comm
 [gerrit-for-github-users]: https://gerrit.wikimedia.org/r/Documentation/intro-gerrit-walkthrough-github.html
 [^1]: currently, `ssh-*-sk` keytypes are not supported, so use an `ssh-ed25519` key.
 [^2]: abbreviation for "change list", and the review unit in Gerrit.
+
+### Commit conventions
+
+#### Commit messages
+
+The following described way of writing commit messages is known as [Conventional Commits][] and
+should bring these advantages:
+
+* automatic creation of changelogs from commit messages
+* lean commits: one focused change per commit
+* filtering of commit history by type
+
+All commit messages should be structured like this:
+
+```
+type(scope): Subject line with at most a 72 character length
+
+Body of the commit message with an empty line between subject and
+body. This text should explain what the change does and why it has
+been made, *especially* if it introduces a new feature.
+
+Relevant issues should be mentioned if they exist.
+```
+
+Where `type` can be one of:
+
+* `feat`: A new feature has been introduced
+* `fix`: An issue of some kind has been fixed
+* `docs`: Documentation or comments have been updated
+* `style`: Formatting changes only
+* `refactor`: Hopefully self-explanatory!
+* `test`: Added missing tests / fixed tests
+* `chore`: Maintenance work
+
+And `scope` should refer to some kind of logical grouping inside of the project.
+
+It does not make sense to include the full path unless it aids in
+disambiguating. For example, when changing `/snix/eval/src/lib.rs` it is enough to write `feat(eval): ...`.
+
+Please take a look at the existing [commit history][] for examples.
+
+#### Commit content
+
+Multiple changes should be divided into multiple git commits whenever possible.
+Common sense applies.
+
+#### Code quality
+
+This one should go without saying - but please ensure that your code quality
+does not fall below the rest of the project. This is of course very subjective,
+but as an example if you place code that throws away errors into a block in
+which errors are handled properly your change might be rejected.
+
+[commit history]: https://git.snix.dev/snix/snix/commits/branch/canon
+[Conventional Commits]: https://www.conventionalcommits.org
