@@ -230,8 +230,8 @@ in
       };
     };
 
-    # Inspired from Gerrit's way of doing things (from Lix). 
-    # Before starting Forgejo, we will re-converge any required information. 
+    # Inspired from Gerrit's way of doing things (from Lix).
+    # Before starting Forgejo, we will re-converge any required information.
     # TODO: learn how to use update-oauth as well?
     systemd.services.forgejo-keys = {
       enable = true;

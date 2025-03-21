@@ -24,7 +24,7 @@ contribute after following this guide.
  - Ensure you have [Nix][] installed.
 
 ### Getting the sources
-Snix is hosted in its own Forgejo instance, hosted on [git.snix.dev](https://git.snix.dev/snix/snix), and a 
+Snix is hosted in its own Forgejo instance, hosted on [git.snix.dev](https://git.snix.dev/snix/snix), and a
 (read-only) mirror on [GitHub](https://github.com/snix-project/snix).
 
 Check out the source code as follows:

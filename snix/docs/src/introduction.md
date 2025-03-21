@@ -11,7 +11,7 @@ with respects to evaluation and building Nix expressions & systems.
 Tvix still is in its early stages of development, **you cannot yet use it as a
 Nix replacement**. However, if you willing to roll up your sleeves and pipe
 together some existing functionality, it may already provide most of what is
-needed for your usecase! [Get in touch](./community.md) if you want to 
+needed for your usecase! [Get in touch](./community.md) if you want to
 collaborate or contribute.
 
 Tvix is developed as a GPLv3-licensed free software project with

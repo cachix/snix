@@ -6,10 +6,10 @@
 #     keycloak_role.blablabla.id
 #   ]
 # }
-# 
+#
 # resource "keycloak_role" "can_manage_trusted_contributors" {
 # }
-# 
+#
 # # WARNING: This give PII access to the user.
 # resource "keycloak_role" "can_manage_snix" {
 # }
@@ -87,14 +87,14 @@ resource "keycloak_role" "grafana_admin" {
 
 # resource "keycloak_role" "forgejo_admin" {
 # }
-# 
+#
 # resource "keycloak_role" "forgejo_trusted_contributor" {
 # }
-# 
+#
 # # Gerrit
-# 
+#
 # resource "keycloak_role" "gerrit_admin" {
 # }
-# 
+#
 # resource "keycloak_role" "gerrit_trusted_contributor" {
 # }

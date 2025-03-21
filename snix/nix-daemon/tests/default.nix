@@ -101,7 +101,7 @@ in
   );
   /*
     This currently cannot work as our store is not mounted at /nix/store but at another location, and since nix-shell
-    needs bash it fails with `unable to exec /nix/store/xxx-bash/bin/bash`, to run shell we need to chroot to have the 
+    needs bash it fails with `unable to exec /nix/store/xxx-bash/bin/bash`, to run shell we need to chroot to have the
     overlay store at /nix/store.
   */
   shell = (

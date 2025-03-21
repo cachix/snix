@@ -567,7 +567,7 @@ it is never sent and is therefore obsolete after that.
 
 ### Inputs
 #### If protocol version is 1.22 or newer
-paths :: [Map][se-Map] of [StorePath][se-StorePath] to [OptContentAddress][se-OptContentAddress] 
+paths :: [Map][se-Map] of [StorePath][se-StorePath] to [OptContentAddress][se-OptContentAddress]
 
 #### If protocol version older than 1.22
 paths :: [Set][se-Set] of [StorePath][se-StorePath]
@@ -642,7 +642,7 @@ Optimise store by hardlinking files with the same content.
 **Introduced:** Protocol 1.14, Nix 1.9<br>
 
 Verify store either only db and existence of path or entire contents of store
-paths against the NAR hash. 
+paths against the NAR hash.
 
 ### Inputs
 - checkContents :: [Bool64][se-Bool64]
