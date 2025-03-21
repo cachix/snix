@@ -38,25 +38,6 @@ in rec {
       (throw "${hostname} is not a known NixOS host")
       (map nixosFor depot.ops.machines.all-systems));
 
-  rebuild-system = rebuildSystemWith (
-    # HACK: use the string of the original source to avoid copying the whole
-    # depot into the store just for this
-    builtins.toString depot.path.origSrc);
-
-  rebuildSystemWith = depotPath: pkgs.writeShellScriptBin "rebuild-system" ''
-    set -ue
-    if [[ $EUID -ne 0 ]]; then
-      echo "Oh no! Only root is allowed to rebuild the system!" >&2
-      exit 1
-    fi
-
-    echo "Rebuilding NixOS for $HOSTNAME"
-    system=$(${pkgs.nix}/bin/nix-build -E "((import ${depotPath} {}).ops.nixos.findSystem \"$HOSTNAME\").system" --no-out-link --show-trace)
-
-    ${pkgs.nix}/bin/nix-env -p /nix/var/nix/profiles/system --set $system
-    $system/bin/switch-to-configuration switch
-  '';
-
   # Systems that should be built in CI
   archivistEC2System = nixosFor depot.ops.machines.archivist-ec2;
   gerrit01System = nixosFor depot.ops.machines.gerrit01;

@@ -14,7 +14,6 @@ depot.nix.lazy-deps {
   nint.attr = "nix.nint";
   niv.attr = "third_party.nixpkgs.niv";
   nixpkgs-fmt.attr = "third_party.nixpkgs.nixpkgs-fmt";
-  rebuild-system.attr = "ops.nixos.rebuild-system";
   rink.attr = "third_party.nixpkgs.rink";
 
   tf-buildkite = {
