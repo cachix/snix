@@ -33,13 +33,21 @@ resource "keycloak_realm" "snix" {
   display_name                = "The snix project"
   default_signature_algorithm = "RS256"
 
-  # smtp_server {
-  #   from              = "tvlbot@tazj.in"
-  #   from_display_name = "The Virus Lounge"
-  #   host              = "127.0.0.1"
-  #   port              = "25"
-  #   reply_to          = "depot@tvl.su"
-  #   ssl               = false
-  #   starttls          = false
-  # }
+  smtp_server {
+    from              = "keycloak@snix.dev"
+    from_display_name = "The Snix Project"
+    host              = "smtp.postmarkapp.com"
+    port              = "2525"
+    ssl               = false
+    starttls          = true
+
+    auth {
+      username = "PM-T-keycloak-f9TuLH6e35-4B0OSEVB0NQ"
+      password = var.keycloak_smtp_password
+    }
+  }
+}
+
+variable "keycloak_smtp_password" {
+  type = string
 }
