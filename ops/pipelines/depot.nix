@@ -25,7 +25,8 @@ let
         label = ":anchor:";
         branches = "refs/heads/canon";
         command = ''
-          nix-build -A ci.gcroot --out-link /nix/var/nix/gcroots/depot/canon
+          rm /nix/var/nix/gcroots/buildkite/canon
+          nix-build -A ci.gcroot --out-link /nix/var/nix/gcroots/buildkite/canon
         '';
 
         # Ensure that anchoring happens on build01, so that a possibly deployed

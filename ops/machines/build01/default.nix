@@ -91,6 +91,9 @@ in
         group = "buildkite-agents";
       };
     };
+  systemd.tmpfiles.rules = [
+    "d '/nix/var/nix/gcroots/buildkite' 0770 - buildkite-agents - -"
+  ];
 
   services.openssh.enable = true;
   time.timeZone = "UTC";
