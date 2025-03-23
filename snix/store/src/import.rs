@@ -131,7 +131,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{ffi::OsStr, path::PathBuf};
+    use std::{ffi::OsStr, os::unix::ffi::OsStrExt, path::PathBuf};
 
     use crate::import::path_to_name;
     use rstest::rstest;
@@ -150,7 +150,7 @@ mod tests {
     #[case::path_ending_in_dotdot(b"a/b/..")]
     #[case::non_unicode_path(b"\xf8\xa1\xa1\xa1\xa1")]
     fn test_invalid_path_to_name(#[case] invalid_path: &[u8]) {
-        let path: PathBuf = unsafe { OsStr::from_encoded_bytes_unchecked(invalid_path) }.into();
+        let path: PathBuf = OsStr::from_bytes(invalid_path).into();
         path_to_name(&path).expect_err("must fail");
     }
 }
