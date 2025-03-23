@@ -132,7 +132,9 @@ castore, which is why the mount is expected to perform slower than the native
 file-system. Depending on your workload, this might or might not be an issue.
 
 Check [our Bug tracker][castore-perf-issues] for updates on that topic.
-{{</callout>}}
 
 [castore-perf-issues]: https://git.snix.dev/snix/snix/issues?q=&type=all&sort=&labels=14%2c24
+{{</callout>}}
+
+
 [local overlay]: https://nix.dev/manual/nix/2.26/store/types/experimental-local-overlay-store.html
