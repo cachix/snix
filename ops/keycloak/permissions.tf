@@ -30,7 +30,6 @@ resource "keycloak_group_roles" "snix_core_team_roles" {
     keycloak_role.grafana_admin.id,
     # keycloak_role.forgejo_admin.id,
     # keycloak_role.gerrit_admin.id
-    # keycloak_role.wiki_admin.id
   ]
 }
 
@@ -57,11 +56,6 @@ resource "keycloak_group_roles" "trusted_contributors_roles" {
   role_ids = [
     keycloak_role.grafana_editor.id
   ]
-}
-
-resource "keycloak_group" "wiki_editors" {
-  name        = "wiki editors"
-  realm_id    = keycloak_realm.snix.id
 }
 
 # Application-level roles.
