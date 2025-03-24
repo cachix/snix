@@ -90,13 +90,3 @@ It'd also be possible to write a FUSE implementation on top of the RPC
 interface, exposing a lazily-substituting /nix/store mountpoint. Using this in
 remote build context dramatically reduces the amount of data transferred to a
 builder, as only the files really accessed during the build are substituted.
-
-## Figures
-
-```plantuml,format=svg
-{{#include figures/component-flow.puml}}
-```
-
-[^1]: There have already been some discussions in the Nix community, to switch
-  to REAPI:
-  https://discourse.nixos.org/t/a-proposal-for-replacing-the-nix-worker-protocol/20926/22
