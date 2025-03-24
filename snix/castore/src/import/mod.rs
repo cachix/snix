@@ -10,7 +10,7 @@ use crate::{B3Digest, Directory, Node};
 use futures::{Stream, StreamExt};
 use tracing::Level;
 
-use std::collections::HashMap;
+use hashbrown::HashMap;
 use tracing::instrument;
 
 mod error;
@@ -131,7 +131,7 @@ where
 
             // record node in parent directory, creating a new [Directory] if not there yet.
             directories
-                .entry(parent.to_owned())
+                .entry_ref(parent)
                 .or_default()
                 .add(name, node)
                 .map_err(|e| {

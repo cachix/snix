@@ -4186,6 +4186,7 @@ dependencies = [
  "fastcdc",
  "fuse-backend-rs",
  "futures",
+ "hashbrown 0.15.2",
  "hex-literal",
  "hyper-util",
  "libc",

@@ -13641,6 +13641,10 @@ rec {
             packageId = "futures";
           }
           {
+            name = "hashbrown";
+            packageId = "hashbrown 0.15.2";
+          }
+          {
             name = "hyper-util";
             packageId = "hyper-util";
           }
