@@ -280,6 +280,67 @@ impl Derivation {
     }
 }
 
+#[cfg(feature = "async")]
+#[allow(dead_code)]
+trait DerivationAsyncExt {
+    /// Parse an Derivation in ATerm serialization, and validate it passes
+    /// our set of validations, from a asynchronous buffered reader.
+    /// This is a streaming variant of [Derivation::from_aterm_bytes].
+    async fn from_streaming_aterm_bytes<R>(reader: R) -> Result<Derivation, parser::Error<Vec<u8>>>
+    where
+        R: tokio::io::AsyncBufRead + Unpin + Send;
+}
+
+#[cfg(feature = "async")]
+impl DerivationAsyncExt for Derivation {
+    async fn from_streaming_aterm_bytes<R>(
+        mut reader: R,
+    ) -> Result<Derivation, parser::Error<Vec<u8>>>
+    where
+        R: tokio::io::AsyncBufRead + Unpin + Send,
+    {
+        use tokio::io::AsyncBufReadExt;
+        let mut buffer = Vec::new();
+        loop {
+            let rest = reader.fill_buf().await.unwrap();
+            let length = rest.len();
+
+            // We reached EOF, we can stop and return incompleteness.
+            if length == 0 {
+                return Err(ParserError::Incomplete);
+            }
+
+            buffer.extend_from_slice(rest);
+
+            // Parse the so-far internal buffer of reader.
+            match parser::parse_streaming(&buffer) {
+                (Err(parser::Error::Incomplete), _) => {
+                    reader.consume(length);
+                    continue;
+                }
+                (Ok(derivation), leftover) => {
+                    // We cannot inline it in the next call because `reader` is mutably borrowed
+                    // and has a relationship with the lifetime of `leftover`.
+                    let leftover_length = leftover.len();
+
+                    // Well, if we already had consumed the leftovers of the past fetch
+                    // while believing we were just parsing incomplete ATerm, there's nothing
+                    // we can do about it. The protocol is made this way.
+                    if length >= leftover_length {
+                        // We still have leftover, let's not consume it.
+                        // It's not for us.
+                        reader.consume(length - leftover_length);
+                    }
+                    return Ok(derivation);
+                }
+                (Err(e), _) => {
+                    return Err(e.into());
+                }
+            }
+        }
+    }
+}
+
 /// Calculate the name part of the store path of a derivation [Output].
 ///
 /// It's the name, and (if it's the non-out output), the output name

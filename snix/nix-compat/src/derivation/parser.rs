@@ -3,9 +3,9 @@
 //!
 //! [ATerm]: http://program-transformation.org/Tools/ATermFormat.html
 
-use nom::bytes::complete::tag;
-use nom::character::complete::char as nomchar;
-use nom::combinator::{all_consuming, map_res};
+use nom::bytes::streaming::tag;
+use nom::character::streaming::char as nomchar;
+use nom::combinator::{all_consuming, consumed, map_res};
 use nom::multi::{separated_list0, separated_list1};
 use nom::sequence::{delimited, preceded, separated_pair, terminated};
 use nom::Parser;
@@ -54,6 +54,26 @@ pub(crate) fn parse(i: &[u8]) -> Result<Derivation, Error<&[u8]>> {
         }
         Err(nom::Err::Incomplete(_)) => Err(Error::Incomplete),
         Err(nom::Err::Error(e) | nom::Err::Failure(e)) => Err(e.into()),
+    }
+}
+
+/// This parses a derivation in streaming fashion.
+/// If the parse is successful, it returns the leftover bytes which were not used for the parsing.
+/// If the parse is unsuccessful, either it returns incomplete or an error with the input as
+/// leftover.
+#[allow(dead_code)]
+pub fn parse_streaming(i: &[u8]) -> (Result<Derivation, Error<&[u8]>>, &[u8]) {
+    match consumed(parse_derivation).parse(i) {
+        Ok((_, (rest, derivation))) => {
+            // invoke validate
+            if let Err(e) = derivation.validate(true).map_err(Error::Validation) {
+                return (Err(e), i);
+            }
+
+            (Ok(derivation), rest)
+        }
+        Err(nom::Err::Incomplete(_)) => (Err(Error::Incomplete), i),
+        Err(nom::Err::Error(e) | nom::Err::Failure(e)) => (Err(e.into()), i),
     }
 }
 
@@ -463,6 +483,20 @@ mod tests {
             super::parse_kv(crate::aterm::parse_bytes_field)(input).expect("must parse");
         assert_eq!(exp_rest, rest, "expected remainder");
         assert_eq!(*expected, parsed);
+    }
+
+    #[rstest]
+    #[case::incomplete_empty(b"[")]
+    #[case::incomplete_simple(b"[(\"a\",\"1\")")]
+    #[case::incomplete_complicated_escape(b"[(\"a")]
+    #[case::incomplete_complicated_sep(b"[(\"a\",")]
+    #[case::incomplete_complicated_multi_escape(b"[(\"a\",\"")]
+    #[case::incomplete_complicated_multi_outer_sep(b"[(\"a\",\"b\"),")]
+    fn parse_kv_incomplete(#[case] input: &'static [u8]) {
+        assert!(matches!(
+            super::parse_kv(crate::aterm::parse_bytes_field)(input),
+            Err(nom::Err::Incomplete(_))
+        ));
     }
 
     /// Ensures the kv parser complains about duplicate map keys

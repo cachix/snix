@@ -4,8 +4,8 @@
 //! [ATerm]: http://program-transformation.org/Tools/ATermFormat.html
 use bstr::BString;
 use nom::branch::alt;
-use nom::bytes::complete::{escaped_transform, is_not};
-use nom::character::complete::char as nomchar;
+use nom::bytes::streaming::{escaped_transform, is_not};
+use nom::character::streaming::char as nomchar;
 use nom::combinator::{map_res, opt, value};
 use nom::multi::separated_list0;
 use nom::sequence::delimited;
