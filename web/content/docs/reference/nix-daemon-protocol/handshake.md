@@ -45,5 +45,5 @@ parameters.
 - send logs
 - [operation]({{< relref "operations.md" >}}) :: [Int](#se-Int)
 
-[se-Int]: {{< relref "serialization.md" >}}#int
-[se-Bool]: {{< relref "serialization.md" >}}#bool
+[se-Int]: {{< relref "types.md" >}}#int
+[se-Bool]: {{< relref "types.md" >}}#bool

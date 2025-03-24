@@ -317,7 +317,7 @@ Optional microseconds.
 
 ### SubstitutablePathInfo
 - deriver :: [OptStorePath](#optstorepath)
-- references :: [Set][#set-of-x] of [StorePath](#storepath)
+- references :: [Set](#set-of-x) of [StorePath](#storepath)
 - downloadSize :: [UInt64](#uint64)
 - narSize :: [UInt64](#uint64)
 

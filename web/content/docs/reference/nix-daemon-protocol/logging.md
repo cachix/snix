@@ -122,14 +122,14 @@ the protocol and this message would have been sent it is instead ignored.
 
 
 
-[se-UInt64]: ./serialization.md#uint64
-[se-Int]: ./serialization.md#int
-[se-Size]: ./serialization.md#size
-[se-Verbosity]: ./serialization.md#verbosity
-[se-ActivityType]: ./serialization.md#activitytype
-[se-ResultType]: ./serialization.md#resulttype
-[se-Bytes]: ./serialization.md#bytes
-[se-String]: ./serialization.md#string
-[se-List]: ./serialization.md#list-of-x
-[se-Error]: ./serialization.md#error
-[se-Field]: ./serialization.md#field
+[se-UInt64]: {{< relref "types.md" >}}#uint64
+[se-Int]: {{< relref "types.md" >}}#int
+[se-Size]: {{< relref "types.md" >}}#size
+[se-Verbosity]: {{< relref "types.md" >}}#verbosity
+[se-ActivityType]: {{< relref "types.md" >}}#activitytype
+[se-ResultType]: {{< relref "types.md" >}}#resulttype
+[se-Bytes]: {{< relref "types.md" >}}#bytes
+[se-String]: {{< relref "types.md" >}}#string
+[se-List]: {{< relref "types.md" >}}#list-of-x
+[se-Error]: {{< relref "types.md" >}}#error
+[se-Field]: {{< relref "types.md" >}}#field
