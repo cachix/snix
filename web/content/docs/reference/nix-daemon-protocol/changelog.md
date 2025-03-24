@@ -1,4 +1,21 @@
+---
+title: Changelog
+slug: Changelog
+description: ""
+summary: ""
+date: 2025-03-24T13:10:37+02:00
+lastmod: 2025-03-24T13:10:37+02:00
+draft: false
+weight: 55
+toc: true
+---
 
+This page tracks the different protocol versions and corresponding Nix versions,
+as well as when certain [Operations][operations] have been introduced or
+deprecated.
+
+Different "function signatures" are tracked on the [Operations][operations] page
+as well.
 
 ## Nix version protocol
 
@@ -200,3 +217,5 @@ Protocol version that ends with * was bumped while adding that operation. Otherw
 [f3441e6122]: https://github.com/NixOS/nix/commit/f3441e6122
 [f92c9a0ac5]: https://github.com/NixOS/nix/commit/f92c9a0ac5
 [fe1f34fa60]: https://github.com/NixOS/nix/commit/fe1f34fa60
+
+[operations]: {{< relref "operations.md" >}}

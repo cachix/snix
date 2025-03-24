@@ -1,5 +1,17 @@
+---
+title: Operations
+slug: operations
+description: ""
+summary: ""
+date: 2025-03-24T13:10:37+02:00
+lastmod: 2025-03-24T13:10:37+02:00
+draft: false
+weight: 53
+toc: true
+---
 
-# TOC
+These page describes the different operations a client can request, as well as
+its expected input and output types.
 
 | Operation                                                   | Id |
 | ----------------------------------------------------------- | -- |
@@ -869,36 +881,36 @@ gcRoot :: [Path][se-Path]
 
 
 
-[se-Int]: ./serialization.md#int
-[se-UInt8]: ./serialization.md#uint8
-[se-UInt64]: ./serialization.md#uint64
-[se-Bool]: ./serialization.md#bool
-[se-Bool64]: ./serialization.md#bool64
-[se-Time]: ./serialization.md#time
-[se-FileIngestionMethod]: ./serialization.md#fileingestionmethod
-[se-BuildMode]: ./serialization.md#buildmode
-[se-Verbosity]: ./serialization.md#verbosity
-[se-GCAction]: ./serialization.md#gcaction
-[se-Bytes]: ./serialization.md#bytes
-[se-String]: ./serialization.md#string
-[se-StorePath]: ./serialization.md#storepath
-[se-BaseStorePath]: ./serialization.md#basestorepath
-[se-OptStorePath]: ./serialization.md#optstorepath
-[se-ContentAddressMethodWithAlgo]: ./serialization.md#contentaddressmethodwithalgo
-[se-OptContentAddress]: ./serialization.md#optcontentaddress
-[se-DerivedPath]: ./serialization.md#derivedpath
-[se-DrvOutput]: ./serialization.md#drvoutput
-[se-Realisation]: ./serialization.md#realisation
-[se-List]: ./serialization.md#list-of-x
-[se-Set]: ./serialization.md#set-of-x
-[se-Map]: ./serialization.md#map-of-x-to-y
-[se-SubstitutablePathInfo]: ./serialization.md#substitutablepathinfo
-[se-ValidPathInfo]: ./serialization.md#validpathinfo
-[se-UnkeyedValidPathInfo]: ./serialization.md#unkeyedvalidpathinfo
-[se-BuildResult]: ./serialization.md#buildmode
-[se-KeyedBuildResult]: ./serialization.md#keyedbuildresult
-[se-BasicDerivation]: ./serialization.md#basicderivation
-[se-Framed]: ./serialization.md#framed
-[se-AddMultipleToStore]: ./serialization.md#addmultipletostore-format
-[se-ExportFormat]: ./serialization.md#export-path-format
-[se-ImportPaths]: ./serialization.md#import-paths-format
+[se-Int]: {{< relref "serialization.md" >}}#int
+[se-UInt8]: {{< relref "serialization.md" >}}#uint8
+[se-UInt64]: {{< relref "serialization.md" >}}#uint64
+[se-Bool]: {{< relref "serialization.md" >}}#bool
+[se-Bool64]: {{< relref "serialization.md" >}}#bool64
+[se-Time]: {{< relref "serialization.md" >}}#time
+[se-FileIngestionMethod]: {{< relref "serialization.md" >}}#fileingestionmethod
+[se-BuildMode]: {{< relref "serialization.md" >}}#buildmode
+[se-Verbosity]: {{< relref "serialization.md" >}}#verbosity
+[se-GCAction]: {{< relref "serialization.md" >}}#gcaction
+[se-Bytes]: {{< relref "serialization.md" >}}#bytes
+[se-String]: {{< relref "serialization.md" >}}#string
+[se-StorePath]: {{< relref "serialization.md" >}}#storepath
+[se-BaseStorePath]: {{< relref "serialization.md" >}}#basestorepath
+[se-OptStorePath]: {{< relref "serialization.md" >}}#optstorepath
+[se-ContentAddressMethodWithAlgo]: {{< relref "serialization.md" >}}#contentaddressmethodwithalgo
+[se-OptContentAddress]: {{< relref "serialization.md" >}}#optcontentaddress
+[se-DerivedPath]: {{< relref "serialization.md" >}}#derivedpath
+[se-DrvOutput]: {{< relref "serialization.md" >}}#drvoutput
+[se-Realisation]: {{< relref "serialization.md" >}}#realisation
+[se-List]: {{< relref "serialization.md" >}}#list-of-x
+[se-Set]: {{< relref "serialization.md" >}}#set-of-x
+[se-Map]: {{< relref "serialization.md" >}}#map-of-x-to-y
+[se-SubstitutablePathInfo]: {{< relref "serialization.md" >}}#substitutablepathinfo
+[se-ValidPathInfo]: {{< relref "serialization.md" >}}#validpathinfo
+[se-UnkeyedValidPathInfo]: {{< relref "serialization.md" >}}#unkeyedvalidpathinfo
+[se-BuildResult]: {{< relref "serialization.md" >}}#buildmode
+[se-KeyedBuildResult]: {{< relref "serialization.md" >}}#keyedbuildresult
+[se-BasicDerivation]: {{< relref "serialization.md" >}}#basicderivation
+[se-Framed]: {{< relref "serialization.md" >}}#framed
+[se-AddMultipleToStore]: {{< relref "serialization.md" >}}#addmultipletostore-format
+[se-ExportFormat]: {{< relref "serialization.md" >}}#export-path-format
+[se-ImportPaths]: {{< relref "serialization.md" >}}#import-paths-format

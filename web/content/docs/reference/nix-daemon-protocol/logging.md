@@ -1,4 +1,14 @@
-# Logging
+---
+title: Logging
+slug: logging
+description: ""
+summary: ""
+date: 2025-03-24T13:10:37+02:00
+lastmod: 2025-03-24T13:10:37+02:00
+draft: false
+weight: 54
+toc: true
+---
 
 Because the daemon protocol only has one sender stream and one receiver stream
 logging messages need to be carefully interleaved with requests and responses.

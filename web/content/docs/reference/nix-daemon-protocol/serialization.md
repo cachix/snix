@@ -1,3 +1,16 @@
+---
+title: Types
+slug: types
+description: ""
+summary: ""
+date: 2025-03-24T13:10:37+02:00
+lastmod: 2025-03-24T13:10:37+02:00
+draft: false
+weight: 52
+toc: true
+---
+
+This describes how certain types are serialized to the wire format.
 
 ### UInt64
 Little endian byte order
