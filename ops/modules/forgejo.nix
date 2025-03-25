@@ -166,6 +166,7 @@ in
           # unambiguously.
           DISABLE_REGISTRATION = false;
           ALLOW_ONLY_EXTERNAL_REGISTRATION = true;
+          ENABLE_INTERNAL_SIGNIN = false;
 
           #REQUIRE_SIGNIN_VIEW = false;
           ENABLE_NOTIFY_MAIL = true;
