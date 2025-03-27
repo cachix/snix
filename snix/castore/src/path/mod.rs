@@ -83,7 +83,7 @@ impl Path {
     }
 
     /// Provides an iterator over the components of the path,
-    /// which are invividual [PathComponent].
+    /// which are individual [PathComponent]s.
     /// In case the path is empty, an empty iterator is returned.
     pub fn components(&self) -> impl Iterator<Item = PathComponent> + '_ {
         let mut iter = self.inner.split_str(&b"/");
