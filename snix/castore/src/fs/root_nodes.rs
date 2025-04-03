@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use crate::nodes::Directory;
 use crate::{path::PathComponent, Error, Node};
 use futures::stream::BoxStream;
 use tonic::async_trait;
@@ -33,6 +34,23 @@ where
         Box::pin(tokio_stream::iter(
             self.as_ref()
                 .iter()
+                .map(|(name, node)| Ok((name.to_owned(), node.to_owned()))),
+        ))
+    }
+}
+
+#[async_trait]
+impl RootNodes for Directory {
+    async fn get_by_basename(&self, name: &PathComponent) -> Result<Option<Node>, Error> {
+        Ok(self
+            .nodes()
+            .find(|(key, _)| *key == name)
+            .map(|(_, node)| node.clone()))
+    }
+
+    fn list(&self) -> BoxStream<Result<(PathComponent, Node), Error>> {
+        Box::pin(tokio_stream::iter(
+            self.nodes()
                 .map(|(name, node)| Ok((name.to_owned(), node.to_owned()))),
         ))
     }
