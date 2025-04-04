@@ -147,7 +147,7 @@ fn gen_narinfo_str(path_info: &PathInfo) -> String {
     let url = format!(
         "nar/snix-castore/{}?narsize={}",
         data_encoding::BASE64URL_NOPAD.encode(
-            &snix_castore::proto::Node::from_name_and_node("".into(), path_info.node.to_owned())
+            &snix_castore::proto::Entry::from_name_and_node("".into(), path_info.node.to_owned())
                 .encode_to_vec()
         ),
         path_info.nar_size,

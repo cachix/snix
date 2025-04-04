@@ -1,13 +1,13 @@
-use super::{node, Node, SymlinkNode};
+use super::{entry, Entry, SymlinkEntry};
 use crate::DirectoryError;
 
 mod directory;
 
-/// Create a node with an empty symlink target, and ensure it fails validation.
+/// Create an entry with an empty symlink target, and ensure it fails validation.
 #[test]
 fn convert_symlink_empty_target_invalid() {
-    Node {
-        node: Some(node::Node::Symlink(SymlinkNode {
+    Entry {
+        entry: Some(entry::Entry::Symlink(SymlinkEntry {
             name: "foo".into(),
             target: "".into(),
         })),
@@ -20,8 +20,8 @@ fn convert_symlink_empty_target_invalid() {
 /// fails validation.
 #[test]
 fn convert_symlink_target_null_byte_invalid() {
-    Node {
-        node: Some(node::Node::Symlink(SymlinkNode {
+    Entry {
+        entry: Some(entry::Entry::Symlink(SymlinkEntry {
             name: "foo".into(),
             target: "foo\0".into(),
         })),
@@ -35,8 +35,8 @@ fn convert_symlink_target_null_byte_invalid() {
 fn convert_anonymous_with_name_fail() {
     assert_eq!(
         DirectoryError::NameInAnonymousNode,
-        Node {
-            node: Some(node::Node::Symlink(SymlinkNode {
+        Entry {
+            entry: Some(entry::Entry::Symlink(SymlinkEntry {
                 name: "foo".into(),
                 target: "somewhereelse".into(),
             })),

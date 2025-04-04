@@ -41,7 +41,7 @@ service PathInfoService {
   //
   // It can also be used to calculate arbitrary NAR hashes of output paths, in
   // case a legacy Nix Binary Cache frontend is provided.
-  rpc CalculateNAR(snix.castore.v1.Node) returns (CalculateNARResponse);
+  rpc CalculateNAR(snix.castore.v1.Entry) returns (CalculateNARResponse);
 
   // Return a stream of PathInfo messages matching the criteria specified in
   // ListPathInfoRequest.

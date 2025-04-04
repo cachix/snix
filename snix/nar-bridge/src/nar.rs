@@ -56,7 +56,7 @@ pub async fn get_head(
     }
 
     // parse the proto
-    let root_node: snix_castore::proto::Node = Message::decode(Bytes::from(root_node_proto))
+    let root_node: snix_castore::proto::Entry = Message::decode(Bytes::from(root_node_proto))
         .map_err(|e| {
             warn!(err=%e, "unable to decode root node proto");
             StatusCode::NOT_FOUND
@@ -244,8 +244,11 @@ mod tests {
     pub static NAR_STR_SYMLINK: LazyLock<String> = LazyLock::new(|| {
         use prost::Message;
         BASE64URL_NOPAD.encode(
-            &snix_castore::proto::Node::from_name_and_node("".into(), CASTORE_NODE_SYMLINK.clone())
-                .encode_to_vec(),
+            &snix_castore::proto::Entry::from_name_and_node(
+                "".into(),
+                CASTORE_NODE_SYMLINK.clone(),
+            )
+            .encode_to_vec(),
         )
     });
 
@@ -305,9 +308,9 @@ mod tests {
 
         let invalid_url = {
             use prost::Message;
-            let n = snix_castore::proto::Node {
-                node: Some(snix_castore::proto::node::Node::Directory(
-                    snix_castore::proto::DirectoryNode {
+            let n = snix_castore::proto::Entry {
+                entry: Some(snix_castore::proto::entry::Entry::Directory(
+                    snix_castore::proto::DirectoryEntry {
                         name: "".into(),
                         digest: "invalid b64".into(),
                         size: 1,

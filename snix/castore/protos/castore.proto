@@ -8,7 +8,7 @@ package snix.castore.v1;
 
 option go_package = "snix.dev/castore/proto;castorev1";
 
-// A Directory can contain Directory, File or Symlink nodes.
+// A Directory can contain Directory, File or Symlink entries.
 // Each of these nodes have a name attribute, which is the basename in that
 // directory and node type specific attributes.
 // The name attribute:
@@ -18,16 +18,16 @@ option go_package = "snix.dev/castore/proto;castorev1";
 // Elements in each list need to be lexicographically ordered by the name
 // attribute.
 message Directory {
-  repeated DirectoryNode directories = 1;
-  repeated FileNode files = 2;
-  repeated SymlinkNode symlinks = 3;
+  repeated DirectoryEntry directories = 1;
+  repeated FileEntry files = 2;
+  repeated SymlinkEntry symlinks = 3;
 }
 
-// A DirectoryNode represents a directory in a Directory.
-message DirectoryNode {
+// A DirectoryEntry represents a directory.
+message DirectoryEntry {
   // The (base)name of the directory
   bytes name = 1;
-  // The blake3 hash of a Directory message, serialized in protobuf canonical form.
+  // The blake3 digest of a Directory message.
   bytes digest = 2;
   // Number of child elements in the Directory referred to by `digest`.
   // Calculated by summing up the numbers of `directories`, `files` and
@@ -42,8 +42,8 @@ message DirectoryNode {
   uint64 size = 3;
 }
 
-// A FileNode represents a regular or executable file in a Directory.
-message FileNode {
+// A FileEntry represents a regular or executable file.
+message FileEntry {
   // The (base)name of the file
   bytes name = 1;
   // The blake3 digest of the file contents
@@ -54,19 +54,19 @@ message FileNode {
   bool executable = 4;
 }
 
-// A SymlinkNode represents a symbolic link in a Directory.
-message SymlinkNode {
+// A SymlinkEntry represents a symbolic link.
+message SymlinkEntry {
   // The (base)name of the symlink
   bytes name = 1;
   // The target of the symlink.
   bytes target = 2;
 }
 
-// A Node is either a DirectoryNode, FileNode or SymlinkNode.
-message Node {
-  oneof node {
-    DirectoryNode directory = 1;
-    FileNode file = 2;
-    SymlinkNode symlink = 3;
+// A Entry is either a DirectoryEntry, FileEntry or SymlinkEntry.
+message Entry {
+  oneof entry {
+    DirectoryEntry directory = 1;
+    FileEntry file = 2;
+    SymlinkEntry symlink = 3;
   }
 }

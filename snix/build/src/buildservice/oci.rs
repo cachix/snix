@@ -216,7 +216,7 @@ where
                     };
 
                     Ok::<_, std::io::Error>((
-                        snix_castore::proto::Node::from_name_and_node(
+                        snix_castore::proto::Entry::from_name_and_node(
                             output_path
                                 .file_name()
                                 .and_then(|s| s.to_str())

@@ -35,9 +35,9 @@ pub enum ValidatePathInfoError {
     #[error("Invalid length of digest at position {}, expected {}, got {}", .0, store_path::DIGEST_SIZE, .1)]
     InvalidReferenceDigestLen(usize, usize),
 
-    /// No node present
-    #[error("No node present")]
-    NoNodePresent,
+    /// No entry present
+    #[error("No entry present")]
+    NoEntryPresent,
 
     /// Node fails validation
     #[error("Invalid root node: {:?}", .0.to_string())]
@@ -181,7 +181,7 @@ impl From<&nix_compat::nixhash::CAHash> for nar_info::Ca {
 impl From<crate::pathinfoservice::PathInfo> for PathInfo {
     fn from(value: crate::pathinfoservice::PathInfo) -> Self {
         Self {
-            node: Some(castorepb::Node::from_name_and_node(
+            entry: Some(castorepb::Entry::from_name_and_node(
                 value.store_path.to_string().into_bytes().into(),
                 value.node,
             )),
@@ -270,10 +270,10 @@ impl TryFrom<PathInfo> for crate::pathinfoservice::PathInfo {
 
         let nar_sha256_length = narinfo.nar_sha256.len();
 
-        // split value.node into the name and node components
+        // split value.entry into the name and node components
         let (name, node) = value
-            .node
-            .ok_or_else(|| ValidatePathInfoError::NoNodePresent)?
+            .entry
+            .ok_or_else(|| ValidatePathInfoError::NoEntryPresent)?
             .try_into_name_and_node()
             .map_err(ValidatePathInfoError::InvalidRootNode)?;
 

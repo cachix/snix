@@ -59,9 +59,9 @@ pub enum DirectoryError {
     /// Elements are not in sorted order. Can only happen on protos
     #[error("{:?} is not sorted", .0.as_bstr())]
     WrongSorting(bytes::Bytes),
-    /// This can only happen if there's an unknown node type (on protos)
-    #[error("No node set")]
-    NoNodeSet,
+    /// This can only happen if there's an unknown entry type (on protos)
+    #[error("No entry set")]
+    NoEntrySet,
 }
 
 impl From<JoinError> for Error {

@@ -51,8 +51,8 @@ func isValidName(n []byte) bool {
 	return true
 }
 
-// Validate ensures a DirectoryNode has a valid name and correct digest len.
-func (n *DirectoryNode) Validate() error {
+// Validate ensures a DirectoryEntry has a valid name and correct digest len.
+func (n *DirectoryEntry) Validate() error {
 	if len(n.Digest) != 32 {
 		return fmt.Errorf("invalid digest length for %s, expected %d, got %d", n.Name, 32, len(n.Digest))
 	}
@@ -64,8 +64,8 @@ func (n *DirectoryNode) Validate() error {
 	return nil
 }
 
-// Validate ensures a FileNode has a valid name and correct digest len.
-func (n *FileNode) Validate() error {
+// Validate ensures a FileEntry has a valid name and correct digest len.
+func (n *FileEntry) Validate() error {
 	if len(n.Digest) != 32 {
 		return fmt.Errorf("invalid digest length for %s, expected %d, got %d", n.Name, 32, len(n.Digest))
 	}
@@ -77,8 +77,8 @@ func (n *FileNode) Validate() error {
 	return nil
 }
 
-// Validate ensures a SymlinkNode has a valid name and target.
-func (n *SymlinkNode) Validate() error {
+// Validate ensures a SymlinkEntry has a valid name and target.
+func (n *SymlinkEntry) Validate() error {
 	if len(n.Target) == 0 || bytes.Contains(n.Target, []byte{0}) {
 		return fmt.Errorf("invalid symlink target: %s", n.Target)
 	}
@@ -91,7 +91,7 @@ func (n *SymlinkNode) Validate() error {
 }
 
 // Validate ensures a node is valid, by dispatching to the per-type validation functions.
-func (n *Node) Validate() error {
+func (n *Entry) Validate() error {
 	if node := n.GetDirectory(); node != nil {
 		if err := node.Validate(); err != nil {
 			return fmt.Errorf("SymlinkNode failed validation: %w", err)

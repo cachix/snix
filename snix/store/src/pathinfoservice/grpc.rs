@@ -128,7 +128,7 @@ where
         let path_info = self
             .grpc_client
             .clone()
-            .calculate_nar(snix_castore::proto::Node::from_name_and_node(
+            .calculate_nar(snix_castore::proto::Entry::from_name_and_node(
                 "".into(),
                 root_node.to_owned(),
             ))

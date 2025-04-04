@@ -14,12 +14,14 @@ use snix_castore::{DirectoryError, ValidateNodeError};
 /// The references in `narinfo.reference_names` aligns with what's in
 /// `references`.
 static PROTO_PATH_INFO: LazyLock<proto::PathInfo> = LazyLock::new(|| proto::PathInfo {
-    node: Some(castorepb::Node {
-        node: Some(castorepb::node::Node::Directory(castorepb::DirectoryNode {
-            name: DUMMY_PATH_STR.into(),
-            digest: DUMMY_DIGEST.clone().into(),
-            size: 0,
-        })),
+    entry: Some(castorepb::Entry {
+        entry: Some(castorepb::entry::Entry::Directory(
+            castorepb::DirectoryEntry {
+                name: DUMMY_PATH_STR.into(),
+                digest: DUMMY_DIGEST.clone().into(),
+                size: 0,
+            },
+        )),
     }),
     references: vec![DUMMY_PATH_DIGEST.as_slice().into()],
     narinfo: Some(proto::NarInfo {
@@ -58,15 +60,15 @@ fn convert_valid_deriver() {
 }
 
 #[rstest]
-#[case::no_node(None, ValidatePathInfoError::NoNodePresent)]
-#[case::no_node_2(Some(castorepb::Node { node: None}), ValidatePathInfoError::InvalidRootNode(DirectoryError::NoNodeSet))]
-fn convert_pathinfo_wrong_nodes(
-    #[case] node: Option<castorepb::Node>,
+#[case::no_entry(None, ValidatePathInfoError::NoEntryPresent)]
+#[case::no_entry_2(Some(castorepb::Entry { entry: None}), ValidatePathInfoError::InvalidRootNode(DirectoryError::NoEntrySet))]
+fn convert_pathinfo_wrong_entries(
+    #[case] entry: Option<castorepb::Entry>,
     #[case] exp_err: ValidatePathInfoError,
 ) {
     // construct the PathInfo object
     let mut path_info = PROTO_PATH_INFO.clone();
-    path_info.node = node;
+    path_info.entry = entry;
 
     assert_eq!(
         exp_err,
@@ -74,19 +76,19 @@ fn convert_pathinfo_wrong_nodes(
     );
 }
 
-/// Constructs a [proto::PathInfo] with root nodes that have wrong data in
-/// various places, causing the conversion to [PathInfo] to fail.
+/// Constructs a [proto::PathInfo] with an entry that has wrong data in various
+/// places, causing the conversion to [PathInfo] to fail.
 #[rstest]
 #[case::directory_invalid_digest_length(
-    castorepb::node::Node::Directory(castorepb::DirectoryNode {
+    castorepb::entry::Entry::Directory(castorepb::DirectoryEntry {
         name: DUMMY_PATH_STR.into(),
         digest: Bytes::new(),
         size: 0,
     }),
     ValidatePathInfoError::InvalidRootNode(DirectoryError::InvalidNode(DUMMY_PATH_STR.into(), ValidateNodeError::InvalidDigestLen(0)))
 )]
-#[case::directory_invalid_node_name_no_storepath(
-    castorepb::node::Node::Directory(castorepb::DirectoryNode {
+#[case::directory_invalid_entry_name_no_storepath(
+    castorepb::entry::Entry::Directory(castorepb::DirectoryEntry {
         name: "invalid".into(),
         digest: DUMMY_DIGEST.clone().into(),
         size: 0,
@@ -94,15 +96,15 @@ fn convert_pathinfo_wrong_nodes(
     ValidatePathInfoError::InvalidNodeName("invalid".into(), store_path::Error::InvalidLength)
 )]
 #[case::file_invalid_digest_len(
-    castorepb::node::Node::File(castorepb::FileNode {
+    castorepb::entry::Entry::File(castorepb::FileEntry {
         name: DUMMY_PATH_STR.into(),
         digest: Bytes::new(),
         ..Default::default()
     }),
     ValidatePathInfoError::InvalidRootNode(DirectoryError::InvalidNode(DUMMY_PATH_STR.into(), ValidateNodeError::InvalidDigestLen(0)))
 )]
-#[case::file_invalid_node_name(
-    castorepb::node::Node::File(castorepb::FileNode {
+#[case::file_invalid_entry_name(
+    castorepb::entry::Entry::File(castorepb::FileEntry {
         name: "invalid".into(),
         digest: DUMMY_DIGEST.clone().into(),
         ..Default::default()
@@ -112,8 +114,8 @@ fn convert_pathinfo_wrong_nodes(
         store_path::Error::InvalidLength
     )
 )]
-#[case::symlink_invalid_node_name(
-    castorepb::node::Node::Symlink(castorepb::SymlinkNode {
+#[case::symlink_invalid_entry_name(
+    castorepb::entry::Entry::Symlink(castorepb::SymlinkEntry {
         name: "invalid".into(),
         target: "foo".into(),
     }),
@@ -122,10 +124,13 @@ fn convert_pathinfo_wrong_nodes(
         store_path::Error::InvalidLength
     )
 )]
-fn convert_fail_node(#[case] node: castorepb::node::Node, #[case] exp_err: ValidatePathInfoError) {
+fn convert_fail_entry(
+    #[case] entry: castorepb::entry::Entry,
+    #[case] exp_err: ValidatePathInfoError,
+) {
     // construct the proto::PathInfo object
     let mut p = PROTO_PATH_INFO.clone();
-    p.node = Some(castorepb::Node { node: Some(node) });
+    p.entry = Some(castorepb::Entry { entry: Some(entry) });
 
     assert_eq!(exp_err, PathInfo::try_from(p).expect_err("must fail"));
 }

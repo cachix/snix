@@ -51,7 +51,7 @@ message BuildRequest {
   // As all references are content-addressed, no additional signatures are
   // needed to substitute / make these available in the build environment.
   // Inputs MUST be sorted by their names.
-  repeated snix.castore.v1.Node inputs = 1;
+  repeated snix.castore.v1.Entry inputs = 1;
 
   // The command (and its args) executed as the build script.
   // In the case of a Nix derivation, this is usually
@@ -161,7 +161,7 @@ message Build {
 
   // The outputs that were produced after successfully building.
   // They are sorted by their names.
-  repeated snix.castore.v1.Node outputs = 2;
+  repeated snix.castore.v1.Entry outputs = 2;
 
   message OutputNeedles {
     // The numbers are indexing into `refscan_needles` originally specified in the BuildRequest.

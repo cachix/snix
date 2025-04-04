@@ -121,8 +121,8 @@ impl TryFrom<Directory> for crate::Directory {
 
         for e in value.directories {
             elems.push(
-                Node {
-                    node: Some(node::Node::Directory(e)),
+                Entry {
+                    entry: Some(entry::Entry::Directory(e)),
                 }
                 .try_into_name_and_node()?,
             );
@@ -130,8 +130,8 @@ impl TryFrom<Directory> for crate::Directory {
 
         for e in value.files {
             elems.push(
-                Node {
-                    node: Some(node::Node::File(e)),
+                Entry {
+                    entry: Some(entry::Entry::File(e)),
                 }
                 .try_into_name_and_node()?,
             )
@@ -139,8 +139,8 @@ impl TryFrom<Directory> for crate::Directory {
 
         for e in value.symlinks {
             elems.push(
-                Node {
-                    node: Some(node::Node::Symlink(e)),
+                Entry {
+                    entry: Some(entry::Entry::Symlink(e)),
                 }
                 .try_into_name_and_node()?,
             )
@@ -162,19 +162,19 @@ impl From<crate::Directory> for Directory {
                     digest,
                     size,
                     executable,
-                } => files.push(FileNode {
+                } => files.push(FileEntry {
                     name: name.into(),
                     digest: digest.into(),
                     size,
                     executable,
                 }),
-                crate::Node::Directory { digest, size } => directories.push(DirectoryNode {
+                crate::Node::Directory { digest, size } => directories.push(DirectoryEntry {
                     name: name.into(),
                     digest: digest.into(),
                     size,
                 }),
                 crate::Node::Symlink { target } => {
-                    symlinks.push(SymlinkNode {
+                    symlinks.push(SymlinkEntry {
                         name: name.into(),
                         target: target.into(),
                     });
@@ -190,7 +190,7 @@ impl From<crate::Directory> for Directory {
     }
 }
 
-impl Node {
+impl Entry {
     /// Converts a proto [Node] to a [crate::Node], and splits off the name as a [PathComponent].
     pub fn try_into_name_and_node(self) -> Result<(PathComponent, crate::Node), DirectoryError> {
         let (name_bytes, node) = self.try_into_unchecked_name_and_checked_node()?;
@@ -205,8 +205,8 @@ impl Node {
     fn try_into_unchecked_name_and_checked_node(
         self,
     ) -> Result<(bytes::Bytes, crate::Node), DirectoryError> {
-        match self.node.ok_or_else(|| DirectoryError::NoNodeSet)? {
-            node::Node::Directory(n) => {
+        match self.entry.ok_or_else(|| DirectoryError::NoEntrySet)? {
+            entry::Entry::Directory(n) => {
                 let digest = B3Digest::try_from(n.digest)
                     .map_err(|e| DirectoryError::InvalidNode(n.name.clone(), e.into()))?;
 
@@ -217,7 +217,7 @@ impl Node {
 
                 Ok((n.name, node))
             }
-            node::Node::File(n) => {
+            entry::Entry::File(n) => {
                 let digest = B3Digest::try_from(n.digest)
                     .map_err(|e| DirectoryError::InvalidNode(n.name.clone(), e.into()))?;
 
@@ -230,7 +230,7 @@ impl Node {
                 Ok((n.name, node))
             }
 
-            node::Node::Symlink(n) => {
+            entry::Entry::Symlink(n) => {
                 let node = crate::Node::Symlink {
                     target: n.target.try_into().map_err(|e| {
                         DirectoryError::InvalidNode(
@@ -259,13 +259,13 @@ impl Node {
         Ok(node)
     }
 
-    /// Constructs a [Node] from a name and [crate::Node].
+    /// Constructs an [Entry] from a name and [crate::Node].
     /// The name is a [bytes::Bytes], not a [PathComponent], as we have use an
     /// empty name in some places.
     pub fn from_name_and_node(name: bytes::Bytes, n: crate::Node) -> Self {
         match n {
             crate::Node::Directory { digest, size } => Self {
-                node: Some(node::Node::Directory(DirectoryNode {
+                entry: Some(entry::Entry::Directory(DirectoryEntry {
                     name,
                     digest: digest.into(),
                     size,
@@ -276,7 +276,7 @@ impl Node {
                 size,
                 executable,
             } => Self {
-                node: Some(node::Node::File(FileNode {
+                entry: Some(entry::Entry::File(FileEntry {
                     name,
                     digest: digest.into(),
                     size,
@@ -284,7 +284,7 @@ impl Node {
                 })),
             },
             crate::Node::Symlink { target } => Self {
-                node: Some(node::Node::Symlink(SymlinkNode {
+                entry: Some(entry::Entry::Symlink(SymlinkEntry {
                     name,
                     target: target.into(),
                 })),

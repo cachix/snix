@@ -75,7 +75,7 @@ where
     #[instrument(skip_all)]
     async fn calculate_nar(
         &self,
-        request: Request<castorepb::Node>,
+        request: Request<castorepb::Entry>,
     ) -> Result<Response<proto::CalculateNarResponse>> {
         let root_node = request
             .into_inner()

@@ -1,4 +1,4 @@
-use crate::proto::{Directory, DirectoryError, DirectoryNode, FileNode, SymlinkNode};
+use crate::proto::{Directory, DirectoryEntry, DirectoryError, FileEntry, SymlinkEntry};
 use crate::ValidateNodeError;
 
 use hex_literal::hex;
@@ -13,7 +13,7 @@ fn size() {
     }
     {
         let d = Directory {
-            directories: vec![DirectoryNode {
+            directories: vec![DirectoryEntry {
                 name: "foo".into(),
                 digest: DUMMY_DIGEST.to_vec().into(),
                 size: 0,
@@ -24,7 +24,7 @@ fn size() {
     }
     {
         let d = Directory {
-            directories: vec![DirectoryNode {
+            directories: vec![DirectoryEntry {
                 name: "foo".into(),
                 digest: DUMMY_DIGEST.to_vec().into(),
                 size: 4,
@@ -35,7 +35,7 @@ fn size() {
     }
     {
         let d = Directory {
-            files: vec![FileNode {
+            files: vec![FileEntry {
                 name: "foo".into(),
                 digest: DUMMY_DIGEST.to_vec().into(),
                 size: 42,
@@ -47,7 +47,7 @@ fn size() {
     }
     {
         let d = Directory {
-            symlinks: vec![SymlinkNode {
+            symlinks: vec![SymlinkEntry {
                 name: "foo".into(),
                 target: "bar".into(),
             }],
@@ -62,7 +62,7 @@ fn size() {
 #[should_panic = "Directory::size exceeds u64::MAX"]
 fn size_unchecked_panic() {
     let d = Directory {
-        directories: vec![DirectoryNode {
+        directories: vec![DirectoryEntry {
             name: "foo".into(),
             digest: DUMMY_DIGEST.to_vec().into(),
             size: u64::MAX,
@@ -77,7 +77,7 @@ fn size_unchecked_panic() {
 #[cfg_attr(debug_assertions, ignore)]
 fn size_unchecked_saturate() {
     let d = Directory {
-        directories: vec![DirectoryNode {
+        directories: vec![DirectoryEntry {
             name: "foo".into(),
             digest: DUMMY_DIGEST.to_vec().into(),
             size: u64::MAX,
@@ -94,7 +94,7 @@ fn size_checked() {
     // child count, since that would take an absurd amount of memory.
     {
         let d = Directory {
-            directories: vec![DirectoryNode {
+            directories: vec![DirectoryEntry {
                 name: "foo".into(),
                 digest: DUMMY_DIGEST.to_vec().into(),
                 size: u64::MAX - 1,
@@ -105,7 +105,7 @@ fn size_checked() {
     }
     {
         let d = Directory {
-            directories: vec![DirectoryNode {
+            directories: vec![DirectoryEntry {
                 name: "foo".into(),
                 digest: DUMMY_DIGEST.to_vec().into(),
                 size: u64::MAX,
@@ -117,12 +117,12 @@ fn size_checked() {
     {
         let d = Directory {
             directories: vec![
-                DirectoryNode {
+                DirectoryEntry {
                     name: "foo".into(),
                     digest: DUMMY_DIGEST.to_vec().into(),
                     size: u64::MAX / 2,
                 },
-                DirectoryNode {
+                DirectoryEntry {
                     name: "foo".into(),
                     digest: DUMMY_DIGEST.to_vec().into(),
                     size: u64::MAX / 2,
@@ -154,7 +154,7 @@ fn validate_empty() {
 fn validate_invalid_names() {
     {
         let d = Directory {
-            directories: vec![DirectoryNode {
+            directories: vec![DirectoryEntry {
                 name: b"\0"[..].into(),
                 digest: DUMMY_DIGEST.to_vec().into(),
                 size: 42,
@@ -168,7 +168,7 @@ fn validate_invalid_names() {
 
     {
         let d = Directory {
-            directories: vec![DirectoryNode {
+            directories: vec![DirectoryEntry {
                 name: ".".into(),
                 digest: DUMMY_DIGEST.to_vec().into(),
                 size: 42,
@@ -181,7 +181,7 @@ fn validate_invalid_names() {
 
     {
         let d = Directory {
-            files: vec![FileNode {
+            files: vec![FileEntry {
                 name: "..".into(),
                 digest: DUMMY_DIGEST.to_vec().into(),
                 size: 42,
@@ -195,7 +195,7 @@ fn validate_invalid_names() {
 
     {
         let d = Directory {
-            symlinks: vec![SymlinkNode {
+            symlinks: vec![SymlinkEntry {
                 name: "\x00".into(),
                 target: "foo".into(),
             }],
@@ -207,7 +207,7 @@ fn validate_invalid_names() {
 
     {
         let d = Directory {
-            symlinks: vec![SymlinkNode {
+            symlinks: vec![SymlinkEntry {
                 name: "foo/bar".into(),
                 target: "foo".into(),
             }],
@@ -219,7 +219,7 @@ fn validate_invalid_names() {
 
     {
         let d = Directory {
-            symlinks: vec![SymlinkNode {
+            symlinks: vec![SymlinkEntry {
                 name: bytes::Bytes::copy_from_slice("X".repeat(500).into_bytes().as_slice()),
                 target: "foo".into(),
             }],
@@ -233,7 +233,7 @@ fn validate_invalid_names() {
 #[test]
 fn validate_invalid_digest() {
     let d = Directory {
-        directories: vec![DirectoryNode {
+        directories: vec![DirectoryEntry {
             name: "foo".into(),
             digest: vec![0x00, 0x42].into(), // invalid length
             size: 42,
@@ -254,12 +254,12 @@ fn validate_sorting() {
     {
         let d = Directory {
             directories: vec![
-                DirectoryNode {
+                DirectoryEntry {
                     name: "b".into(),
                     digest: DUMMY_DIGEST.to_vec().into(),
                     size: 42,
                 },
-                DirectoryNode {
+                DirectoryEntry {
                     name: "a".into(),
                     digest: DUMMY_DIGEST.to_vec().into(),
                     size: 42,
@@ -279,12 +279,12 @@ fn validate_sorting() {
     {
         let d = Directory {
             directories: vec![
-                DirectoryNode {
+                DirectoryEntry {
                     name: "a".into(),
                     digest: DUMMY_DIGEST.to_vec().into(),
                     size: 42,
                 },
-                DirectoryNode {
+                DirectoryEntry {
                     name: "a".into(),
                     digest: DUMMY_DIGEST.to_vec().into(),
                     size: 42,
@@ -303,12 +303,12 @@ fn validate_sorting() {
     // "a" exists twice (different types), bad.
     {
         let d = Directory {
-            directories: vec![DirectoryNode {
+            directories: vec![DirectoryEntry {
                 name: "a".into(),
                 digest: DUMMY_DIGEST.to_vec().into(),
                 size: 42,
             }],
-            symlinks: vec![SymlinkNode {
+            symlinks: vec![SymlinkEntry {
                 name: "a".into(),
                 target: "b".into(),
             }],
@@ -326,12 +326,12 @@ fn validate_sorting() {
     {
         let d = Directory {
             directories: vec![
-                DirectoryNode {
+                DirectoryEntry {
                     name: "a".into(),
                     digest: DUMMY_DIGEST.to_vec().into(),
                     size: 42,
                 },
-                DirectoryNode {
+                DirectoryEntry {
                     name: "b".into(),
                     digest: DUMMY_DIGEST.to_vec().into(),
                     size: 42,
@@ -347,18 +347,18 @@ fn validate_sorting() {
     {
         let d = Directory {
             directories: vec![
-                DirectoryNode {
+                DirectoryEntry {
                     name: "b".into(),
                     digest: DUMMY_DIGEST.to_vec().into(),
                     size: 42,
                 },
-                DirectoryNode {
+                DirectoryEntry {
                     name: "c".into(),
                     digest: DUMMY_DIGEST.to_vec().into(),
                     size: 42,
                 },
             ],
-            symlinks: vec![SymlinkNode {
+            symlinks: vec![SymlinkEntry {
                 name: "a".into(),
                 target: "foo".into(),
             }],

@@ -149,7 +149,7 @@ impl From<crate::buildservice::BuildRequest> for BuildRequest {
                 .inputs
                 .into_iter()
                 .map(|(name, node)| {
-                    snix_castore::proto::Node::from_name_and_node(name.into(), node)
+                    snix_castore::proto::Entry::from_name_and_node(name.into(), node)
                 })
                 .collect(),
             command_args: value.command_args,
