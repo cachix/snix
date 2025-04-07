@@ -1,5 +1,6 @@
 use bytes::Bytes;
 use data_encoding::BASE64;
+use std::str::FromStr;
 use thiserror::Error;
 
 #[derive(PartialEq, Eq, Hash)]
@@ -15,6 +16,8 @@ impl B3Digest {
 pub enum Error {
     #[error("invalid digest length: {0}")]
     InvalidDigestLen(usize),
+    #[error("invalid hash type: expected a 'blake3-' prefixed digest")]
+    InvalidHashType,
 }
 
 impl AsRef<[u8; B3Digest::LENGTH]> for B3Digest {
@@ -107,5 +110,20 @@ impl std::fmt::Debug for B3Digest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("blake3-").unwrap();
         BASE64.encode_write(&self.0, f)
+    }
+}
+
+impl FromStr for B3Digest {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if !s.starts_with("blake3-") {
+            return Err(Error::InvalidHashType);
+        }
+        let encoded = &s[7..];
+        let decoded = BASE64
+            .decode(encoded.as_bytes())
+            .map_err(|_| Error::InvalidDigestLen(s.len()))?;
+        decoded.as_slice().try_into()
     }
 }

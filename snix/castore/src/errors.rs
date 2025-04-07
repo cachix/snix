@@ -27,12 +27,16 @@ pub enum ValidateNodeError {
     /// Invalid symlink target
     #[error("Invalid symlink target: {0}")]
     InvalidSymlinkTarget(SymlinkTargetError),
+    /// Invalid hash type encountered
+    #[error("invalid hash type: expected a 'blake3-' prefixed digest")]
+    InvalidHashType,
 }
 
 impl From<crate::digests::Error> for ValidateNodeError {
     fn from(e: crate::digests::Error) -> Self {
         match e {
             crate::digests::Error::InvalidDigestLen(n) => ValidateNodeError::InvalidDigestLen(n),
+            crate::digests::Error::InvalidHashType => ValidateNodeError::InvalidHashType,
         }
     }
 }
