@@ -82,7 +82,7 @@ in
     ] ++ lib.optional pkgs.stdenv.isDarwin pkgs.libiconv;
 
     buildPhase = ''
-      cargo doc --document-private-items
+      RUSTDOCFLAGS="-D rustdoc::broken-intra-doc-links" cargo doc --document-private-items
       mv target/doc $out
     '';
   };
