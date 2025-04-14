@@ -12,6 +12,18 @@ pub struct PathComponent {
     pub(super) inner: bytes::Bytes,
 }
 
+impl PathComponent {
+    /// Extracts the extension (without leading dot) of a [PathComponent], if possible.
+    pub fn extension(&self) -> Option<&[u8]> {
+        let mut iter = self.inner[..].rsplitn(2, |b| *b == b'.');
+        let e = iter.next();
+        // Return None if there's no dot.
+        iter.next()?;
+
+        e
+    }
+}
+
 /// The maximum length an individual path component can have.
 /// Linux allows 255 bytes of actual name, so we pick that.
 pub const MAX_NAME_LEN: usize = 255;
@@ -210,6 +222,15 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[rstest]
+    #[case::without_dot(PathComponent { inner: "foo".into()}, None)]
+    #[case::simple(PathComponent { inner: "foo.txt".into()}, Some(&b"txt"[..]))]
+    #[case::empty(PathComponent { inner: "foo.".into()}, Some(&b""[..]))]
+    #[case::multiple(PathComponent { inner: "foo.bar.txt".into()}, Some(&b"txt"[..]))]
+    fn extension(#[case] p: PathComponent, #[case] exp_extension: Option<&[u8]>) {
+        assert_eq!(exp_extension, p.extension())
     }
 
     #[test]
