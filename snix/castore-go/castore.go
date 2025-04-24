@@ -121,7 +121,7 @@ func (n *Entry) Validate() error {
 func (d *Directory) Validate() error {
 	// seenNames contains all seen names so far.
 	// We populate this to ensure node names are unique across all three lists.
-	seenNames := make(map[string]interface{})
+	seenNames := make(map[string]any)
 
 	// We also track the last seen name in each of the three lists,
 	// to ensure nodes are sorted by their names.
