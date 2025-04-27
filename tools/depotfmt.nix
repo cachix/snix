@@ -18,7 +18,6 @@ let
 
     [formatter.rust]
     command = "${pkgs.rustfmt}/bin/rustfmt"
-    options = ["--edition", "2021"]
     includes = [ "*.rs" ]
 
     [formatter.editorconfig]
