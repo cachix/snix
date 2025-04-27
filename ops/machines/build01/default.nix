@@ -38,6 +38,7 @@ in
   system.switch.enableNg = false;
   nix.nrBuildUsers = 256;
   nix.settings.max-jobs = 64;
+  nix.gc.automatic = true;
   nix.package = pkgs.lix;
   # Put builds in /var/tmp as it can be quite big and would cause spurious
   # failures from time to time: https://git.snix.dev/snix/snix/issues/82
