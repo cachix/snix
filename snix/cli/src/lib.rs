@@ -16,7 +16,7 @@ use snix_glue::{
     snix_store_io::SnixStoreIO,
 };
 use std::fmt::Write;
-use tracing::{instrument, Span};
+use tracing::{info_span, Span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 pub mod args;
@@ -93,11 +93,6 @@ pub fn evaluate<E: std::io::Write + Clone + Send>(
     globals: Option<Rc<GlobalsMap>>,
     source_map: Option<SourceCode>,
 ) -> Result<EvalResult, IncompleteInput> {
-    let span = Span::current();
-    span.pb_start();
-    span.pb_set_style(&snix_tracing::PB_SPINNER_STYLE);
-    span.pb_set_message("Setting up evaluator…");
-
     let mut eval_builder = snix_eval::Evaluation::builder(Box::new(SnixIO::new(
         snix_store_io.clone() as Rc<dyn EvalIO>,
     )) as Box<dyn EvalIO>)
@@ -126,27 +121,35 @@ pub fn evaluate<E: std::io::Write + Clone + Send>(
     }
 
     let source_map = eval_builder.source_map().clone();
-    let (result, globals) = {
-        let mut compiler_observer = DisassemblingObserver::new(source_map.clone(), stderr.clone());
-        if args.dump_bytecode {
-            eval_builder.set_compiler_observer(Some(&mut compiler_observer));
-        }
 
-        let mut runtime_observer = TracingObserver::new(stderr.clone());
-        if args.trace_runtime {
-            if args.trace_runtime_timing {
-                runtime_observer.enable_timing()
+    let mut compiler_observer = DisassemblingObserver::new(source_map.clone(), stderr.clone());
+    if args.dump_bytecode {
+        eval_builder.set_compiler_observer(Some(&mut compiler_observer));
+    }
+
+    let mut runtime_observer = TracingObserver::new(stderr.clone());
+    if args.trace_runtime {
+        if args.trace_runtime_timing {
+            runtime_observer.enable_timing()
+        }
+        eval_builder.set_runtime_observer(Some(&mut runtime_observer));
+    }
+
+    let eval = eval_builder.build();
+
+    let (result, globals) = info_span!("evaluate", indicatif.pb_show = tracing::field::Empty)
+        .in_scope(|| {
+            let span = Span::current();
+
+            if !args.trace_runtime && !args.dump_bytecode {
+                span.pb_set_message("Evaluating…");
+                span.pb_start();
             }
-            eval_builder.set_runtime_observer(Some(&mut runtime_observer));
-        }
 
-        span.pb_set_message("Evaluating…");
-
-        let eval = eval_builder.build();
-        let globals = eval.globals();
-        let result = eval.evaluate(code, path);
-        (result, globals)
-    };
+            let globals = eval.globals();
+            let result = eval.evaluate(code, path);
+            (result, globals)
+        });
 
     if allow_incomplete.allow()
         && result.errors.iter().any(|err| {
@@ -229,7 +232,6 @@ impl InterpretResult {
 /// Interprets the given code snippet, printing out warnings, errors
 /// and the result itself. The return value indicates whether
 /// evaluation succeeded.
-#[instrument(skip_all, fields(indicatif.pb_show=tracing::field::Empty))]
 #[allow(clippy::too_many_arguments)]
 pub fn interpret<E: std::io::Write + Clone + Send>(
     stderr: &mut E,
