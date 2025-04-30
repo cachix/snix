@@ -1,14 +1,14 @@
-use crate::{blobservice::BlobService, B3Digest};
+use crate::{B3Digest, blobservice::BlobService};
 use core::pin::pin;
-use futures::{stream::BoxStream, TryFutureExt};
+use futures::{TryFutureExt, stream::BoxStream};
 use std::{
     collections::VecDeque,
     ops::{Deref, DerefMut},
 };
 use tokio_stream::StreamExt;
 use tokio_util::io::ReaderStream;
-use tonic::{async_trait, Request, Response, Status, Streaming};
-use tracing::{instrument, warn, Span};
+use tonic::{Request, Response, Status, Streaming, async_trait};
+use tracing::{Span, instrument, warn};
 
 pub struct GRPCBlobServiceWrapper<T> {
     blob_service: T,

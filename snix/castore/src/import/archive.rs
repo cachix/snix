@@ -2,18 +2,18 @@
 
 use std::collections::HashMap;
 
+use petgraph::Direction;
 use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::{DfsPostOrder, EdgeRef};
-use petgraph::Direction;
 use tokio::io::AsyncRead;
 use tokio_stream::StreamExt;
 use tokio_tar::Archive;
-use tracing::{instrument, warn, Level};
+use tracing::{Level, instrument, warn};
 
+use crate::Node;
 use crate::blobservice::BlobService;
 use crate::directoryservice::DirectoryService;
-use crate::import::{ingest_entries, IngestionEntry, IngestionError};
-use crate::Node;
+use crate::import::{IngestionEntry, IngestionError, ingest_entries};
 
 use super::blobs::{self, ConcurrentBlobUploader};
 
@@ -295,8 +295,8 @@ mod test {
     use std::sync::LazyLock;
 
     use super::{Error, IngestionEntryGraph};
-    use crate::import::IngestionEntry;
     use crate::B3Digest;
+    use crate::import::IngestionEntry;
 
     use rstest::rstest;
 

@@ -1,6 +1,6 @@
 use crate::blobservice::{BlobService, MemoryBlobService};
-use crate::proto::blob_service_client::BlobServiceClient;
 use crate::proto::GRPCBlobServiceWrapper;
+use crate::proto::blob_service_client::BlobServiceClient;
 use crate::{blobservice::GRPCBlobService, proto::blob_service_server::BlobServiceServer};
 use hyper_util::rt::TokioIo;
 use tonic::transport::{Endpoint, Server, Uri};

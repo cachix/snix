@@ -3,9 +3,9 @@ use std::io;
 use auto_impl::auto_impl;
 use tonic::async_trait;
 
+use crate::B3Digest;
 use crate::composition::{Registry, ServiceBuilder};
 use crate::proto::stat_blob_response::ChunkMeta;
-use crate::B3Digest;
 
 mod chunked_reader;
 mod combinator;

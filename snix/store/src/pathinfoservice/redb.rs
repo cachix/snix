@@ -1,12 +1,12 @@
 use super::{PathInfo, PathInfoService};
 use crate::proto;
 use data_encoding::BASE64;
-use futures::{stream::BoxStream, StreamExt};
+use futures::{StreamExt, stream::BoxStream};
 use prost::Message;
 use redb::{Database, ReadableTable, TableDefinition};
 use snix_castore::{
-    composition::{CompositionContext, ServiceBuilder},
     Error,
+    composition::{CompositionContext, ServiceBuilder},
 };
 use std::{path::PathBuf, sync::Arc};
 use tokio_stream::wrappers::ReceiverStream;

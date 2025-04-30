@@ -4,9 +4,9 @@ use crate::tests::fixtures::directory_service_with_contents as directory_service
 use crate::tests::fixtures::*;
 use rstest::*;
 use rstest_reuse::*;
+use snix_castore::Node;
 use snix_castore::blobservice::BlobService;
 use snix_castore::directoryservice::DirectoryService;
-use snix_castore::Node;
 use std::io;
 use std::pin::Pin;
 use std::sync::Arc;

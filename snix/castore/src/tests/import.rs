@@ -1,8 +1,8 @@
+use crate::Node;
 use crate::blobservice::{self, BlobService};
 use crate::directoryservice;
 use crate::fixtures::*;
 use crate::import::fs::ingest_path;
-use crate::Node;
 
 use tempfile::TempDir;
 
@@ -105,16 +105,20 @@ async fn complicated() {
     );
 
     // ensure DIRECTORY_WITH_KEEP and DIRECTORY_COMPLICATED have been uploaded
-    assert!(directory_service
-        .get(&DIRECTORY_WITH_KEEP.digest())
-        .await
-        .unwrap()
-        .is_some());
-    assert!(directory_service
-        .get(&DIRECTORY_COMPLICATED.digest())
-        .await
-        .unwrap()
-        .is_some());
+    assert!(
+        directory_service
+            .get(&DIRECTORY_WITH_KEEP.digest())
+            .await
+            .unwrap()
+            .is_some()
+    );
+    assert!(
+        directory_service
+            .get(&DIRECTORY_COMPLICATED.digest())
+            .await
+            .unwrap()
+            .is_some()
+    );
 
     // ensure EMPTY_BLOB_CONTENTS has been uploaded
     assert!(blob_service.has(&EMPTY_BLOB_DIGEST).await.unwrap());

@@ -1,6 +1,6 @@
 use std::collections::btree_map::{self, BTreeMap};
 
-use crate::{errors::DirectoryError, path::PathComponent, proto, B3Digest, Node};
+use crate::{B3Digest, Node, errors::DirectoryError, path::PathComponent, proto};
 
 /// A Directory contains nodes, which can be Directory, File or Symlink nodes.
 /// It attaches names to these nodes, which is the basename in that directory.

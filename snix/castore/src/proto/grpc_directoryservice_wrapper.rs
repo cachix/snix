@@ -1,10 +1,10 @@
 use crate::directoryservice::{DirectoryGraph, DirectoryService, LeavesToRootValidator};
-use crate::{proto, B3Digest, DirectoryError};
-use futures::stream::BoxStream;
+use crate::{B3Digest, DirectoryError, proto};
 use futures::TryStreamExt;
+use futures::stream::BoxStream;
 use std::ops::Deref;
 use tokio_stream::once;
-use tonic::{async_trait, Request, Response, Status, Streaming};
+use tonic::{Request, Response, Status, Streaming, async_trait};
 use tracing::{instrument, warn};
 
 pub struct GRPCDirectoryServiceWrapper<T> {

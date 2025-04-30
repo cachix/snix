@@ -4,8 +4,8 @@ use tokio::task::JoinError;
 use tonic::Status;
 
 use crate::{
-    path::{PathComponent, PathComponentError},
     SymlinkTargetError,
+    path::{PathComponent, PathComponentError},
 };
 
 /// Errors related to communication with the store.

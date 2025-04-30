@@ -1,6 +1,6 @@
 use bstr::ByteSlice;
 use snix_castore::{
-    blobservice::BlobService, directoryservice::DirectoryService, import::fs::ingest_path, Node,
+    Node, blobservice::BlobService, directoryservice::DirectoryService, import::fs::ingest_path,
 };
 use std::path::Path;
 use tracing::{debug, instrument};

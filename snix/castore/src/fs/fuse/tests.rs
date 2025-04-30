@@ -8,17 +8,18 @@ use std::{
     sync::Arc,
 };
 use tempfile::TempDir;
-use tokio_stream::{wrappers::ReadDirStream, StreamExt};
+use tokio_stream::{StreamExt, wrappers::ReadDirStream};
 
 use super::FuseDaemon;
 use crate::{
+    Node,
     blobservice::{BlobService, MemoryBlobService},
     directoryservice::{DirectoryService, MemoryDirectoryService},
-    fixtures, Node,
+    fixtures,
 };
 use crate::{
-    fs::{SnixStoreFs, XATTR_NAME_BLOB_DIGEST, XATTR_NAME_DIRECTORY_DIGEST},
     PathComponent,
+    fs::{SnixStoreFs, XATTR_NAME_BLOB_DIGEST, XATTR_NAME_DIRECTORY_DIGEST},
 };
 
 const BLOB_A_NAME: &str = "00000000000000000000000000000000-test";

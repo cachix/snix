@@ -4,7 +4,7 @@ use super::{NarCalculationService, RenderError};
 use count_write::CountWrite;
 use nix_compat::nar::writer::r#async as nar_writer;
 use sha2::{Digest, Sha256};
-use snix_castore::{blobservice::BlobService, directoryservice::DirectoryService, Node};
+use snix_castore::{Node, blobservice::BlobService, directoryservice::DirectoryService};
 use tokio::io::{self, AsyncWrite, BufReader};
 use tonic::async_trait;
 use tracing::instrument;

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use url::Url;
 
 use crate::composition::{
-    with_registry, CompositionContext, DeserializeWithRegistry, ServiceBuilder, REG,
+    CompositionContext, DeserializeWithRegistry, REG, ServiceBuilder, with_registry,
 };
 
 use super::BlobService;

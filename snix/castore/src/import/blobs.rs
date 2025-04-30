@@ -9,9 +9,9 @@ use tokio::{
     task::{JoinError, JoinSet},
 };
 use tokio_util::io::InspectReader;
-use tracing::{info_span, Instrument};
+use tracing::{Instrument, info_span};
 
-use crate::{blobservice::BlobService, B3Digest, Path, PathBuf};
+use crate::{B3Digest, Path, PathBuf, blobservice::BlobService};
 
 /// Files smaller than this threshold, in bytes, are uploaded to the [BlobService] in the
 /// background.

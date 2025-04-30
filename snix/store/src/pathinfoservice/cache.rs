@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use futures::stream::BoxStream;
 use nix_compat::nixbase32;
-use snix_castore::composition::{CompositionContext, ServiceBuilder};
 use snix_castore::Error;
+use snix_castore::composition::{CompositionContext, ServiceBuilder};
 use tonic::async_trait;
 use tracing::{debug, instrument};
 
@@ -132,11 +132,12 @@ mod test {
         let svc = create_pathinfoservice().await;
 
         // query the PathInfo, things should not be there.
-        assert!(svc
-            .get(*PATH_INFO.store_path.digest())
-            .await
-            .unwrap()
-            .is_none());
+        assert!(
+            svc.get(*PATH_INFO.store_path.digest())
+                .await
+                .unwrap()
+                .is_none()
+        );
 
         // insert it into the far one.
         svc.far.put(PATH_INFO.clone()).await.unwrap();

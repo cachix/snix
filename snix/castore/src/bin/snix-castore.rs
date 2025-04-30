@@ -1,14 +1,14 @@
 use clap::{Parser, Subcommand};
+#[cfg(any(feature = "fuse", feature = "virtiofs"))]
+use snix_castore::B3Digest;
+use snix_castore::Node;
+#[cfg(feature = "fs")]
+use snix_castore::fs::SnixStoreFs;
 #[cfg(feature = "fuse")]
 use snix_castore::fs::fuse::FuseDaemon;
 #[cfg(feature = "virtiofs")]
 use snix_castore::fs::virtiofs::start_virtiofs_daemon;
-#[cfg(feature = "fs")]
-use snix_castore::fs::SnixStoreFs;
 use snix_castore::import::{archive::ingest_archive, fs::ingest_path};
-#[cfg(any(feature = "fuse", feature = "virtiofs"))]
-use snix_castore::B3Digest;
-use snix_castore::Node;
 use std::error::Error;
 use std::io::Write;
 use std::path::PathBuf;

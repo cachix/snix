@@ -1,4 +1,4 @@
-use super::{entry, Entry, SymlinkEntry};
+use super::{Entry, SymlinkEntry, entry};
 use crate::DirectoryError;
 
 mod directory;

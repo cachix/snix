@@ -9,9 +9,9 @@
 use pin_project::pin_project;
 use std::collections::BTreeSet;
 use std::pin::Pin;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::task::{ready, Poll};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::task::{Poll, ready};
 use tokio::io::{AsyncBufRead, AsyncRead, ReadBuf};
 use wu_manber::TwoByteWM;
 

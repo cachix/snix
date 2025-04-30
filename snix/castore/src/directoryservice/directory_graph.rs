@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
 use petgraph::{
+    Direction, Incoming,
     graph::{DiGraph, NodeIndex},
     visit::{Bfs, DfsPostOrder, EdgeRef, IntoNodeIdentifiers, Walker},
-    Direction, Incoming,
 };
 use tracing::instrument;
 
 use super::order_validator::{LeavesToRootValidator, OrderValidator, RootToLeavesValidator};
-use crate::{path::PathComponent, B3Digest, Directory, Node};
+use crate::{B3Digest, Directory, Node, path::PathComponent};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

@@ -11,8 +11,8 @@ use tokio::spawn;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::task::JoinHandle;
 use tokio_stream::wrappers::UnboundedReceiverStream;
-use tonic::{async_trait, Code, Status};
-use tracing::{instrument, warn, Instrument as _};
+use tonic::{Code, Status, async_trait};
+use tracing::{Instrument as _, instrument, warn};
 
 /// Connects to a (remote) snix-store DirectoryService over gRPC.
 #[derive(Clone)]
@@ -320,13 +320,13 @@ mod tests {
     use std::time::Duration;
     use tempfile::TempDir;
     use tokio::net::UnixListener;
-    use tokio_retry::{strategy::ExponentialBackoff, Retry};
+    use tokio_retry::{Retry, strategy::ExponentialBackoff};
     use tokio_stream::wrappers::UnixListenerStream;
 
     use crate::{
         directoryservice::{DirectoryService, GRPCDirectoryService, MemoryDirectoryService},
         fixtures,
-        proto::{directory_service_client::DirectoryServiceClient, GRPCDirectoryServiceWrapper},
+        proto::{GRPCDirectoryServiceWrapper, directory_service_client::DirectoryServiceClient},
     };
 
     /// This ensures connecting via gRPC works as expected.
@@ -383,10 +383,12 @@ mod tests {
             GRPCDirectoryService::from_client("test-instance".into(), client)
         };
 
-        assert!(grpc_client
-            .get(&fixtures::DIRECTORY_A.digest())
-            .await
-            .expect("must not fail")
-            .is_none())
+        assert!(
+            grpc_client
+                .get(&fixtures::DIRECTORY_A.digest())
+                .await
+                .expect("must not fail")
+                .is_none()
+        )
     }
 }

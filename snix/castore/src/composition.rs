@@ -97,8 +97,8 @@
 //! This behavior might change in the future.
 
 use erased_serde::deserialize;
-use futures::future::BoxFuture;
 use futures::FutureExt;
+use futures::future::BoxFuture;
 use serde::de::DeserializeOwned;
 use serde_tagged::de::{BoxFnSeed, SeedFactory};
 use serde_tagged::util::TagString;
@@ -152,7 +152,7 @@ impl<'r, 'de: 'r, T: 'static> SeedFactory<'de, TagString<'de>> for RegistryWithF
         // using find() and not get() because of https://github.com/rust-lang/rust/issues/80389
         let seed: &Box<dyn Any + Sync> = self
             .0
-             .0
+            .0
             .iter()
             .find(|(k, _)| *k == &(TypeId::of::<T>(), tag.as_ref()))
             .ok_or_else(|| serde::de::Error::custom(format!("Unknown type: {}", tag)))?

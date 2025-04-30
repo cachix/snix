@@ -10,7 +10,7 @@ use snix_castore::composition::{CompositionContext, ServiceBuilder};
 
 use snix_castore::Error;
 
-use nix_compat::narinfo::{parse_keypair, Signature, SigningKey};
+use nix_compat::narinfo::{Signature, SigningKey, parse_keypair};
 use nix_compat::nixbase32;
 use tracing::instrument;
 
@@ -158,11 +158,12 @@ mod test {
         );
 
         // Asking PathInfoService, it should not be there ...
-        assert!(svc
-            .get(*PATH_INFO.store_path.digest())
-            .await
-            .expect("no error")
-            .is_none());
+        assert!(
+            svc.get(*PATH_INFO.store_path.digest())
+                .await
+                .expect("no error")
+                .is_none()
+        );
 
         // insert it
         svc.put(PATH_INFO.clone()).await.expect("no error");

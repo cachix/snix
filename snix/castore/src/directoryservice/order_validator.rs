@@ -107,8 +107,8 @@ impl OrderValidator for LeavesToRootValidator {
 #[cfg(test)]
 mod tests {
     use super::{LeavesToRootValidator, RootToLeavesValidator};
-    use crate::directoryservice::order_validator::OrderValidator;
     use crate::directoryservice::Directory;
+    use crate::directoryservice::order_validator::OrderValidator;
     use crate::fixtures::{DIRECTORY_A, DIRECTORY_B, DIRECTORY_C};
     use rstest::rstest;
 

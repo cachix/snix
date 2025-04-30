@@ -1,5 +1,5 @@
-use crate::proto::{Directory, DirectoryEntry, DirectoryError, FileEntry, SymlinkEntry};
 use crate::ValidateNodeError;
+use crate::proto::{Directory, DirectoryEntry, DirectoryError, FileEntry, SymlinkEntry};
 
 use hex_literal::hex;
 

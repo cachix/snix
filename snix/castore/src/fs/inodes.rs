@@ -2,7 +2,7 @@
 //! about inodes, which present snix-castore nodes in a filesystem.
 use std::time::Duration;
 
-use crate::{path::PathComponent, B3Digest, Node};
+use crate::{B3Digest, Node, path::PathComponent};
 
 #[derive(Clone, Debug)]
 pub enum InodeData {

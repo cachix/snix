@@ -20,16 +20,16 @@ use tonic::transport::Server;
 use tower::ServiceBuilder;
 use tower_http::classify::{GrpcCode, GrpcErrorsAsFailures, SharedClassifier};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tracing::{debug, info, info_span, instrument, warn, Instrument, Level, Span};
+use tracing::{Instrument, Level, Span, debug, info, info_span, instrument, warn};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
-use snix_castore::proto::blob_service_server::BlobServiceServer;
-use snix_castore::proto::directory_service_server::DirectoryServiceServer;
 use snix_castore::proto::GRPCBlobServiceWrapper;
 use snix_castore::proto::GRPCDirectoryServiceWrapper;
+use snix_castore::proto::blob_service_server::BlobServiceServer;
+use snix_castore::proto::directory_service_server::DirectoryServiceServer;
 use snix_store::pathinfoservice::{PathInfo, PathInfoService};
-use snix_store::proto::path_info_service_server::PathInfoServiceServer;
 use snix_store::proto::GRPCPathInfoServiceWrapper;
+use snix_store::proto::path_info_service_server::PathInfoServiceServer;
 
 #[cfg(any(feature = "fuse", feature = "virtiofs"))]
 use snix_store::pathinfoservice::make_fs;

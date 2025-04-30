@@ -16,13 +16,13 @@ use self::{
     inodes::{DirectoryInodeData, InodeData},
 };
 use crate::{
+    B3Digest, Node,
     blobservice::{BlobReader, BlobService},
     directoryservice::DirectoryService,
     path::PathComponent,
-    B3Digest, Node,
 };
 use bstr::ByteVec;
-use fuse_backend_rs::abi::fuse_abi::{stat64, OpenOptions};
+use fuse_backend_rs::abi::fuse_abi::{OpenOptions, stat64};
 use fuse_backend_rs::api::filesystem::{
     Context, FileSystem, FsOptions, GetxattrReply, ListxattrReply, ROOT_ID,
 };
@@ -33,7 +33,7 @@ use std::{
     collections::HashMap,
     io,
     sync::atomic::AtomicU64,
-    sync::{atomic::Ordering, Arc},
+    sync::{Arc, atomic::Ordering},
     time::Duration,
 };
 use std::{ffi::CStr, io::Cursor};
@@ -41,7 +41,7 @@ use tokio::{
     io::{AsyncReadExt, AsyncSeekExt},
     sync::mpsc,
 };
-use tracing::{debug, error, instrument, warn, Instrument as _, Span};
+use tracing::{Instrument as _, Span, debug, error, instrument, warn};
 
 /// This implements a read-only FUSE filesystem for a snix-store
 /// with the passed [BlobService], [DirectoryService] and [RootNodes].

@@ -1,20 +1,20 @@
-use std::collections::hash_map;
 use std::collections::HashMap;
+use std::collections::hash_map;
 use std::sync::Arc;
 
 use data_encoding::HEXLOWER;
-use futures::future::Either;
-use futures::stream::BoxStream;
 use futures::SinkExt;
 use futures::StreamExt;
 use futures::TryFutureExt;
 use futures::TryStreamExt;
-use object_store::{path::Path, ObjectStore};
+use futures::future::Either;
+use futures::stream::BoxStream;
+use object_store::{ObjectStore, path::Path};
 use prost::Message;
 use tokio::io::AsyncWriteExt;
 use tokio_util::codec::LengthDelimitedCodec;
 use tonic::async_trait;
-use tracing::{instrument, trace, warn, Level};
+use tracing::{Level, instrument, trace, warn};
 use url::Url;
 
 use super::{
@@ -22,7 +22,7 @@ use super::{
     RootToLeavesValidator,
 };
 use crate::composition::{CompositionContext, ServiceBuilder};
-use crate::{proto, B3Digest, Error, Node};
+use crate::{B3Digest, Error, Node, proto};
 
 /// Stores directory closures in an object store.
 /// Notably, this makes use of the option to disallow accessing child directories except when
@@ -49,7 +49,7 @@ fn derive_dirs_path(base_path: &Path, digest: &B3Digest) -> Path {
 
 #[allow(clippy::identity_op)]
 const MAX_FRAME_LENGTH: usize = 1 * 1024 * 1024 * 1000; // 1 MiB
-                                                        //
+//
 impl ObjectStoreDirectoryService {
     /// Constructs a new [ObjectStoreDirectoryService] from a [Url] supported by
     /// [object_store].

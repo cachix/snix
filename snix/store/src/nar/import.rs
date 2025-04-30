@@ -4,13 +4,14 @@ use nix_compat::{
 };
 use sha2::Digest;
 use snix_castore::{
+    Node, PathBuf,
     blobservice::BlobService,
     directoryservice::DirectoryService,
     import::{
+        IngestionEntry, IngestionError,
         blobs::{self, ConcurrentBlobUploader},
-        ingest_entries, IngestionEntry, IngestionError,
+        ingest_entries,
     },
-    Node, PathBuf,
 };
 use tokio::{
     io::{AsyncBufRead, AsyncRead},
@@ -232,7 +233,7 @@ mod test {
     use crate::fixtures::{
         NAR_CONTENTS_COMPLICATED, NAR_CONTENTS_HELLOWORLD, NAR_CONTENTS_SYMLINK,
     };
-    use crate::nar::{ingest_nar, ingest_nar_and_hash, NarIngestionError};
+    use crate::nar::{NarIngestionError, ingest_nar, ingest_nar_and_hash};
     use std::io::Cursor;
     use std::sync::Arc;
 

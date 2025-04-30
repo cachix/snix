@@ -1,5 +1,5 @@
 use std::{
-    collections::{hash_map, HashMap},
+    collections::{HashMap, hash_map},
     io::{self, Cursor},
     pin::pin,
     sync::Arc,
@@ -9,19 +9,19 @@ use std::{
 use data_encoding::HEXLOWER;
 use fastcdc::v2020::AsyncStreamCDC;
 use futures::Future;
-use object_store::{path::Path, ObjectStore};
+use object_store::{ObjectStore, path::Path};
 use pin_project_lite::pin_project;
 use prost::Message;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt};
 use tokio_stream::StreamExt;
 use tonic::async_trait;
-use tracing::{debug, instrument, trace, Level};
+use tracing::{Level, debug, instrument, trace};
 use url::Url;
 
 use crate::{
-    composition::{CompositionContext, ServiceBuilder},
-    proto::{stat_blob_response::ChunkMeta, StatBlobResponse},
     B3Digest, B3HashingReader, Error,
+    composition::{CompositionContext, ServiceBuilder},
+    proto::{StatBlobResponse, stat_blob_response::ChunkMeta},
 };
 
 use super::{BlobReader, BlobService, BlobWriter, ChunkedReader};

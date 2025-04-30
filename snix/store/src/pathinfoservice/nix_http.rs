@@ -1,6 +1,6 @@
 use super::{PathInfo, PathInfoService};
 use crate::nar::ingest_nar_and_hash;
-use futures::{stream::BoxStream, TryStreamExt};
+use futures::{TryStreamExt, stream::BoxStream};
 use nix_compat::{
     narinfo::{self, NarInfo, Signature},
     nixbase32,
@@ -9,7 +9,7 @@ use nix_compat::{
 };
 use reqwest::StatusCode;
 use snix_castore::composition::{CompositionContext, ServiceBuilder};
-use snix_castore::{blobservice::BlobService, directoryservice::DirectoryService, Error};
+use snix_castore::{Error, blobservice::BlobService, directoryservice::DirectoryService};
 use std::sync::Arc;
 use tokio::io::{self, AsyncRead};
 use tonic::async_trait;

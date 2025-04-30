@@ -1,10 +1,10 @@
 use std::{
     io::Result,
     pin::Pin,
-    task::{ready, Context, Poll},
+    task::{Context, Poll, ready},
 };
 
-use md5::{digest::DynDigest, Digest};
+use md5::{Digest, digest::DynDigest};
 use nix_compat::nixhash::{HashAlgo, NixHash};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncRead, ReadBuf};

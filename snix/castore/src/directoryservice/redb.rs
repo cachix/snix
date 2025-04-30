@@ -6,12 +6,13 @@ use tonic::async_trait;
 use tracing::{instrument, warn};
 
 use super::{
-    traverse_directory, Directory, DirectoryGraph, DirectoryPutter, DirectoryService,
-    LeavesToRootValidator,
+    Directory, DirectoryGraph, DirectoryPutter, DirectoryService, LeavesToRootValidator,
+    traverse_directory,
 };
 use crate::{
+    B3Digest, Error,
     composition::{CompositionContext, ServiceBuilder},
-    proto, B3Digest, Error,
+    proto,
 };
 
 const DIRECTORY_TABLE: TableDefinition<[u8; B3Digest::LENGTH], Vec<u8>> =

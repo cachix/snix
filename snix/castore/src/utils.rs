@@ -4,7 +4,7 @@ use url::Url;
 
 use crate::blobservice::BlobService;
 use crate::composition::{
-    with_registry, Composition, DeserializeWithRegistry, ServiceBuilder, REG,
+    Composition, DeserializeWithRegistry, REG, ServiceBuilder, with_registry,
 };
 use crate::directoryservice::DirectoryService;
 

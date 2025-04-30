@@ -2,10 +2,10 @@ use crate::pathinfoservice::PathInfo;
 use md5::Digest;
 use nix_compat::nixhash::{CAHash, NixHash};
 use nix_compat::store_path::StorePath;
+use snix_castore::Node;
 use snix_castore::fixtures::{
     DIRECTORY_COMPLICATED, DUMMY_DIGEST, HELLOWORLD_BLOB_CONTENTS, HELLOWORLD_BLOB_DIGEST,
 };
-use snix_castore::Node;
 use std::sync::LazyLock;
 
 pub const DUMMY_PATH_STR: &str = "00000000000000000000000000000000-dummy";

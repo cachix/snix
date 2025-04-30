@@ -6,12 +6,12 @@ use crate::{
 use async_stream::try_stream;
 use futures::stream::BoxStream;
 use nix_compat::nixbase32;
-use snix_castore::composition::{CompositionContext, ServiceBuilder};
 use snix_castore::Error;
 use snix_castore::Node;
+use snix_castore::composition::{CompositionContext, ServiceBuilder};
 use std::sync::Arc;
-use tonic::{async_trait, Code};
-use tracing::{instrument, warn, Span};
+use tonic::{Code, async_trait};
+use tracing::{Span, instrument, warn};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 /// Connects to a (remote) snix-store PathInfoService over gRPC.
@@ -185,8 +185,8 @@ impl ServiceBuilder for GRPCPathInfoServiceConfig {
 
 #[cfg(test)]
 mod tests {
-    use crate::pathinfoservice::tests::make_grpc_path_info_service_client;
     use crate::pathinfoservice::PathInfoService;
+    use crate::pathinfoservice::tests::make_grpc_path_info_service_client;
 
     /// This ensures connecting via gRPC works as expected.
     #[tokio::test]

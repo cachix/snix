@@ -11,16 +11,16 @@ use super::RenderError;
 use bytes::{BufMut, Bytes};
 
 use nix_compat::nar::writer::sync as nar_writer;
+use snix_castore::Directory;
 use snix_castore::blobservice::{BlobReader, BlobService};
 use snix_castore::directoryservice::{
     DirectoryGraph, DirectoryService, RootToLeavesValidator, ValidatedDirectoryGraph,
 };
-use snix_castore::Directory;
 use snix_castore::{B3Digest, Node};
 
-use futures::future::{BoxFuture, FusedFuture, TryMaybeDone};
 use futures::FutureExt;
 use futures::TryStreamExt;
+use futures::future::{BoxFuture, FusedFuture, TryMaybeDone};
 
 use tokio::io::AsyncSeekExt;
 
@@ -364,7 +364,7 @@ impl<B: BlobService + 'static> tokio::io::AsyncRead for Reader<B> {
                         return Poll::Ready(Err(io::Error::new(
                             io::ErrorKind::UnexpectedEof,
                             "blob short read",
-                        )))
+                        )));
                     }
                     (false, true) => {
                         buf.set_filled(prev_read_buf_pos);

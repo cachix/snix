@@ -8,12 +8,12 @@ use futures::stream::BoxStream;
 use nix_compat::nixbase32;
 use prost::Message;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, DurationSeconds};
-use snix_castore::composition::{CompositionContext, ServiceBuilder};
+use serde_with::{DurationSeconds, serde_as};
 use snix_castore::Error;
+use snix_castore::composition::{CompositionContext, ServiceBuilder};
 use std::sync::Arc;
 use tonic::async_trait;
-use tracing::{instrument, trace, warn, Span};
+use tracing::{Span, instrument, trace, warn};
 
 /// There should not be more than 10 MiB in a single cell.
 /// <https://cloud.google.com/bigtable/docs/schema-design#cells>
@@ -77,7 +77,7 @@ impl BigtablePathInfoService {
 
         use async_process::{Command, Stdio};
         use tempfile::TempDir;
-        use tokio_retry::{strategy::ExponentialBackoff, Retry};
+        use tokio_retry::{Retry, strategy::ExponentialBackoff};
 
         let tmpdir = TempDir::new().unwrap();
 

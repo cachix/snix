@@ -4,16 +4,16 @@ use data_encoding::HEXLOWER;
 use futures::stream::BoxStream;
 use prost::Message;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, DurationSeconds};
+use serde_with::{DurationSeconds, serde_as};
 use std::sync::Arc;
 use tonic::async_trait;
 use tracing::{instrument, trace, warn};
 
 use super::{
-    utils::traverse_directory, Directory, DirectoryPutter, DirectoryService, SimplePutter,
+    Directory, DirectoryPutter, DirectoryService, SimplePutter, utils::traverse_directory,
 };
 use crate::composition::{CompositionContext, ServiceBuilder};
-use crate::{proto, B3Digest, Error};
+use crate::{B3Digest, Error, proto};
 
 /// There should not be more than 10 MiB in a single cell.
 /// <https://cloud.google.com/bigtable/docs/schema-design#cells>
@@ -79,7 +79,7 @@ impl BigtableDirectoryService {
 
         use async_process::{Command, Stdio};
         use tempfile::TempDir;
-        use tokio_retry::{strategy::ExponentialBackoff, Retry};
+        use tokio_retry::{Retry, strategy::ExponentialBackoff};
 
         let tmpdir = TempDir::new().unwrap();
 

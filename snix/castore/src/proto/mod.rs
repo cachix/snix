@@ -5,7 +5,7 @@ use std::cmp::Ordering;
 mod grpc_blobservice_wrapper;
 mod grpc_directoryservice_wrapper;
 
-use crate::{path::PathComponent, B3Digest, DirectoryError};
+use crate::{B3Digest, DirectoryError, path::PathComponent};
 pub use grpc_blobservice_wrapper::GRPCBlobServiceWrapper;
 pub use grpc_directoryservice_wrapper::GRPCDirectoryServiceWrapper;
 

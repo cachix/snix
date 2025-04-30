@@ -1,10 +1,10 @@
 use crate::nar::{NarCalculationService, RenderError};
 use crate::pathinfoservice::{PathInfo, PathInfoService};
 use crate::proto;
-use futures::{stream::BoxStream, TryStreamExt};
+use futures::{TryStreamExt, stream::BoxStream};
 use snix_castore::proto as castorepb;
 use std::ops::Deref;
-use tonic::{async_trait, Request, Response, Result, Status};
+use tonic::{Request, Response, Result, Status, async_trait};
 use tracing::{instrument, warn};
 
 pub struct GRPCPathInfoServiceWrapper<PS, NS> {

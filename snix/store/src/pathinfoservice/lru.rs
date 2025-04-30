@@ -8,8 +8,8 @@ use tokio::sync::RwLock;
 use tonic::async_trait;
 use tracing::instrument;
 
-use snix_castore::composition::{CompositionContext, ServiceBuilder};
 use snix_castore::Error;
+use snix_castore::composition::{CompositionContext, ServiceBuilder};
 
 use super::{PathInfo, PathInfoService};
 
@@ -111,11 +111,12 @@ mod test {
         let svc = LruPathInfoService::with_capacity("test".into(), NonZeroUsize::new(1).unwrap());
 
         // pathinfo_1 should not be there
-        assert!(svc
-            .get(*PATH_INFO.store_path.digest())
-            .await
-            .expect("no error")
-            .is_none());
+        assert!(
+            svc.get(*PATH_INFO.store_path.digest())
+                .await
+                .expect("no error")
+                .is_none()
+        );
 
         // insert it
         svc.put(PATH_INFO.clone()).await.expect("no error");
@@ -138,10 +139,11 @@ mod test {
         );
 
         // … but pathinfo 1 not anymore.
-        assert!(svc
-            .get(*PATH_INFO.store_path.digest())
-            .await
-            .expect("no error")
-            .is_none());
+        assert!(
+            svc.get(*PATH_INFO.store_path.digest())
+                .await
+                .expect("no error")
+                .is_none()
+        );
     }
 }

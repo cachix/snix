@@ -1,10 +1,10 @@
 use super::PathInfoService;
 
 use crate::composition::REG;
-use snix_castore::composition::{
-    with_registry, CompositionContext, DeserializeWithRegistry, ServiceBuilder,
-};
 use snix_castore::Error;
+use snix_castore::composition::{
+    CompositionContext, DeserializeWithRegistry, ServiceBuilder, with_registry,
+};
 use std::sync::Arc;
 use url::Url;
 

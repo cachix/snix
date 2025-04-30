@@ -152,7 +152,7 @@ mod tests {
     use bytes::Bytes;
     use rstest::rstest;
 
-    use super::{validate_name, PathComponent, PathComponentError};
+    use super::{PathComponent, PathComponentError, validate_name};
 
     #[rstest]
     #[case::empty(b"", PathComponentError::Empty)]

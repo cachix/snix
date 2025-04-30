@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use crate::nodes::Directory;
-use crate::{path::PathComponent, Error, Node};
+use crate::{Error, Node, path::PathComponent};
 use futures::stream::BoxStream;
 use tonic::async_trait;
 

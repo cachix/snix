@@ -1,8 +1,8 @@
 use super::{BlobReader, BlobService, BlobWriter, ChunkedReader};
 use crate::composition::{CompositionContext, ServiceBuilder};
 use crate::{
-    proto::{self, stat_blob_response::ChunkMeta},
     B3Digest,
+    proto::{self, stat_blob_response::ChunkMeta},
 };
 use futures::sink::SinkExt;
 use std::{
@@ -13,13 +13,13 @@ use std::{
 };
 use tokio::io::AsyncWriteExt;
 use tokio::task::JoinHandle;
-use tokio_stream::{wrappers::ReceiverStream, StreamExt};
+use tokio_stream::{StreamExt, wrappers::ReceiverStream};
 use tokio_util::{
     io::{CopyToBytes, SinkWriter},
     sync::PollSender,
 };
-use tonic::{async_trait, Code, Status};
-use tracing::{instrument, Instrument as _};
+use tonic::{Code, Status, async_trait};
+use tracing::{Instrument as _, instrument};
 
 /// Connects to a (remote) snix-store BlobService over gRPC.
 #[derive(Clone)]
@@ -323,14 +323,14 @@ mod tests {
 
     use tempfile::TempDir;
     use tokio::net::UnixListener;
-    use tokio_retry::strategy::ExponentialBackoff;
     use tokio_retry::Retry;
+    use tokio_retry::strategy::ExponentialBackoff;
     use tokio_stream::wrappers::UnixListenerStream;
 
     use crate::blobservice::MemoryBlobService;
     use crate::fixtures;
-    use crate::proto::blob_service_client::BlobServiceClient;
     use crate::proto::GRPCBlobServiceWrapper;
+    use crate::proto::blob_service_client::BlobServiceClient;
 
     use super::BlobService;
     use super::GRPCBlobService;

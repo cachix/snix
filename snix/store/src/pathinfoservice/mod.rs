@@ -15,8 +15,8 @@ mod tests;
 
 use auto_impl::auto_impl;
 use futures::stream::BoxStream;
-use snix_castore::composition::{Registry, ServiceBuilder};
 use snix_castore::Error;
+use snix_castore::composition::{Registry, ServiceBuilder};
 use tonic::async_trait;
 
 use crate::nar::NarCalculationService;

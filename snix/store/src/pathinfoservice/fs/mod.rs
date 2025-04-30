@@ -1,9 +1,9 @@
-use futures::stream::BoxStream;
 use futures::StreamExt;
+use futures::stream::BoxStream;
 use nix_compat::store_path::StorePathRef;
 use snix_castore::fs::{RootNodes, SnixStoreFs};
-use snix_castore::{blobservice::BlobService, directoryservice::DirectoryService};
 use snix_castore::{Error, Node, PathComponent};
+use snix_castore::{blobservice::BlobService, directoryservice::DirectoryService};
 use tonic::async_trait;
 
 use super::PathInfoService;

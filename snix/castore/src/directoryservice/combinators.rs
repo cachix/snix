@@ -1,17 +1,17 @@
 use std::sync::Arc;
 
-use futures::stream::BoxStream;
 use futures::StreamExt;
 use futures::TryFutureExt;
 use futures::TryStreamExt;
+use futures::stream::BoxStream;
 use tonic::async_trait;
 use tracing::{instrument, trace};
 
 use super::{Directory, DirectoryGraph, DirectoryService, RootToLeavesValidator, SimplePutter};
-use crate::composition::{CompositionContext, ServiceBuilder};
-use crate::directoryservice::DirectoryPutter;
 use crate::B3Digest;
 use crate::Error;
+use crate::composition::{CompositionContext, ServiceBuilder};
+use crate::directoryservice::DirectoryPutter;
 
 /// Asks near first, if not found, asks far.
 /// If found in there, returns it, and *inserts* it into

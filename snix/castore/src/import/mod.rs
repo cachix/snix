@@ -211,11 +211,11 @@ mod test {
     use rstest::rstest;
 
     use crate::fixtures::{DIRECTORY_COMPLICATED, DIRECTORY_WITH_KEEP, EMPTY_BLOB_DIGEST};
-    use crate::{directoryservice::MemoryDirectoryService, fixtures::DUMMY_DIGEST};
     use crate::{Directory, Node};
+    use crate::{directoryservice::MemoryDirectoryService, fixtures::DUMMY_DIGEST};
 
-    use super::ingest_entries;
     use super::IngestionEntry;
+    use super::ingest_entries;
 
     #[rstest]
     #[case::single_file(vec![IngestionEntry::Regular {

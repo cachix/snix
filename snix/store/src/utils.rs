@@ -14,7 +14,7 @@ use crate::composition::REG;
 use crate::nar::{NarCalculationService, SimpleRenderer};
 use crate::pathinfoservice::PathInfoService;
 use snix_castore::composition::{
-    with_registry, Composition, DeserializeWithRegistry, ServiceBuilder,
+    Composition, DeserializeWithRegistry, ServiceBuilder, with_registry,
 };
 
 #[derive(serde::Deserialize, Default)]

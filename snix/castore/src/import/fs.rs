@@ -1,17 +1,17 @@
 //! Import from a real filesystem.
 
-use futures::stream::BoxStream;
 use futures::StreamExt;
+use futures::stream::BoxStream;
 use std::fs::FileType;
 use std::os::unix::ffi::OsStringExt;
 use std::os::unix::fs::MetadataExt;
 use std::os::unix::fs::PermissionsExt;
 use tokio::io::BufReader;
 use tokio_util::io::InspectReader;
-use tracing::info_span;
-use tracing::instrument;
 use tracing::Instrument;
 use tracing::Span;
+use tracing::info_span;
+use tracing::instrument;
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 use walkdir::DirEntry;
 use walkdir::WalkDir;
@@ -21,9 +21,9 @@ use crate::directoryservice::DirectoryService;
 use crate::refscan::{ReferenceReader, ReferenceScanner};
 use crate::{B3Digest, Node};
 
-use super::ingest_entries;
 use super::IngestionEntry;
 use super::IngestionError;
+use super::ingest_entries;
 
 /// Ingests the contents at a given path into the snix store, interacting with a [BlobService] and
 /// [DirectoryService]. It returns the root node or an error.

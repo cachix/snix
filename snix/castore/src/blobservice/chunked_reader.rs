@@ -1,4 +1,4 @@
-use futures::{ready, TryStreamExt};
+use futures::{TryStreamExt, ready};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncRead, AsyncSeekExt};
 use tokio_stream::StreamExt;
@@ -259,8 +259,8 @@ mod test {
     };
 
     use crate::{
-        blobservice::{chunked_reader::ChunkedReader, BlobService, MemoryBlobService},
         B3Digest,
+        blobservice::{BlobService, MemoryBlobService, chunked_reader::ChunkedReader},
     };
     use hex_literal::hex;
     use tokio::io::{AsyncReadExt, AsyncSeekExt};

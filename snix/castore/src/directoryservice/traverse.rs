@@ -1,4 +1,4 @@
-use crate::{directoryservice::DirectoryService, Error, Node, Path};
+use crate::{Error, Node, Path, directoryservice::DirectoryService};
 use tracing::{instrument, warn};
 
 /// This descends from a (root) node to the given (sub)path, returning the Node
@@ -51,9 +51,8 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        directoryservice,
+        Node, PathBuf, directoryservice,
         fixtures::{DIRECTORY_COMPLICATED, DIRECTORY_WITH_KEEP, EMPTY_BLOB_DIGEST},
-        Node, PathBuf,
     };
 
     use super::descend_to;
