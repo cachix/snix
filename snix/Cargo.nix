@@ -14029,7 +14029,7 @@ rec {
       "snix-cli" = rec {
         crateName = "snix-cli";
         version = "0.1.0";
-        edition = "2021";
+        edition = "2024";
         crateBin = [
           {
             name = "snix";

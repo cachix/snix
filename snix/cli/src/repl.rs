@@ -3,14 +3,14 @@ use std::path::PathBuf;
 use std::rc::Rc;
 
 use rustc_hash::FxHashMap;
-use rustyline::{error::ReadlineError, Editor};
+use rustyline::{Editor, error::ReadlineError};
 use smol_str::SmolStr;
 use snix_eval::{GlobalsMap, SourceCode, Value};
 use snix_glue::snix_store_io::SnixStoreIO;
 
 use crate::{
-    assignment::Assignment, evaluate, interpret, AllowIncomplete, Args, IncompleteInput,
-    InterpretResult,
+    AllowIncomplete, Args, IncompleteInput, InterpretResult, assignment::Assignment, evaluate,
+    interpret,
 };
 
 fn state_dir() -> Option<PathBuf> {

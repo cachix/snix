@@ -5,9 +5,9 @@ use rustc_hash::FxHashMap;
 use smol_str::SmolStr;
 use snix_build::buildservice;
 use snix_eval::{
+    ErrorKind, EvalIO, EvalMode, GlobalsMap, SourceCode, Value,
     builtins::impure_builtins,
     observer::{DisassemblingObserver, TracingObserver},
-    ErrorKind, EvalIO, EvalMode, GlobalsMap, SourceCode, Value,
 };
 use snix_glue::{
     builtins::{add_derivation_builtins, add_fetcher_builtins, add_import_builtins},
@@ -16,7 +16,7 @@ use snix_glue::{
     snix_store_io::SnixStoreIO,
 };
 use std::fmt::Write;
-use tracing::{info_span, Span};
+use tracing::{Span, info_span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 pub mod args;
