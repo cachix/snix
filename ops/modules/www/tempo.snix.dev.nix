@@ -7,7 +7,6 @@
   services.nginx = {
     upstreams.tempo = {
       servers."${config.services.tempo.settings.distributor.receivers.otlp.protocols.http.endpoint}" = { };
-      extraConfig = "keepalive 16;";
     };
 
     virtualHosts."tempo.snix.dev" = {
