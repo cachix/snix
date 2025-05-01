@@ -54,4 +54,18 @@ so we can coordinate how to add/fix it.
 Snix is developed as a GPLv3-licensed free software project with source code
 available on [our own Forgejo](https://git.snix.dev/) instance.
 
+<hr>
+
+<center>
+
+![NLNET](../assets/nlnet-logo.png)
+
+Snix is [generously][nlnet-proj-tvix] [funded][nlnet-proj-tvix-store-build]
+by [NLNET][].
+</center>
+
+---
 [NixOS/nix]: https://github.com/NixOS/nix
+[NLNET]: https://nlnet.nl
+[nlnet-proj-tvix]: https://nlnet.nl/project/Tvix/
+[nlnet-proj-tvix-store-build]: https://nlnet.nl/project/Tvix-Store_Builder/
