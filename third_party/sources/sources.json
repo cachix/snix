@@ -11,6 +11,18 @@
         "url": "https://github.com/ryantm/agenix/archive/e600439ec4c273cf11e06fe4d9d906fb98fa097c.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "ai-robots-txt": {
+        "branch": "main",
+        "description": "A list of AI agents and robots to block.",
+        "homepage": "https://github.com/ai-robots-txt/ai.robots.txt/releases.atom",
+        "owner": "ai-robots-txt",
+        "repo": "ai.robots.txt",
+        "rev": "678380727e8685af8c5311bcfa1f55c7aa866d3b",
+        "sha256": "1wm84mbjypgzm0nfsl4c8pfkx93hr1iaxgq4s4lsxhzqk6x4ns5k",
+        "type": "tarball",
+        "url": "https://github.com/ai-robots-txt/ai.robots.txt/archive/678380727e8685af8c5311bcfa1f55c7aa866d3b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "bqn-libs": {
         "branch": "master",
         "description": "Informal collection of BQN utilities",

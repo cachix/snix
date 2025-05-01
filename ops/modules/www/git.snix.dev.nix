@@ -1,4 +1,4 @@
-{ ... }:
+{ depot, ... }:
 
 {
   imports = [
@@ -10,9 +10,12 @@
       serverName = "git.snix.dev";
       enableACME = true;
       forceSSL = true;
+      locations."=/robots.txt".alias = "${depot.third_party.sources.ai-robots-txt}/robots.txt";
       locations."/" = {
         proxyPass = "http://127.0.0.1:3000";
         extraConfig = ''
+          include ${depot.third_party.sources.ai-robots-txt + "/nginx-block-ai-bots.conf"};
+
           proxy_ssl_server_name on;
           proxy_pass_header Authorization;
 
