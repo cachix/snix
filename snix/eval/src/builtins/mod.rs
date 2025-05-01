@@ -811,36 +811,32 @@ mod pure_builtins {
         // We opted for this implementation over simpler ones because of the
         // heavy use of this function in nixpkgs.
         loop {
-            if left.0 == right.0 {
-                out.insert(right.0.clone(), right.1.clone());
+            match left.0.cmp(right.0) {
+                Ordering::Equal => {
+                    out.insert(right.0.clone(), right.1.clone());
 
-                left = match left_iter.next() {
-                    Some(x) => x,
-                    None => break,
-                };
+                    left = match left_iter.next() {
+                        Some(x) => x,
+                        None => break,
+                    };
 
-                right = match right_iter.next() {
-                    Some(x) => x,
-                    None => break,
-                };
-
-                continue;
-            }
-
-            if left.0 < right.0 {
-                left = match left_iter.next() {
-                    Some(x) => x,
-                    None => break,
-                };
-                continue;
-            }
-
-            if right.0 < left.0 {
-                right = match right_iter.next() {
-                    Some(x) => x,
-                    None => break,
-                };
-                continue;
+                    right = match right_iter.next() {
+                        Some(x) => x,
+                        None => break,
+                    };
+                }
+                Ordering::Less => {
+                    left = match left_iter.next() {
+                        Some(x) => x,
+                        None => break,
+                    };
+                }
+                Ordering::Greater => {
+                    right = match right_iter.next() {
+                        Some(x) => x,
+                        None => break,
+                    };
+                }
             }
         }
 
