@@ -16,4 +16,10 @@
 
   # Test path URL format
   (builtins.parseFlakeRef "path:/path/to/project")
+  
+  # Test file URL format - should be tarball type by default
+  (builtins.parseFlakeRef "file:///home/user/dev/snix/snix/glue/src/tests/blob.tar.gz")
+
+  # Test explicit file type URL format
+  (builtins.parseFlakeRef "file+file:///home/user/dev/snix/snix/glue/src/tests/blob.tar.gz")
 ]

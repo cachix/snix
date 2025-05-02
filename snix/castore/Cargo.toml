@@ -23,7 +23,14 @@ thiserror.workspace = true
 tokio-stream = { workspace = true, features = ["fs", "net"] }
 tokio-util = { workspace = true, features = ["io", "io-util", "codec"] }
 tokio-tar.workspace = true
-tokio = { workspace = true, features = ["fs", "macros", "net", "rt", "rt-multi-thread", "signal"] }
+tokio = { workspace = true, features = [
+    "fs",
+    "macros",
+    "net",
+    "rt",
+    "rt-multi-thread",
+    "signal",
+] }
 toml = { version = "0.8.19", optional = true }
 tonic.workspace = true
 tower.workspace = true
@@ -56,6 +63,12 @@ virtio-bindings = { workspace = true, optional = true }
 wu-manber.workspace = true
 auto_impl = "1.2.0"
 hashbrown = "0.15.2"
+gix = { workspace = true, features = [
+    "blocking-network-client",
+    "blocking-http-transport-reqwest",
+] }
+gix-archive = "0.16.0"
+tempfile.workspace = true
 
 [build-dependencies]
 prost-build.workspace = true
@@ -64,7 +77,6 @@ tonic-build.workspace = true
 [dev-dependencies]
 async-process.workspace = true
 rstest.workspace = true
-tempfile.workspace = true
 tokio-retry.workspace = true
 hex-literal.workspace = true
 rstest_reuse.workspace = true
@@ -75,22 +87,22 @@ tokio-test.workspace = true
 [features]
 default = ["cloud"]
 cloud = [
-  "dep:bigtable_rs",
-  "object_store/aws",
-  "object_store/azure",
-  "object_store/gcp",
+    "dep:bigtable_rs",
+    "object_store/aws",
+    "object_store/azure",
+    "object_store/gcp",
 ]
 fs = ["dep:fuse-backend-rs", "dep:threadpool", "dep:libc"]
 virtiofs = [
-  "fs",
-  "dep:vhost",
-  "dep:vhost-user-backend",
-  "dep:virtio-queue",
-  "dep:vm-memory",
-  "dep:vmm-sys-util",
-  "dep:virtio-bindings",
-  "fuse-backend-rs?/vhost-user-fs", # impl FsCacheReqHandler for SlaveFsCacheReq
-  "fuse-backend-rs?/virtiofs",
+    "fs",
+    "dep:vhost",
+    "dep:vhost-user-backend",
+    "dep:virtio-queue",
+    "dep:vm-memory",
+    "dep:vmm-sys-util",
+    "dep:virtio-bindings",
+    "fuse-backend-rs?/vhost-user-fs", # impl FsCacheReqHandler for SlaveFsCacheReq
+    "fuse-backend-rs?/virtiofs",
 ]
 fuse = ["fs"]
 tonic-reflection = ["dep:tonic-reflection"]

@@ -105,7 +105,7 @@ async fn filtered_ingest(
 }
 
 #[builtins(state = "Rc<SnixStoreIO>")]
-mod import_builtins {
+pub(crate) mod import_builtins {
     use super::*;
 
     use crate::builtins::ImportError;
@@ -170,7 +170,8 @@ mod import_builtins {
     }
 
     // This is a helper used by both builtins.path and builtins.filterSource.
-    async fn import_helper(
+    // Also used by builtins.fetchTree for Path type flake references
+    pub(crate) async fn import_helper(
         state: Rc<SnixStoreIO>,
         co: GenCo,
         path: std::path::PathBuf,

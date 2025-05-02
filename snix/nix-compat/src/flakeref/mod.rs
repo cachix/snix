@@ -1,13 +1,24 @@
 // Implements a parser and formatter for Nix flake references.
-// It defines the `FlakeRef` enum which represents different types of flake sources
+// It defines the `FlakeRef` struct which represents a flake with a directory path and fetch reference,
+// and the `FetchRef` enum which represents different types of flake sources
 // (such as Git repositories, GitHub repos, local paths, etc.), along with functionality
-// to parse URLs into `FlakeRef` instances and convert them back to URIs.
+// to parse URLs into `FetchRef` instances and convert them back to URIs.
 use std::{collections::HashMap, path::PathBuf};
 use url::Url;
 
-#[derive(Debug)]
+/// A flake reference that represents a directory path to a flake and how to fetch it
+#[derive(Debug, Clone)]
+pub struct FlakeRef {
+    /// The optional path to the flake directory
+    pub dir: Option<PathBuf>,
+    /// The fetch reference for how to obtain the flake
+    pub fetch_ref: FetchRef,
+}
+
+/// The type of fetch reference for a flake
+#[derive(Debug, Clone)]
 #[non_exhaustive]
-pub enum FlakeRef {
+pub enum FetchRef {
     File {
         last_modified: Option<u64>,
         nar_hash: Option<String>,
@@ -83,48 +94,6 @@ pub enum FlakeRef {
     },
 }
 
-#[derive(Debug, Default)]
-pub struct FlakeRefOutput {
-    pub out_path: String,
-    pub nar_hash: String,
-    pub last_modified: Option<i64>,
-    pub last_modified_date: Option<String>,
-    pub rev_count: Option<i64>,
-    pub rev: Option<String>,
-    pub short_rev: Option<String>,
-    pub submodules: Option<bool>,
-}
-
-impl FlakeRefOutput {
-    pub fn into_kv_tuples(self) -> Vec<(String, String)> {
-        let mut vec = vec![
-            ("outPath".into(), self.out_path),
-            ("narHash".into(), self.nar_hash),
-        ];
-
-        if let Some(lm) = self.last_modified {
-            vec.push(("lastModified".into(), lm.to_string()));
-        }
-        if let Some(lmd) = self.last_modified_date {
-            vec.push(("lastModifiedDate".into(), lmd));
-        }
-        if let Some(rc) = self.rev_count {
-            vec.push(("revCount".into(), rc.to_string()));
-        }
-        if let Some(rev) = self.rev {
-            vec.push(("rev".into(), rev));
-        }
-        if let Some(sr) = self.short_rev {
-            vec.push(("shortRev".into(), sr));
-        }
-        if let Some(sub) = self.submodules {
-            vec.push(("submodules".into(), sub.to_string()));
-        }
-
-        vec
-    }
-}
-
 #[derive(Debug, thiserror::Error)]
 pub enum FlakeRefError {
     #[error("failed to parse URL: {0}")]
@@ -135,6 +104,22 @@ pub enum FlakeRefError {
 
 // Implement FromStr for FlakeRef to allow parsing from a string
 impl std::str::FromStr for FlakeRef {
+    type Err = FlakeRefError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // Parse the fetch_ref
+        let fetch_ref = s.parse::<FetchRef>()?;
+
+        // Create a FlakeRef with the parsed fetch_ref and no dir
+        Ok(FlakeRef {
+            dir: None,
+            fetch_ref,
+        })
+    }
+}
+
+// Implement FromStr for FetchRef to allow parsing from a string
+impl std::str::FromStr for FetchRef {
     type Err = FlakeRefError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -164,6 +149,8 @@ impl std::str::FromStr for FlakeRef {
                 "gitlab" => FetchType::GitLab,
                 "sourcehut" => FetchType::SourceHut,
                 "git" => FetchType::Git,
+                // For file:// URLs, Nix defaults to tarball type
+                "file" => FetchType::Tarball,
                 // Check for tarball file extensions
                 _ if is_tarball_extension(url.path()) => FetchType::Tarball,
                 // Default to File for other schemes
@@ -179,14 +166,11 @@ impl std::str::FromStr for FlakeRef {
             url = Url::parse(&url_str)?;
         }
 
-        // Extract query parameters
-        let query_pairs = extract_query_pairs(&url);
-
-        // Process URL based on fetch type
+        // Process URL based on fetch type, extracting parameters and modifying the URL
         Ok(match fetch_type {
             FetchType::File => {
-                let params = extract_common_file_params(&query_pairs);
-                FlakeRef::File {
+                let params = extract_common_file_params(&mut url);
+                FetchRef::File {
                     url,
                     nar_hash: params.nar_hash,
                     rev: params.rev,
@@ -195,8 +179,8 @@ impl std::str::FromStr for FlakeRef {
                 }
             }
             FetchType::Tarball => {
-                let params = extract_common_file_params(&query_pairs);
-                FlakeRef::Tarball {
+                let params = extract_common_file_params(&mut url);
+                FetchRef::Tarball {
                     url,
                     nar_hash: params.nar_hash,
                     rev: params.rev,
@@ -204,14 +188,20 @@ impl std::str::FromStr for FlakeRef {
                     last_modified: params.last_modified,
                 }
             }
-            FetchType::Indirect => FlakeRef::Indirect {
-                id: url.path().to_string(),
-                r#ref: query_pairs.get("ref").cloned(),
-                rev: query_pairs.get("rev").cloned(),
-            },
+            FetchType::Indirect => {
+                // For indirect type, extract specific parameters
+                let keys = ["ref", "rev"];
+                let params = extract_params(&mut url, &keys);
+
+                FetchRef::Indirect {
+                    id: url.path().to_string(),
+                    r#ref: params.get("ref").cloned(),
+                    rev: params.get("rev").cloned(),
+                }
+            }
             FetchType::Git => {
-                let params = extract_git_params(&query_pairs);
-                FlakeRef::Git {
+                let params = extract_git_params(&mut url);
+                FetchRef::Git {
                     url,
                     r#ref: params.r#ref,
                     rev: params.rev,
@@ -226,8 +216,8 @@ impl std::str::FromStr for FlakeRef {
                 }
             }
             FetchType::Path => {
-                let params = extract_common_file_params(&query_pairs);
-                FlakeRef::Path {
+                let params = extract_common_file_params(&mut url);
+                FetchRef::Path {
                     path: PathBuf::from(url.path()),
                     rev: params.rev,
                     nar_hash: params.nar_hash,
@@ -235,32 +225,28 @@ impl std::str::FromStr for FlakeRef {
                     last_modified: params.last_modified,
                 }
             }
-            FetchType::GitHub => {
-                create_repo_host_args(&url, &query_pairs, |params| FlakeRef::GitHub {
-                    owner: params.owner,
-                    repo: params.repo,
-                    r#ref: params.r#ref,
-                    rev: params.rev,
-                    host: params.host,
-                    keytype: params.keytype,
-                    public_key: params.public_key,
-                    public_keys: params.public_keys,
-                })?
-            }
-            FetchType::GitLab => {
-                create_repo_host_args(&url, &query_pairs, |params| FlakeRef::GitLab {
-                    owner: params.owner,
-                    repo: params.repo,
-                    r#ref: params.r#ref,
-                    rev: params.rev,
-                    host: params.host,
-                    keytype: params.keytype,
-                    public_key: params.public_key,
-                    public_keys: params.public_keys,
-                })?
-            }
+            FetchType::GitHub => create_repo_host_args(&mut url, |params| FetchRef::GitHub {
+                owner: params.owner,
+                repo: params.repo,
+                r#ref: params.r#ref,
+                rev: params.rev,
+                host: params.host,
+                keytype: params.keytype,
+                public_key: params.public_key,
+                public_keys: params.public_keys,
+            })?,
+            FetchType::GitLab => create_repo_host_args(&mut url, |params| FetchRef::GitLab {
+                owner: params.owner,
+                repo: params.repo,
+                r#ref: params.r#ref,
+                rev: params.rev,
+                host: params.host,
+                keytype: params.keytype,
+                public_key: params.public_key,
+                public_keys: params.public_keys,
+            })?,
             FetchType::SourceHut => {
-                create_repo_host_args(&url, &query_pairs, |params| FlakeRef::SourceHut {
+                create_repo_host_args(&mut url, |params| FetchRef::SourceHut {
                     owner: params.owner,
                     repo: params.repo,
                     r#ref: params.r#ref,
@@ -272,6 +258,20 @@ impl std::str::FromStr for FlakeRef {
                 })?
             }
         })
+    }
+}
+
+impl std::fmt::Display for FlakeRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Display the fetch_ref as a URI
+        write!(f, "{}", self.fetch_ref)
+    }
+}
+
+impl std::fmt::Display for FetchRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let url = self.to_uri();
+        write!(f, "{}", url)
     }
 }
 
@@ -323,74 +323,137 @@ enum FetchType {
 }
 
 // Helper functions for query parameters
-fn extract_query_pairs(url: &Url) -> HashMap<String, String> {
-    url.query_pairs()
+/// Extract parameters from a URL and simultaneously remove them from the URL
+/// Returns a HashMap with the extracted parameters and modifies the URL in-place
+fn extract_params(url: &mut Url, keys: &[&str]) -> HashMap<String, String> {
+    if url.query().is_none() {
+        return HashMap::new();
+    }
+
+    // Parse all query pairs
+    let all_pairs: Vec<(String, String)> = url
+        .query_pairs()
         .map(|(k, v)| (k.to_string(), v.to_string()))
-        .collect()
+        .collect();
+
+    // Separate them into two groups: ones to extract and ones to keep
+    let mut extracted = HashMap::new();
+    let mut remaining = Vec::new();
+
+    for (key, value) in all_pairs {
+        if keys.contains(&key.as_str()) {
+            extracted.insert(key, value);
+        } else {
+            remaining.push((key, value));
+        }
+    }
+
+    // Update the URL with only the remaining parameters
+    if remaining.is_empty() {
+        url.set_query(None);
+    } else {
+        let new_query = url::form_urlencoded::Serializer::new(String::new())
+            .extend_pairs(remaining.iter().map(|(k, v)| (k.as_str(), v.as_str())))
+            .finish();
+        url.set_query(Some(&new_query));
+    }
+
+    extracted
 }
 
-fn get_param(query_pairs: &HashMap<String, String>, key: &str) -> Option<u64> {
-    query_pairs.get(key).and_then(|s| s.parse().ok())
+fn get_param(params: &HashMap<String, String>, key: &str) -> Option<u64> {
+    params.get(key).and_then(|s| s.parse().ok())
 }
 
-fn get_bool_param(query_pairs: &HashMap<String, String>, key: &str) -> bool {
-    query_pairs
+fn get_bool_param(params: &HashMap<String, String>, key: &str) -> bool {
+    params
         .get(key)
         .map(|v| v == "1" || v.to_lowercase() == "true")
         .unwrap_or(false)
 }
 
 // Parameter extractors
-fn extract_common_file_params(query_pairs: &HashMap<String, String>) -> FileParams {
+fn extract_common_file_params(url: &mut Url) -> FileParams {
+    let keys = ["narHash", "rev", "revCount", "lastModified"];
+    let params = extract_params(url, &keys);
+
     FileParams {
-        nar_hash: query_pairs.get("narHash").cloned(),
-        rev: query_pairs.get("rev").cloned(),
-        rev_count: get_param(query_pairs, "revCount"),
-        last_modified: get_param(query_pairs, "lastModified"),
+        nar_hash: params.get("narHash").cloned(),
+        rev: params.get("rev").cloned(),
+        rev_count: get_param(&params, "revCount"),
+        last_modified: get_param(&params, "lastModified"),
     }
 }
 
-fn extract_git_params(query_pairs: &HashMap<String, String>) -> GitParams {
+fn extract_git_params(url: &mut Url) -> GitParams {
+    let keys = [
+        "ref",
+        "rev",
+        "keytype",
+        "publicKey",
+        "publicKeys",
+        "submodules",
+        "shallow",
+        "exportIgnore",
+        "allRefs",
+        "verifyCommit",
+    ];
+    let params = extract_params(url, &keys);
+
     GitParams {
-        r#ref: query_pairs.get("ref").cloned(),
-        rev: query_pairs.get("rev").cloned(),
-        keytype: query_pairs.get("keytype").cloned(),
-        public_key: query_pairs.get("publicKey").cloned(),
-        public_keys: query_pairs
+        r#ref: params.get("ref").cloned(),
+        rev: params.get("rev").cloned(),
+        keytype: params.get("keytype").cloned(),
+        public_key: params.get("publicKey").cloned(),
+        public_keys: params
             .get("publicKeys")
             .map(|s| s.split(',').map(String::from).collect()),
-        submodules: get_bool_param(query_pairs, "submodules"),
-        shallow: get_bool_param(query_pairs, "shallow"),
-        export_ignore: get_bool_param(query_pairs, "exportIgnore"),
-        all_refs: get_bool_param(query_pairs, "allRefs"),
-        verify_commit: get_bool_param(query_pairs, "verifyCommit"),
+        submodules: get_bool_param(&params, "submodules"),
+        shallow: get_bool_param(&params, "shallow"),
+        export_ignore: get_bool_param(&params, "exportIgnore"),
+        all_refs: get_bool_param(&params, "allRefs"),
+        verify_commit: get_bool_param(&params, "verifyCommit"),
     }
 }
 
-fn extract_repo_params(
-    url: &Url,
-    query_pairs: &HashMap<String, String>,
-) -> Result<RepoHostParams, FlakeRefError> {
-    let (owner, repo, path_ref) = parse_path_segments(url)?;
+fn extract_repo_params(url: &mut Url) -> Result<RepoHostParams, FlakeRefError> {
+    let (owner, repo, path_ref_or_rev) = parse_path_segments(url)?;
 
-    // Check for branch/tag conflicts
-    if path_ref.is_some() && query_pairs.contains_key("ref") {
+    // Check for branch/tag conflicts - need to do this before we modify the URL
+    let has_ref_param = url.query_pairs().any(|(k, _)| k == "ref");
+    if path_ref_or_rev.is_some() && has_ref_param {
         return Err(FlakeRefError::UnsupportedType(
             "URL contains multiple branch/tag names".to_string(),
         ));
     }
 
-    let r#ref = path_ref.or_else(|| query_pairs.get("ref").cloned());
+    // Extract the parameters
+    let keys = ["ref", "rev", "host", "keytype", "publicKey", "publicKeys"];
+    let params = extract_params(url, &keys);
+
+    // Determine if path_ref_or_rev is a rev or ref
+    let (r#ref, rev) = if let Some(path_val) = path_ref_or_rev {
+        let appears_to_be_rev =
+            path_val.chars().all(|c| c.is_ascii_hexdigit()) && path_val.len() == 40;
+
+        if appears_to_be_rev {
+            (params.get("ref").cloned(), Some(path_val))
+        } else {
+            (Some(path_val), params.get("rev").cloned())
+        }
+    } else {
+        (params.get("ref").cloned(), params.get("rev").cloned())
+    };
 
     Ok(RepoHostParams {
         owner,
         repo,
         r#ref,
-        rev: query_pairs.get("rev").cloned(),
-        host: query_pairs.get("host").cloned(),
-        keytype: query_pairs.get("keytype").cloned(),
-        public_key: query_pairs.get("publicKey").cloned(),
-        public_keys: query_pairs
+        rev,
+        host: params.get("host").cloned(),
+        keytype: params.get("keytype").cloned(),
+        public_key: params.get("publicKey").cloned(),
+        public_keys: params
             .get("publicKeys")
             .map(|s| s.split(',').map(String::from).collect()),
     })
@@ -422,15 +485,11 @@ fn is_tarball_extension(path: &str) -> bool {
     TARBALL_EXTENSIONS.iter().any(|ext| path.ends_with(ext))
 }
 
-fn create_repo_host_args<F>(
-    url: &Url,
-    query_pairs: &HashMap<String, String>,
-    creator: F,
-) -> Result<FlakeRef, FlakeRefError>
+fn create_repo_host_args<F>(url: &mut Url, creator: F) -> Result<FetchRef, FlakeRefError>
 where
-    F: FnOnce(RepoHostParams) -> FlakeRef,
+    F: FnOnce(RepoHostParams) -> FetchRef,
 {
-    let params = extract_repo_params(url, query_pairs)?;
+    let params = extract_repo_params(url)?;
     Ok(creator(params))
 }
 
@@ -506,8 +565,15 @@ fn append_repo_host_params(url: &mut Url, params: &RepoHostParams) {
 // Implementation of to_uri method for FlakeRef
 impl FlakeRef {
     pub fn to_uri(&self) -> Url {
+        self.fetch_ref.to_uri()
+    }
+}
+
+// Implementation of to_uri method for FetchRef
+impl FetchRef {
+    pub fn to_uri(&self) -> Url {
         match self {
-            FlakeRef::File {
+            FetchRef::File {
                 url,
                 nar_hash,
                 rev,
@@ -524,7 +590,7 @@ impl FlakeRef {
                 append_common_file_params(&mut url, &params);
                 url
             }
-            FlakeRef::Git {
+            FetchRef::Git {
                 url,
                 r#ref,
                 rev,
@@ -553,7 +619,7 @@ impl FlakeRef {
                 append_git_params(&mut url, &params);
                 Url::parse(&format!("git+{}", url.as_str())).unwrap()
             }
-            FlakeRef::GitHub {
+            FetchRef::GitHub {
                 owner,
                 repo,
                 host,
@@ -563,7 +629,7 @@ impl FlakeRef {
                 r#ref,
                 rev,
             }
-            | FlakeRef::GitLab {
+            | FetchRef::GitLab {
                 owner,
                 repo,
                 host,
@@ -573,7 +639,7 @@ impl FlakeRef {
                 r#ref,
                 rev,
             }
-            | FlakeRef::SourceHut {
+            | FetchRef::SourceHut {
                 owner,
                 repo,
                 host,
@@ -584,9 +650,9 @@ impl FlakeRef {
                 rev,
             } => {
                 let scheme = match self {
-                    FlakeRef::GitHub { .. } => "github",
-                    FlakeRef::GitLab { .. } => "gitlab",
-                    FlakeRef::SourceHut { .. } => "sourcehut",
+                    FetchRef::GitHub { .. } => "github",
+                    FetchRef::GitLab { .. } => "gitlab",
+                    FetchRef::SourceHut { .. } => "sourcehut",
                     _ => unreachable!(),
                 };
 
@@ -608,12 +674,12 @@ impl FlakeRef {
                 append_repo_host_params(&mut url, &params);
                 url
             }
-            FlakeRef::Indirect { id, r#ref, rev } => {
+            FetchRef::Indirect { id, r#ref, rev } => {
                 let mut url = Url::parse(&format!("indirect://{}", id)).unwrap();
                 append_params(&mut url, &[("ref", r#ref.clone()), ("rev", rev.clone())]);
                 url
             }
-            FlakeRef::Path {
+            FetchRef::Path {
                 path,
                 rev,
                 nar_hash,
@@ -630,7 +696,7 @@ impl FlakeRef {
                 append_common_file_params(&mut url, &params);
                 url
             }
-            FlakeRef::Tarball {
+            FetchRef::Tarball {
                 url,
                 nar_hash,
                 rev,
@@ -647,7 +713,7 @@ impl FlakeRef {
                 append_common_file_params(&mut url, &params);
                 url
             }
-            FlakeRef::Mercurial { r#ref, rev } => {
+            FetchRef::Mercurial { r#ref, rev } => {
                 let mut url = Url::parse("hg://").unwrap();
                 append_params(&mut url, &[("ref", r#ref.clone()), ("rev", rev.clone())]);
                 url
@@ -659,56 +725,121 @@ impl FlakeRef {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_git_urls() {
         let input = "git+https://github.com/lichess-org/fishnet?submodules=1";
-        pretty_assertions::assert_matches!(
-            input.parse::<FlakeRef>(),
-            Ok(FlakeRef::Git {
-                submodules: true,
-                shallow: false,
-                export_ignore: false,
-                all_refs: false,
-                verify_commit: false,
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::Git {
+                url,
+                submodules,
+                shallow,
+                export_ignore,
+                all_refs,
+                verify_commit,
                 ..
-            })
-        );
+            } => {
+                // Verify that the parameter was extracted
+                assert_eq!(*submodules, true);
+                // Verify that the parameter was removed from the URL
+                assert_eq!(url.query(), None);
+                assert_eq!(*shallow, false);
+                assert_eq!(*export_ignore, false);
+                assert_eq!(*all_refs, false);
+                assert_eq!(*verify_commit, false);
+            }
+            _ => panic!("Expected Git input type"),
+        }
 
         let input = "git+file:///home/user/project?ref=fa1e2d23a22";
-        match input.parse::<FlakeRef>() {
-            Ok(FlakeRef::Git { r#ref, rev, .. }) => {
-                assert_eq!(r#ref, Some("fa1e2d23a22".to_string()));
-                assert_eq!(rev, None);
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::Git {
+                url, r#ref, rev, ..
+            } => {
+                assert_eq!(r#ref, &Some("fa1e2d23a22".to_string()));
+                assert_eq!(rev, &None);
+                // Verify that the parameter was removed from the URL
+                assert_eq!(url.query(), None);
             }
             _ => panic!("Expected Git input type"),
         }
 
         let input = "git+git://github.com/someuser/my-repo?rev=v1.2.3";
-        match input.parse::<FlakeRef>() {
-            Ok(FlakeRef::Git { rev, .. }) => {
-                assert_eq!(rev, Some("v1.2.3".to_string()));
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::Git { url, rev, .. } => {
+                assert_eq!(rev, &Some("v1.2.3".to_string()));
+                // Verify that the parameter was removed from the URL
+                assert_eq!(url.query(), None);
             }
             _ => panic!("Expected Git input type"),
         }
     }
 
     #[test]
+    fn test_url_with_mixed_params() {
+        // Test that unrecognized parameters are preserved
+        let input = "git+https://example.com/repo?rev=123&custom=value&ref=main";
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::Git {
+                url, rev, r#ref, ..
+            } => {
+                // Verify the parameters were extracted correctly
+                assert_eq!(rev, &Some("123".to_string()));
+                assert_eq!(r#ref, &Some("main".to_string()));
+
+                // Verify that only recognized parameters were removed, unrecognized ones remain
+                assert_eq!(url.query(), Some("custom=value"));
+            }
+            _ => panic!("Expected Git input type"),
+        }
+
+        // Test with multiple unrecognized parameters
+        let input = "github:user/repo?rev=abc&foo=1&bar=2&ref=main";
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::GitHub { rev, r#ref, .. } => {
+                // Verify parameters were extracted correctly
+                assert_eq!(rev, &Some("abc".to_string()));
+                assert_eq!(r#ref, &Some("main".to_string()));
+
+                // The FetchRef doesn't contain the URL for GitHub type,
+                // so we need to convert it to a URI and check that
+                let uri = flake_ref.to_uri();
+
+                // Verify that the remaining query has only unrecognized parameters
+                let query = uri.query().unwrap();
+                assert!(query.contains("foo=1"));
+                assert!(query.contains("bar=2"));
+                assert!(!query.contains("rev="));
+                assert!(!query.contains("ref="));
+            }
+            _ => panic!("Expected GitHub input type"),
+        }
+    }
+
+    #[test]
     fn test_github_urls() {
         let input = "github:snowfallorg/lib?ref=v2.1.1";
-        match input.parse::<FlakeRef>() {
-            Ok(FlakeRef::GitHub { r#ref, rev, .. }) => {
-                assert_eq!(r#ref, Some("v2.1.1".to_string()));
-                assert_eq!(rev, None);
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::GitHub { r#ref, rev, .. } => {
+                assert_eq!(r#ref, &Some("v2.1.1".to_string()));
+                assert_eq!(rev, &None);
             }
             _ => panic!("Expected GitHub input type"),
         }
 
         let input = "github:aarowill/base16-alacritty";
-        match input.parse::<FlakeRef>() {
-            Ok(FlakeRef::GitHub { r#ref, rev, .. }) => {
-                assert_eq!(r#ref, None);
-                assert_eq!(rev, None);
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::GitHub { r#ref, rev, .. } => {
+                assert_eq!(r#ref, &None);
+                assert_eq!(rev, &None);
             }
             _ => panic!("Expected GitHub input type"),
         }
@@ -728,18 +859,20 @@ mod tests {
         }
 
         let input = "github:a/b/master/extra";
-        match input.parse::<FlakeRef>() {
-            Ok(FlakeRef::GitHub { r#ref, rev, .. }) => {
-                assert_eq!(r#ref, Some("master/extra".to_string()));
-                assert_eq!(rev, None);
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::GitHub { r#ref, rev, .. } => {
+                assert_eq!(r#ref, &Some("master/extra".to_string()));
+                assert_eq!(rev, &None);
             }
             _ => panic!("Expected GitHub input type"),
         }
 
         let input = "github:a/b";
-        match input.parse::<FlakeRef>() {
-            Ok(FlakeRef::GitHub { r#ref, .. }) => {
-                assert_eq!(r#ref, None);
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::GitHub { r#ref, .. } => {
+                assert_eq!(r#ref, &None);
             }
             _ => panic!("Expected GitHub input type"),
         }
@@ -748,31 +881,45 @@ mod tests {
     #[test]
     fn test_file_urls() {
         let input = "https://www.shutterstock.com/image-photo/young-potato-isolated-on-white-260nw-630239534.jpg";
-        pretty_assertions::assert_matches!(
-            input.parse::<FlakeRef>(),
-            Ok(FlakeRef::File {
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::File {
                 url,
-                nar_hash: None,
-                rev: None,
-                rev_count: None,
-                last_modified: None,
-            }) if url.to_string() == input
-        );
+                nar_hash,
+                rev,
+                rev_count,
+                last_modified,
+            } => {
+                assert_eq!(url.to_string(), input);
+                assert_eq!(nar_hash, &None);
+                assert_eq!(rev, &None);
+                assert_eq!(rev_count, &None);
+                assert_eq!(last_modified, &None);
+            }
+            _ => panic!("Expected File input type"),
+        }
     }
 
     #[test]
     fn test_path_urls() {
         let input = "path:./go";
-        pretty_assertions::assert_matches!(
-            input.parse::<FlakeRef>(),
-            Ok(FlakeRef::Path {
+        let flake_ref = input.parse::<FlakeRef>().unwrap();
+        match &flake_ref.fetch_ref {
+            FetchRef::Path {
                 path,
-                rev: None,
-                nar_hash: None,
-                rev_count: None,
-                last_modified: None,
-            }) if path.to_str().unwrap() == "./go"
-        );
+                rev,
+                nar_hash,
+                rev_count,
+                last_modified,
+            } => {
+                assert_eq!(path.to_str().unwrap(), "./go");
+                assert_eq!(rev, &None);
+                assert_eq!(nar_hash, &None);
+                assert_eq!(rev_count, &None);
+                assert_eq!(last_modified, &None);
+            }
+            _ => panic!("Expected Path input type"),
+        }
 
         let input = "~/Downloads/a.zip";
         match input.parse::<FlakeRef>() {

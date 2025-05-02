@@ -139,13 +139,11 @@ impl SnixStoreIO {
 
                 match maybe_fetch {
                     Some((name, fetch)) => {
-                        let (sp, path_info) = self
+                        let (sp, _root_node, _nar_hash, _metadata) = self
                             .fetcher
                             .ingest_and_persist(&name, fetch)
                             .await
-                            .map_err(|e| {
-                            std::io::Error::new(std::io::ErrorKind::InvalidData, e)
-                        })?;
+                            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
 
                         debug_assert_eq!(
                             sp.to_absolute_path(),
@@ -153,7 +151,12 @@ impl SnixStoreIO {
                             "store path returned from fetcher must match store path we have in fetchers"
                         );
 
-                        path_info
+                        // Retrieve the path_info after ingestion
+                        self.path_info_service
+                            .as_ref()
+                            .get(*store_path.digest())
+                            .await?
+                            .expect("PathInfo should exist after successful ingestion")
                     }
                     None => {
                         // Look up the derivation for this output path.

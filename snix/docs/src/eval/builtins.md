@@ -130,7 +130,7 @@ The `impl` column indicates implementation status in tvix:
 |---------------|--------|-------|-------|-------|
 | break         | false  | 1     |       | todo  |
 | ceil          | false  | 1     | true  |       |
-| fetchTree     | true   | 1     |       | todo  |
+| fetchTree     | true   | 1     |       |       |
 | floor         | false  | 1     | true  |       |
 | groupBy       | false  | 2     | true  |       |
 | traceVerbose  | false  | 2     |       | todo  |

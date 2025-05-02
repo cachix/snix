@@ -13,9 +13,17 @@ async-compression = { workspace = true, features = [
 async-stream.workspace = true
 bstr.workspace = true
 bytes.workspace = true
+chrono = "0.4.35"
 data-encoding.workspace = true
 futures.workspace = true
 magic.workspace = true
+gix.workspace = true
+gix-url.workspace = true
+gix-transport = { workspace = true, features = [
+    "blocking-client",
+    "http-client",
+] }
+gix-protocol = { workspace = true, features = ["blocking-client"] }
 nix-compat = { path = "../nix-compat", features = ["flakeref"] }
 pin-project.workspace = true
 reqwest = { workspace = true, features = ["rustls-tls-native-roots"] }
@@ -35,6 +43,7 @@ serde_json.workspace = true
 sha2.workspace = true
 sha1.workspace = true
 md-5.workspace = true
+tempfile.workspace = true
 url.workspace = true
 walkdir.workspace = true
 clap.workspace = true

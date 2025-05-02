@@ -1,3 +1,4 @@
+use bstr::BString;
 use futures::TryStreamExt;
 use md5::{digest::DynDigest, Md5};
 use nix_compat::{
@@ -17,10 +18,37 @@ use tracing::{instrument, warn, Span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 use url::Url;
 
-use crate::builtins::FetcherError;
+use crate::builtins::{FetchGitResult, FetcherError};
 
 mod decompression;
 use decompression::DecompressedReader;
+
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+pub struct FetchGitArgs {
+    /// The URL of the Git repository to fetch from
+    pub url: BString,
+
+    /// The name of the directory the repo should be exported to in the store.
+    /// Defaults to basename of the URL if not specified.
+    pub name: String,
+
+    /// The Git revision to fetch, typically a commit hash.
+    pub rev: Option<BString>,
+
+    /// The Git reference under which to look for the requested revision.
+    /// Often a branch or tag name. Defaults to HEAD.
+    /// By default prefixed with refs/heads/ unless it starts with refs/.
+    pub r#ref: BString,
+
+    /// Whether to perform a shallow clone
+    pub shallow: bool,
+
+    /// Whether to fetch all references
+    pub all_refs: bool,
+
+    /// Whether to fetch Git submodules
+    pub submodules: bool,
+}
 
 /// Representing options for doing a fetch.
 #[derive(Clone, Eq, PartialEq)]
@@ -73,8 +101,15 @@ pub enum Fetch {
         hash: NixHash,
     },
 
-    /// TODO
-    Git(),
+    /// Fetch a Git repository from the given URL, and checkout the specified
+    /// revision.
+    Git {
+        // TODO: flatten needed arguments into this struct.
+        /// The arguments to pass to the Git fetch.
+        args: FetchGitArgs,
+        /// The expected hash of the resulting repository.
+        hash: Option<NixHash>,
+    },
 }
 
 // Drops potentially sensitive username and password from a URL.
@@ -126,7 +161,9 @@ impl std::fmt::Debug for Fetch {
                 let url = redact_url(url);
                 write!(f, "Executable [url: {}, hash: {}]", &url, hash)
             }
-            Fetch::Git() => todo!(),
+            Fetch::Git { args, hash } => {
+                write!(f, "Git [args: {:?}, hash: {:?}]", args, hash)
+            }
         }
     }
 }
@@ -135,7 +172,7 @@ impl Fetch {
     /// If the [Fetch] contains an expected hash upfront, returns the resulting
     /// store path.
     /// This doesn't do any fetching.
-    pub fn store_path<'a>(
+    pub fn compute_store_path<'a>(
         &self,
         name: &'a str,
     ) -> Result<Option<StorePathRef<'a>>, BuildStorePathError> {
@@ -154,14 +191,17 @@ impl Fetch {
                 CAHash::Nar(hash.to_owned())
             }
 
-            Fetch::Git() => todo!(),
+            Fetch::Git {
+                hash: Some(hash), ..
+            } => CAHash::Nar(hash.to_owned()),
 
             // everything else
             Fetch::URL { exp_hash: None, .. }
             | Fetch::Tarball {
                 exp_nar_sha256: None,
                 ..
-            } => return Ok(None),
+            }
+            | Fetch::Git { hash: None, .. } => return Ok(None),
         };
 
         // calculate the store path of this fetch
@@ -170,6 +210,7 @@ impl Fetch {
 }
 
 /// Knows how to fetch a given [Fetch].
+#[derive(Clone)]
 pub struct Fetcher<BS, DS, PS, NS> {
     http_client: reqwest::Client,
     blob_service: BS,
@@ -288,7 +329,12 @@ where
     /// On success, return the root node, a content digest and length.
     /// Returns an error if there was a failure during fetching, or the contents
     /// didn't match the previously communicated hash contained inside the FetchArgs.
-    pub async fn ingest(&self, fetch: Fetch) -> Result<(Node, CAHash, u64), FetcherError> {
+    ///
+    /// For Git fetches, can optionally return metadata from git like the revision count and short rev.
+    pub async fn ingest(
+        &self,
+        fetch: Fetch,
+    ) -> Result<(Node, CAHash, u64, Option<crate::builtins::FetcherMetadata>), FetcherError> {
         match fetch {
             Fetch::URL { url, exp_hash } => {
                 // Construct a AsyncRead reading from the data as its downloaded.
@@ -340,6 +386,7 @@ where
                     },
                     CAHash::Flat(actual_hash),
                     blob_size,
+                    None, // No metadata for URL fetches
                 ))
             }
             Fetch::Tarball {
@@ -389,6 +436,7 @@ where
                     node,
                     CAHash::Nar(NixHash::Sha256(actual_nar_sha256)),
                     nar_size,
+                    None, // No metadata for Tarball fetches
                 ))
             }
             Fetch::NAR {
@@ -425,6 +473,7 @@ where
                     // use a CAHash::Nar with the algo from the input.
                     CAHash::Nar(exp_hash),
                     actual_nar_size,
+                    None, // No metadata for NAR fetches
                 ))
             }
             Fetch::Executable {
@@ -510,24 +559,109 @@ where
                     executable: true,
                 };
 
-                Ok((root_node, CAHash::Nar(actual_hash), file_size))
+                Ok((
+                    root_node,
+                    CAHash::Nar(actual_hash),
+                    file_size,
+                    None, /* No metadata for Executable fetches */
+                ))
             }
-            Fetch::Git() => todo!(),
+            Fetch::Git {
+                args,
+                hash: _exp_hash,
+            } => {
+                let FetchGitArgs {
+                    url,
+                    r#ref,
+                    rev,
+                    name,
+                    shallow,
+                    all_refs,
+                    submodules,
+                } = args;
+                let options = snix_castore::import::git::GitIngestOptions {
+                    name,
+                    url,
+                    r#ref,
+                    rev,
+                    shallow,
+                    all_refs,
+                    submodules,
+                };
+                let (node, metadata) = snix_castore::import::git::ingest_git(
+                    self.blob_service.clone(),
+                    self.directory_service.clone(),
+                    options,
+                )
+                .await?;
+
+                // If an expected NAR sha256 was provided, compare with the one
+                // calculated from our root node.
+                // Even if no expected NAR sha256 has been provided, we need
+                // the actual one to calculate the store path.
+                let (nar_size, actual_nar_sha256) = self
+                    .nar_calculation_service
+                    .calculate_nar(&node)
+                    .await
+                    .map_err(|e| {
+                        // convert the generic Store error to an IO error.
+                        FetcherError::Io(e.into())
+                    })?;
+
+                // Convert git metadata to FetcherMetadata
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs();
+
+                // Format date as YYYYMMDDHHmmss
+                let datetime = chrono::Utc::now().format("%Y%m%d%H%M%S").to_string();
+
+                let git_result = FetchGitResult {
+                    out_path: String::new(), // This will be set by the caller
+                    rev: BString::from(metadata.rev.to_string()),
+                    rev_count: metadata.rev_count as i64,
+                    short_rev: BString::from(metadata.short_id.to_string()),
+                    submodules,
+                    nar_hash: None, // This will be set by the caller
+                };
+
+                let fetcher_metadata = crate::builtins::FetcherMetadata {
+                    last_modified: now,
+                    last_modified_date: datetime,
+                    fetcher: git_result,
+                };
+
+                Ok((
+                    node,
+                    CAHash::Nar(NixHash::Sha256(actual_nar_sha256)),
+                    nar_size,
+                    Some(fetcher_metadata),
+                ))
+            }
         }
     }
 
     /// Ingests the data from a specified [Fetch], persists the returned node
     /// in the PathInfoService, and returns the calculated StorePath, as well as
-    /// the root node pointing to the contents.
+    /// the root node pointing to the contents, and optional metadata.
     /// The root node can be used to descend into the data without doing the
     /// lookup to the PathInfoService again.
     pub async fn ingest_and_persist<'a>(
         &self,
         name: &'a str,
         fetch: Fetch,
-    ) -> Result<(StorePathRef<'a>, PathInfo), FetcherError> {
-        // Fetch file, return the (unnamed) (File)Node of its contents, ca hash and filesize.
-        let (node, ca_hash, size) = self.ingest(fetch).await?;
+    ) -> Result<
+        (
+            StorePathRef<'a>,
+            Node,
+            NixHash,
+            Option<crate::builtins::FetcherMetadata>,
+        ),
+        FetcherError,
+    > {
+        // Fetch file, return the (unnamed) (File)Node of its contents, ca hash, filesize and metadata.
+        let (node, ca_hash, size, metadata) = self.ingest(fetch).await?;
 
         // Calculate the store path to return, by calculating from ca_hash.
         let store_path = build_ca_path(name, &ca_hash, Vec::<String>::new(), false)?;
@@ -564,7 +698,7 @@ where
             .await
             .map_err(|e| FetcherError::Io(e.into()))?;
 
-        Ok((store_path, path_info))
+        Ok((store_path, node, NixHash::Sha256(nar_sha256), metadata))
     }
 }
 
@@ -662,7 +796,7 @@ mod tests {
         ) {
             assert_eq!(
                 exp_path,
-                fetch.store_path(name).expect("invalid name"),
+                fetch.compute_store_path(name).expect("invalid name"),
                 "unexpected calculated store path"
             );
         }
@@ -680,7 +814,11 @@ mod tests {
 
             assert_eq!(
                 "7adgvk5zdfq4pwrhsm3n9lzypb12gw0g-source",
-                &fetch.store_path("source").unwrap().unwrap().to_string(),
+                &fetch
+                    .compute_store_path("source")
+                    .unwrap()
+                    .unwrap()
+                    .to_string(),
             )
         }
     }

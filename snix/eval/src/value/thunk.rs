@@ -150,6 +150,11 @@ impl Thunk {
         })))
     }
 
+    #[doc(hidden)]
+    /// Creates a thunk that, when forced, calls the given native function.
+    ///
+    /// This is exposed for internal use by modules that need to create thunks
+    /// that defer evaluation until forced.
     pub fn new_suspended_native(native: Box<dyn Fn() -> Result<Value, ErrorKind>>) -> Self {
         Thunk(Rc::new(RefCell::new(ThunkRepr::Native(SuspendedNative(
             native,

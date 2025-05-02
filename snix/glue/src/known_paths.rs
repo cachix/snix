@@ -116,7 +116,7 @@ impl KnownPaths {
         name: &'a str,
     ) -> Result<StorePathRef<'a>, BuildStorePathError> {
         let store_path = fetch
-            .store_path(name)?
+            .compute_store_path(name)?
             .expect("Snix bug: fetch must have an expected hash");
         // insert the fetch.
         self.outputs_to_fetches

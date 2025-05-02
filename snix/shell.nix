@@ -23,6 +23,7 @@ pkgs.mkShell {
     pkgs.cargo-flamegraph
     pkgs.clippy
     pkgs.d2
+    pkgs.mold
     pkgs.evans
     pkgs.fuse
     pkgs.go
