@@ -12,11 +12,8 @@ use tonic::async_trait;
 use tracing::{Span, debug, instrument, warn};
 use uuid::Uuid;
 
-use crate::buildservice::BuildRequest;
-use crate::{
-    oci::{get_host_output_paths, make_bundle, make_spec},
-    proto::{self, build::OutputNeedles},
-};
+use crate::buildservice::{BuildOutput, BuildRequest, BuildResult};
+use crate::oci::{get_host_output_paths, make_bundle, make_spec};
 use std::{ffi::OsStr, path::PathBuf, process::Stdio};
 
 use super::BuildService;
@@ -60,7 +57,7 @@ where
     DS: DirectoryService + Clone + 'static,
 {
     #[instrument(skip_all, err)]
-    async fn do_build(&self, request: BuildRequest) -> std::io::Result<proto::Build> {
+    async fn do_build(&self, request: BuildRequest) -> std::io::Result<BuildResult> {
         let _permit = self.concurrent_builds.acquire().await.unwrap();
 
         let bundle_name = Uuid::new_v4();
@@ -144,61 +141,46 @@ where
         // Ingest build outputs into the castore.
         // We use try_join_all here. No need to spawn new tasks, as this is
         // mostly IO bound.
-        let (outputs, outputs_needles) = futures::future::try_join_all(
-            host_output_paths.into_iter().enumerate().map(|(i, p)| {
+        let outputs = futures::future::try_join_all(host_output_paths.into_iter().enumerate().map(
+            |(i, host_output_path)| {
                 let output_path = request.outputs[i].clone();
                 let patterns = patterns.clone();
                 async move {
-                    debug!(host.path=?p, output.path=?output_path, "ingesting path");
+                    debug!(host.path=?host_output_path, output.path=?output_path, "ingesting path");
 
                     let scanner = ReferenceScanner::new(patterns);
-                    let output_node = ingest_path(
-                        self.blob_service.clone(),
-                        &self.directory_service,
-                        p,
-                        Some(&scanner),
-                    )
-                    .await
-                    .map_err(|e| {
-                        std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Unable to ingest output: {}", e),
-                        )
-                    })?;
 
-                    let needles = OutputNeedles {
-                        needles: scanner
+                    Ok::<_, std::io::Error>(BuildOutput {
+                        node: ingest_path(
+                            self.blob_service.clone(),
+                            &self.directory_service,
+                            host_output_path,
+                            Some(&scanner),
+                        )
+                        .await
+                        .map_err(|e| {
+                            std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("Unable to ingest output: {}", e),
+                            )
+                        })?,
+
+                        output_needles: scanner
                             .matches()
                             .into_iter()
                             .enumerate()
                             .filter(|(_, val)| *val)
                             .map(|(idx, _)| idx as u64)
                             .collect(),
-                    };
-
-                    Ok::<_, std::io::Error>((
-                        snix_castore::proto::Entry::from_name_and_node(
-                            output_path
-                                .file_name()
-                                .and_then(|s| s.to_str())
-                                .map(|s| s.to_string())
-                                .unwrap_or("".into())
-                                .into(),
-                            output_node,
-                        ),
-                        needles,
-                    ))
+                    })
                 }
-            }),
-        )
-        .await?
-        .into_iter()
-        .unzip();
+            },
+        ))
+        .await?;
 
-        Ok(proto::Build {
-            build_request: Some(request.into()),
+        Ok(BuildResult {
+            build_request: request,
             outputs,
-            outputs_needles,
         })
     }
 }

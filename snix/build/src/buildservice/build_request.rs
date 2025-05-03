@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::path::PathBuf;
 
 use bytes::Bytes;
@@ -128,4 +128,24 @@ pub enum BuildConstraints {
 pub struct AdditionalFile {
     pub path: PathBuf,
     pub contents: Bytes,
+}
+
+/// Describes the result of a [BuildRequest].
+#[derive(Debug, Clone, PartialEq)]
+pub struct BuildResult {
+    /// The original BuildRequest.
+    pub build_request: BuildRequest,
+
+    /// The outputs that were produced after successfully building.
+    // They are sorted by the order specified in the build request.
+    pub outputs: Vec<BuildOutput>,
+}
+
+/// Specific information about an individual output in [BuildResult].
+#[derive(Debug, Clone, PartialEq)]
+pub struct BuildOutput {
+    /// The castore node describing the contents.
+    pub node: Node,
+    /// Indexes into the found [BuildRequest::refscan_needles] in that output.
+    pub output_needles: BTreeSet<u64>,
 }

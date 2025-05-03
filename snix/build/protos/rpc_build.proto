@@ -10,5 +10,5 @@ import "snix/build/protos/build.proto";
 option go_package = "snix.dev/build/proto;buildv1";
 
 service BuildService {
-  rpc DoBuild(BuildRequest) returns (Build);
+  rpc DoBuild(BuildRequest) returns (BuildResponse);
 }

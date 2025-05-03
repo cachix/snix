@@ -154,22 +154,24 @@ message BuildRequest {
   // TODO: allow describing something like "preferLocal", to influence composition?
 }
 
-// A Build is (one possible) outcome of executing a [BuildRequest].
-message Build {
+// A BuildResponse is (one possible) outcome of executing a [BuildRequest].
+message BuildResponse {
   // The orginal build request producing the build.
   BuildRequest build_request = 1; // <- TODO: define hashing scheme for BuildRequest, refer to it by hash?
 
   // The outputs that were produced after successfully building.
-  // They are sorted by their names.
-  repeated snix.castore.v1.Entry outputs = 2;
+  // They are provided in the same order as specified in the [BuildRequest].
+  repeated Output outputs = 2;
 
-  message OutputNeedles {
-    // The numbers are indexing into `refscan_needles` originally specified in the BuildRequest.
-    repeated uint64 needles = 1;
+  message Output {
+    // Output entry produced by the build. It may not contain a name,
+    // as not all OS paths can be represented as castore paths.
+    // The path this was ingested from can be looked up in the original build request.
+    snix.castore.v1.Entry output = 1;
+
+    // Indexes into the found [BuildRequest::refscan_needles] in this output.
+    repeated uint64 needles = 2;
   }
-
-  // Contains the same number of elements as the `outputs` field.
-  repeated OutputNeedles outputs_needles = 3;
 
   // TODO: where did this run, how long, logs, …
 }

@@ -115,7 +115,6 @@ impl SnixStoreIO {
             .get(*store_path.digest())
             .await?
         {
-            // TODO: use stricter typed BuildRequest here.
             Some(path_info) => path_info,
             // If there's no PathInfo found, this normally means we have to
             // trigger the build (and insert into PathInfoService, after
@@ -195,6 +194,8 @@ impl SnixStoreIO {
                         // synthesize the build request.
                         let build_request = derivation_to_build_request(&drv, &resolved_inputs)?;
 
+                        let build_request_outputs = build_request.outputs.clone();
+
                         // create a build
                         let build_result = self
                             .build_service
@@ -204,39 +205,31 @@ impl SnixStoreIO {
                             .map_err(|e| std::io::Error::new(io::ErrorKind::Other, e))?;
 
                         let mut out_path_info: Option<PathInfo> = None;
+
                         // For each output, insert a PathInfo.
-                        for ((output, output_needles), drv_output) in build_result
-                            .outputs
-                            .iter()
-                            // Important: build outputs must match drv outputs order,
-                            // otherwise the outputs will be mixed up
-                            // see https://git.snix.dev/snix/snix/issues/89
-                            .zip(build_result.outputs_needles.iter())
-                            .zip(drv.outputs.iter())
+                        for (output, output_path) in
+                            build_result.outputs.into_iter().zip(build_request_outputs)
                         {
-                            let (output_name, output_node) = output
-                                .clone()
-                                .try_into_name_and_node()
-                                .expect("invalid node");
+                            // convert output_path to StorePath
+                            let output_store_path: StorePath<String> = {
+                                use std::os::unix::ffi::OsStrExt;
+
+                                StorePath::from_bytes(output_path.as_path().as_os_str().as_bytes())
+                                    .map_err(|e| {
+                                        std::io::Error::new(std::io::ErrorKind::InvalidData, e)
+                                    })?
+                            };
 
                             // calculate the nar representation
                             let (nar_size, nar_sha256) = self
                                 .nar_calculation_service
-                                .calculate_nar(&output_node)
+                                .calculate_nar(&output.node)
                                 .await?;
 
                             // assemble the PathInfo to persist
                             let path_info = PathInfo {
-                                store_path: drv_output
-                                    .1
-                                    .path
-                                    .as_ref()
-                                    .ok_or(std::io::Error::new(
-                                        std::io::ErrorKind::Other,
-                                        "Snix bug: missing output store path",
-                                    ))?
-                                    .to_owned(),
-                                node: output_node,
+                                store_path: output_store_path.clone(),
+                                node: output.node,
                                 references: {
                                     let all_possible_refs: Vec<_> = drv
                                         .outputs
@@ -244,8 +237,8 @@ impl SnixStoreIO {
                                         .filter_map(|output| output.path.as_ref())
                                         .chain(resolved_inputs.keys())
                                         .collect();
-                                    let mut references: Vec<_> = output_needles
-                                        .needles
+                                    let mut references: Vec<_> = output
+                                        .output_needles
                                         .iter()
                                         // Map each output needle index back to the refscan_needle
                                         .map(|idx| {
@@ -286,7 +279,8 @@ impl SnixStoreIO {
                                 .put(path_info.clone())
                                 .await
                                 .map_err(|e| std::io::Error::new(io::ErrorKind::Other, e))?;
-                            if output_name.as_ref() == store_path.to_string().as_bytes() {
+
+                            if store_path == &output_store_path {
                                 out_path_info = Some(path_info);
                             }
                         }

@@ -2,7 +2,7 @@ use crate::buildservice::BuildService;
 use std::ops::Deref;
 use tonic::async_trait;
 
-use super::{Build, BuildRequest};
+use super::{BuildRequest, BuildResponse};
 
 /// Implements the gRPC server trait ([crate::proto::build_service_server::BuildService]
 /// for anything implementing [BuildService].
@@ -26,11 +26,11 @@ where
     async fn do_build(
         &self,
         request: tonic::Request<BuildRequest>,
-    ) -> Result<tonic::Response<Build>, tonic::Status> {
+    ) -> Result<tonic::Response<BuildResponse>, tonic::Status> {
         let request = TryInto::<crate::buildservice::BuildRequest>::try_into(request.into_inner())
             .map_err(|err| tonic::Status::new(tonic::Code::InvalidArgument, err.to_string()))?;
         match self.inner.do_build(request).await {
-            Ok(resp) => Ok(tonic::Response::new(resp)),
+            Ok(resp) => Ok(tonic::Response::new(resp.into())),
             Err(e) => Err(tonic::Status::internal(e.to_string())),
         }
     }

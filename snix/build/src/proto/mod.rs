@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::path::{Path, PathBuf};
 
 use itertools::Itertools;
@@ -7,6 +7,8 @@ use snix_castore::{DirectoryError, Node, PathComponent};
 mod grpc_buildservice_wrapper;
 
 pub use grpc_buildservice_wrapper::GRPCBuildServiceWrapper;
+
+use crate::buildservice::BuildResult;
 
 tonic::include_proto!("snix.build.v1");
 
@@ -57,6 +59,19 @@ pub enum ValidateBuildRequestError {
 
     #[error("additional_files not sorted")]
     AdditionalFilesNotSorted,
+}
+
+/// Errors that occur during the validation of [BuildResult] messages.
+#[derive(Debug, thiserror::Error)]
+pub enum ValidateBuildResultError {
+    #[error("request field is unpopulated")]
+    MissingRequestField,
+    #[error("request is invalid")]
+    InvalidBuildRequest(ValidateBuildRequestError),
+    #[error("output entry {0} missing")]
+    MissingOutputEntry(usize),
+    #[error("output entry {0} invalid")]
+    InvalidOutputEntry(usize),
 }
 
 /// Checks a path to be without any '..' components, and clean (no superfluous
@@ -260,6 +275,56 @@ impl TryFrom<BuildRequest> for crate::buildservice::BuildRequest {
             constraints,
             additional_files: value.additional_files.into_iter().map(Into::into).collect(),
             refscan_needles: value.refscan_needles,
+        })
+    }
+}
+
+impl From<BuildResult> for BuildResponse {
+    fn from(value: BuildResult) -> Self {
+        Self {
+            build_request: Some(value.build_request.into()),
+            outputs: value
+                .outputs
+                .into_iter()
+                .map(|output| build_response::Output {
+                    output: Some(snix_castore::proto::Entry::from_name_and_node(
+                        "".into(),
+                        output.node,
+                    )),
+                    needles: output.output_needles.into_iter().collect(),
+                })
+                .collect(),
+        }
+    }
+}
+
+impl TryFrom<BuildResponse> for BuildResult {
+    type Error = ValidateBuildResultError;
+
+    fn try_from(value: BuildResponse) -> Result<Self, Self::Error> {
+        Ok(Self {
+            build_request: value
+                .build_request
+                .ok_or(ValidateBuildResultError::MissingRequestField)?
+                .try_into()
+                .map_err(ValidateBuildResultError::InvalidBuildRequest)?,
+            outputs: value
+                .outputs
+                .into_iter()
+                .enumerate()
+                .map(|(i, output)| {
+                    let node = output
+                        .output
+                        .ok_or(ValidateBuildResultError::MissingOutputEntry(i))?
+                        .try_into_anonymous_node()
+                        .map_err(|_| ValidateBuildResultError::InvalidOutputEntry(i))?;
+
+                    Ok::<_, ValidateBuildResultError>(crate::buildservice::BuildOutput {
+                        node,
+                        output_needles: BTreeSet::from_iter(output.needles),
+                    })
+                })
+                .try_collect()?,
         })
     }
 }
