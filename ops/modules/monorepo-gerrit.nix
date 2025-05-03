@@ -34,9 +34,7 @@ in
     plugins = with gerritPlugins; [
       code-owners
       oauth
-      (depot.ops.gerrit-tvl {
-        gerrit = gerritPackage;
-      })
+      # depot.ops.gerrit-tvl # #118
     ];
 
     package = gerritPackage;
