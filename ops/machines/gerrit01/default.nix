@@ -54,6 +54,7 @@ in
       secretFile = name: depot.ops.secrets."${name}.age";
     in
     {
+      buildkite-api-proxy-token.file = secretFile "buildkite-api-proxy-token";
       gerrit-oauth-secret.file = secretFile "gerrit-oauth-secret";
       gerrit-replication-key.file = secretFile "gerrit-replication-key";
       gerrit-sendemail-smtp-pass.file = secretFile "gerrit-sendemail-smtp-pass";

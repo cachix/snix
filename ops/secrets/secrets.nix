@@ -35,6 +35,8 @@ in
   "restic-bucket-credentials.age" = allDefault;
 
   "keycloak-db-password.age" = public01Default;
+
+  "buildkite-api-proxy-token.age" = gerrit01Default;
   "gerrit-oauth-secret.age" = gerrit01Default;
   "gerrit-replication-key.age" = gerrit01Default;
   "gerrit-sendemail-smtp-pass.age" = gerrit01Default;
