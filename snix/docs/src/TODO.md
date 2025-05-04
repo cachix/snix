@@ -142,9 +142,6 @@ This requires some more designing. Some goals:
  - Rework the URL syntax for object_store. We should support the default s3/gcs
    URLs at least.
 
-### Nix Daemon protocol
-- Some work ongoing on the worker operation parsing (griff, picnoir)
-
 ### O11Y
  - Trace propagation for object_store once they support a way to register a
    middleware, so we can use that to register a tracing middleware.
