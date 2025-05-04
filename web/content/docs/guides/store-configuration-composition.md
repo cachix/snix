@@ -154,7 +154,7 @@ database.
 This also showcases how PathInfo services can refer to other store types (blob
 services, directory services).
 
-```
+```toml
 [blobservices.root]
 type = "objectstore"
 object_store_url = "file:///var/lib/snix-store/blobs.object_store"
@@ -183,6 +183,6 @@ blob_service = "root"
 directory_service = "root"
 ```
 
-[^1]: In some leaf binary crates, this can also be controlled via the `xp-store-composition-cli` feature in the leaf crate itself.
 [rustdoc-castore-composition]: https://snix.dev/rustdoc/snix_castore/composition/index.html
 [rustdoc-store-composition]: https://snix.dev/rustdoc/snix_store/composition/index.html
+[^1]: In some leaf binary crates, this can also be controlled via the `xp-store-composition-cli` feature in the leaf crate itself.
