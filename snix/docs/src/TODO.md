@@ -70,14 +70,6 @@ Extend the other pages in here. Some ideas on what should be tackled:
    is probably still not too clear.
  - Absorb the rest of //snix/website into this.
 
-## Features
-
-### Fetchers
-Some more fetcher-related builtins need work:
- - `fetchGit`
- - `fetchTree` (hairy, seems there's no proper spec and the URL syntax seems
-   subject to change/underdocumented)
-
 ### Derivation -> Build
 While we have some support for `structuredAttrs` and `fetchClosure` (at least
 enough to calculate output hashes, aka produce identical ATerm), the code
