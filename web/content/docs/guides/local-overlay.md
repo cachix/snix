@@ -66,7 +66,7 @@ Nix will communicate with it to get metadata about store paths.
 
 ### Create an overlayfs mount
 
-{{<callout>}}
+{{< callout context="caution" title="Caution" icon="outline/alert-triangle" >}}
 Depending on your usecase, this might not be appropriate for a physical NixOS
 system, replacing `/nix` globally.
 
@@ -125,7 +125,7 @@ This can be achieved by either setting the env variable
 With the above setup you should now be able to have nix use Snix castore as its
 lower store.
 
-{{<callout>}}
+{{< callout context="caution" title="Caution" icon="outline/alert-triangle" >}}
 There are some known (and not yet worked-on) performance issues in Snix
 castore, which is why the mount is expected to perform slower than the native
 file-system. Depending on your workload, this might or might not be an issue.
