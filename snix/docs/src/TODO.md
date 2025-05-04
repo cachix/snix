@@ -10,22 +10,6 @@ Please add future ideas to the issue tracker only.
 Before picking something from there to work on, ask in `#snix` to make
 sure noone is working on this, or has some specific design in mind already.
 
-## Cleanups
-### Nix language test suite
- - Think about how to merge, but "categorize" `snix_tests` in `glue` and `eval`.
-   We currently only have this split as they need a different feature set /
-   builtins.
- - move some of the rstest cases in `tvix-glue` to the `.nix`/`.exp` mechanism.
-   Some of them need test fixtures, which cannot be represented in git (special
-   file types in the import tests for example). Needs some support from the test
-   suite to create these fixtures on demand.
- - extend `verify-lang-tests/default.nix` mechanism to validate `tvix-eval` and
-   `tvix-glue` test cases (or the common structure above).
- - absorb `eval/tests/nix_oracle.rs` into `snix_tests`, or figure out why it's
-   not possible (and document) it. It looks like it's only as nix is invoked
-   with a different level of `--strict`, but the toplevel doc-comment suggests
-   its generic?
-
 ### Correctness > Performance
 A lot of the Nix behaviour isn't well documented out, and before going too deep
 into performance optimizations, we need to ensure we properly grasped all hidden
