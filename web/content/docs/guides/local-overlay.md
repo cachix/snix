@@ -18,9 +18,8 @@ This document describes how to configure `snix` as the lower layer in your
 To use this feature you will need to 2 `snix` compontents, for detailed building
 instructions see [Building]({{< ref "building" >}}).
 
-```console
-$ nix-build -A snix.store
-$ nix-build -A snix.nix-daemon
+```bash
+nix-build -A snix.store -A snix.nix-daemon
 ```
 
 These will provide `snix-store` and `nix-daemon` binaries.
@@ -35,8 +34,8 @@ customization instructions.
 
 You can run the daemon with:
 
-```console
-$ $(nix-build -A snix.snix-store)/bin/snix-store daemon
+```bash
+$(nix-build -A snix.snix-store)/bin/snix-store daemon
 ```
 
 ### Mount the store
@@ -44,8 +43,8 @@ $ $(nix-build -A snix.snix-store)/bin/snix-store daemon
 To expose the store paths and their contents as a file system, if can be
 FUSE-mounted with the following command:
 
-```console
-$ $(nix-build -A snix.snix-store)/bin/snix-store mount /path/to/mount
+```bash
+$(nix-build -A snix.snix-store)/bin/snix-store mount /path/to/mount
 ```
 
 This mount will talk to the previously invoked daemon.
@@ -56,8 +55,8 @@ be careful with it if your store is really large.
 
 ### Run `snix` nix-daemon
 
-```console
-$ $(nix-build -A snix.nix-daemon)/bin/nix-daemon -l /tmp/snix-daemon.sock \
+```bash
+$(nix-build -A snix.nix-daemon)/bin/nix-daemon -l /tmp/snix-daemon.sock \
     --unix-listen-unlink
 ```
 
@@ -84,15 +83,15 @@ Bind mount your real /nix store on the side, so that nix has direct access to
 it, this is optional but allows you to have access to your real nix store
 without unmounting:
 
-```console
-$ mount --bind /nix /opt/nix
+```bash
+mount --bind /nix /opt/nix
 ```
 
-```console
-$ mount -t overlay overlay \
-    -o lowerdir=/path/to/mount \
-    -o upperdir=/opt/nix \
-    /nix
+```bash
+mount -t overlay overlay \
+  -o lowerdir=/path/to/mount \
+  -o upperdir=/opt/nix \
+  /nix
 ```
 
 ### Configure nix to use the daemon

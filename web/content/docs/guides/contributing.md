@@ -42,14 +42,14 @@ interact with Gerrit directly.
 Replace `$USER` with your `Username` shown in the Gerrit settings.
 
 #### If using SSH authentication:
-```console
-$ git remote set-url origin "ssh://$USER@cl.snix.dev:29418/snix"
+```bash
+git remote set-url origin "ssh://$USER@cl.snix.dev:29418/snix"
 ```
 
 
 #### If using HTTP authentication:
-```console
-$ git remote set-url origin "https://$USER@cl.snix.dev/a/snix"
+```bash
+git remote set-url origin "https://$USER@cl.snix.dev/a/snix"
 ```
 
 <!-- TODO: fix replication to include refs/changes/… etc, and ensure it
@@ -62,10 +62,10 @@ updates of old commits, and track them as new revisions of the same "CL" [^2].
 
 To install the commit-msg hook, run the following from the repo root:
 
-```console
-$ mkdir -p .git/hooks
-$ curl -Lo .git/hooks/commit-msg https://cl.snix.dev/tools/hooks/commit-msg
-$ chmod +x .git/hooks/commit-msg
+```bash
+mkdir -p .git/hooks
+curl -Lo .git/hooks/commit-msg https://cl.snix.dev/tools/hooks/commit-msg
+chmod +x .git/hooks/commit-msg
 ```
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
@@ -78,8 +78,8 @@ If you already have some local commits without `Change-Id` field, `git commit
 ### Push your changes
 Do some local changes, and push them to Gerrit as follows:
 
-```console
-$ git push origin HEAD:refs/for/canon
+```bash
+git push origin HEAD:refs/for/canon
 ```
 
 Gerrit will print links to newly created CLs to your terminal.
@@ -109,8 +109,8 @@ Some more tips:
 You can immediately assign reviewers and other fields while pushing a
 new/updated change, by adding it to the push URL.
 
-```console
-$ git push origin HEAD:refs/for/canon%r=alice,cc=bob,l=Autosubmit+1,publish-comments
+```bash
+git push origin HEAD:refs/for/canon%r=alice,cc=bob,l=Autosubmit+1,publish-comments
 ```
  * will set `alice` as a reviewer
  * will set `bob` as CC

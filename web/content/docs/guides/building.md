@@ -29,13 +29,13 @@ Snix is hosted in its own Forgejo instance, hosted on [git.snix.dev](https://git
 
 Check out the source code as follows:
 
-```console
-$ git clone https://git.snix.dev/snix/snix.git
+```bash
+git clone https://git.snix.dev/snix/snix.git
 ```
 
 ### Interactive development
-```console
-$ direnv allow
+```bash
+direnv allow
 ```
 
 This provides all the necessary tools and dependencies to interactively build
@@ -47,14 +47,14 @@ It is also possible to build the different Snix crates with Nix,
 in which you don't need to enter the shell.
 From the root of the repository, you can build as follows:
 
-```console
+```bash
 $ nix-build -A snix.cli
 ```
 
 Alternatively, you can use the `mg` wrapper from anywhere in the repository (requires the direnv setup from above):
 
-```console
-$ mg build //snix:cli
+```bash
+mg build //snix:cli
 ```
 
 This uses [crate2nix][] to build each crate dependency individually.
