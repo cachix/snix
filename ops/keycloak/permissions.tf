@@ -58,38 +58,3 @@ resource "keycloak_group_roles" "trusted_contributors_roles" {
     keycloak_role.grafana_editor.id
   ]
 }
-
-# Application-level roles.
-
-# Grafana
-
-resource "keycloak_role" "grafana_editor" {
-  realm_id    = keycloak_realm.snix.id
-  client_id   = keycloak_openid_client.grafana.id
-  name        = "Editor"
-  description = "Can edit things in Grafana"
-}
-
-resource "keycloak_role" "grafana_admin" {
-  realm_id    = keycloak_realm.snix.id
-  client_id   = keycloak_openid_client.grafana.id
-  name        = "Admin"
-  description = "Can admin things in Grafana"
-}
-
-# TODO:
-# Forgejo
-
-# resource "keycloak_role" "forgejo_admin" {
-# }
-#
-# resource "keycloak_role" "forgejo_trusted_contributor" {
-# }
-#
-# # Gerrit
-#
-# resource "keycloak_role" "gerrit_admin" {
-# }
-#
-# resource "keycloak_role" "gerrit_trusted_contributor" {
-# }

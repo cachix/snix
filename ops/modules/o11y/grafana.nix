@@ -53,15 +53,13 @@ in
               "openid"
               "profile"
               "email"
-              "offline_access"
-              "roles"
             ];
 
             allow_sign_up = true;
             auto_login = true;
-            allow_assign_grafana_admin = true;
 
-            role_attribute_path = "contains(grafana_roles[*], 'Admin') && 'GrafanaAdmin' || contains(grafana_roles[*], 'Editor') && 'Editor' || 'Viewer'";
+            allow_assign_grafana_admin = true;
+            role_attribute_path = "contains(grafana_roles[*], 'Admin') && 'Admin' || contains(grafana_roles[*], 'Editor') && 'Editor' || 'Viewer'";
           };
 
           dashboards.default_home_dashboard_path = "${depot.ops.dashboards.node_exporter}";
