@@ -14281,6 +14281,7 @@ rec {
           {
             name = "pretty_assertions";
             packageId = "pretty_assertions";
+            features = [ "unstable" ];
           }
           {
             name = "rstest";

@@ -1,4 +1,5 @@
 use crate::*;
+use pretty_assertions::assert_matches;
 
 #[test]
 fn test_source_builtin() {
@@ -36,4 +37,27 @@ fn skip_broken_bytecode() {
         result.errors[0].kind,
         ErrorKind::UnknownStaticVariable
     ));
+}
+
+/// Checks that deep forcing happens in lexicographic key order
+/// See https://cl.snix.dev/c/snix/+/30309/comment/a7c9c6d5_bacf7332/ for
+/// details.
+#[test]
+fn key_order_deep_force() {
+    let result = Evaluation::builder_pure().build().evaluate(
+        /* code = */
+        r#"builtins.toXML {
+          c = throw "ccc";
+          a = throw "aaa";
+          b = throw "bbb";
+          d = throw "dd";
+        }"#,
+        None,
+    );
+    assert_eq!(result.errors.len(), 1);
+
+    assert_matches!(
+        &result.errors[0].kind,
+        ErrorKind::CatchableError(CatchableErrorKind::Throw(s)) if s.as_ref() == "\"aaa\""
+    );
 }
