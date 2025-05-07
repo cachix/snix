@@ -39,7 +39,7 @@ use crate::{SourceCode, Value};
 #[derive(thiserror::Error, Clone, Debug)]
 pub enum CatchableErrorKind {
     #[error("error thrown: {0}")]
-    Throw(Box<str>),
+    Throw(NixString),
 
     #[error("assertion failed")]
     AssertionFailed,

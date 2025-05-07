@@ -1405,11 +1405,10 @@ mod pure_builtins {
         if message.is_catchable() {
             return Ok(message);
         }
-        // TODO(sterni): coerces to string
+
+        // TODO(sterni): coerce to string
         // We do not care about the context here explicitly.
-        Ok(Value::from(CatchableErrorKind::Throw(
-            message.to_contextful_str()?.to_string().into(),
-        )))
+        Ok(Value::from(CatchableErrorKind::Throw(message.to_str()?)))
     }
 
     #[builtin("toString")]

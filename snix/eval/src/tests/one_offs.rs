@@ -18,11 +18,7 @@ fn test_source_builtin() {
     );
 
     let value = result.value.unwrap();
-    assert!(
-        matches!(value, Value::Integer(42)),
-        "expected the integer 42, but got {}",
-        value,
-    );
+    assert_matches!(value, Value::Integer(i) if i == 42);
 }
 
 #[test]
@@ -32,11 +28,7 @@ fn skip_broken_bytecode() {
         .evaluate(/* code = */ "x", None);
 
     assert_eq!(result.errors.len(), 1);
-
-    assert!(matches!(
-        result.errors[0].kind,
-        ErrorKind::UnknownStaticVariable
-    ));
+    assert_matches!(result.errors[0].kind, ErrorKind::UnknownStaticVariable);
 }
 
 /// Checks that deep forcing happens in lexicographic key order
@@ -58,6 +50,6 @@ fn key_order_deep_force() {
 
     assert_matches!(
         &result.errors[0].kind,
-        ErrorKind::CatchableError(CatchableErrorKind::Throw(s)) if s.as_ref() == "\"aaa\""
+        ErrorKind::CatchableError(CatchableErrorKind::Throw(s)) if s == &NixString::from("aaa")
     );
 }
