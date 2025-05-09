@@ -189,16 +189,27 @@ where
                                         writer.deref_mut(),
                                     );
                                     self.io.add_to_store_nar(request, &mut reader).await
+                                    // TODO(edef): enforce framing synchronisation
                                 })
                                 .await?
                             }
                             23.. => {
                                 // Starting at protocol version 1.23, the framed protocol is used, see serialization.md#framed
                                 let mut framed = NixFramedReader::new(&mut self.reader);
+
                                 Self::handle(&self.writer, async {
                                     self.io.add_to_store_nar(request, &mut framed).await
                                 })
-                                .await?
+                                .await?;
+
+                                // framing desynchronisation
+                                // this MUST kill the connection
+                                if !framed.is_eof() {
+                                    return Err(std::io::Error::new(
+                                        std::io::ErrorKind::InvalidData,
+                                        "payload was not fully consumed",
+                                    ));
+                                }
                             }
                         }
                     }
