@@ -236,7 +236,19 @@ mod nix_framed_tests {
         assert!(reader.is_eof());
     }
 
-    struct SplitMock<'a>(&'a [u8]);
+    struct SplitMock<'a> {
+        data: &'a [u8],
+        pending: bool,
+    }
+
+    impl<'a> SplitMock<'a> {
+        fn new(data: &'a [u8]) -> Self {
+            Self {
+                data,
+                pending: false,
+            }
+        }
+    }
 
     impl AsyncRead for SplitMock<'_> {
         fn poll_read(
@@ -244,14 +256,13 @@ mod nix_framed_tests {
             _cx: &mut task::Context<'_>,
             buf: &mut ReadBuf<'_>,
         ) -> Poll<io::Result<()>> {
-            let data = self.0;
-
-            if data.is_empty() {
+            if self.data.is_empty() {
+                self.pending = true;
                 Poll::Pending
             } else {
-                let n = min(buf.remaining(), data.len());
-                buf.put_slice(&data[..n]);
-                self.0 = &data[n..];
+                let n = min(buf.remaining(), self.data.len());
+                buf.put_slice(&self.data[..n]);
+                self.data = &self.data[n..];
 
                 Poll::Ready(Ok(()))
             }
@@ -271,14 +282,17 @@ mod nix_framed_tests {
             let input = &input[..end_point];
 
             let unsplit_res = {
-                let mut dut = NixFramedReader::new(SplitMock(input));
+                let mut dut = NixFramedReader::new(SplitMock::new(input));
                 let mut data_buf = vec![0; input.len()];
                 let mut read_buf = ReadBuf::new(&mut data_buf);
 
                 for _ in 0..256 {
                     match Pin::new(&mut dut).poll_read(&mut cx, &mut read_buf) {
                         Poll::Ready(res) => res.unwrap(),
-                        Poll::Pending => break,
+                        Poll::Pending => {
+                            assert!(dut.reader.pending);
+                            break;
+                        }
                     }
                 }
 
@@ -291,35 +305,41 @@ mod nix_framed_tests {
                     "end_point = {end_point}, state = {:?}",
                     dut.state
                 );
-                (dut.state, data_buf, dut.reader.0)
+                (dut.state, data_buf, dut.reader.data)
             };
 
             for split_point in 1..end_point.saturating_sub(1) {
                 let split_res = {
-                    let mut dut = NixFramedReader::new(SplitMock(&[]));
+                    let mut dut = NixFramedReader::new(SplitMock::new(&[]));
                     let mut data_buf = vec![0; input.len()];
                     let mut read_buf = ReadBuf::new(&mut data_buf);
 
-                    dut.reader.0 = &input[..split_point];
+                    dut.reader = SplitMock::new(&input[..split_point]);
                     for _ in 0..256 {
                         match Pin::new(&mut dut).poll_read(&mut cx, &mut read_buf) {
                             Poll::Ready(res) => res.unwrap(),
-                            Poll::Pending => break,
+                            Poll::Pending => {
+                                assert!(dut.reader.pending);
+                                break;
+                            }
                         }
                     }
 
-                    dut.reader.0 = &input[split_point - dut.reader.0.len()..];
+                    dut.reader = SplitMock::new(&input[split_point - dut.reader.data.len()..]);
                     for _ in 0..256 {
                         match Pin::new(&mut dut).poll_read(&mut cx, &mut read_buf) {
                             Poll::Ready(res) => res.unwrap(),
-                            Poll::Pending => break,
+                            Poll::Pending => {
+                                assert!(dut.reader.pending);
+                                break;
+                            }
                         }
                     }
 
                     let len = read_buf.filled().len();
                     data_buf.truncate(len);
 
-                    (dut.state, data_buf, dut.reader.0)
+                    (dut.state, data_buf, dut.reader.data)
                 };
 
                 assert_eq!(split_res, unsplit_res);
