@@ -35,7 +35,6 @@ in
   };
 
   boot.loader.initScript.enable = true;
-  system.switch.enableNg = false;
   nix.nrBuildUsers = 256;
   nix.settings.max-jobs = 64;
   nix.gc.automatic = true;
