@@ -15,7 +15,6 @@ in
     (mod "o11y/tempo.nix")
     (mod "o11y/alertmanager-irc-relay.nix")
     (mod "known-hosts.nix")
-    (mod "clbot.nix")
     (mod "irccat.nix")
 
     (mod "www/mimir.snix.dev.nix")
@@ -56,28 +55,6 @@ in
     prometheus.enable = true;
     loki.enable = true;
     tempo.enable = true;
-    clbot = {
-      enable = false;
-      channels = {
-        "#snix" = { };
-
-        flags = {
-          gerrit_host = "cl.snix.dev:29418";
-          gerrit_ssh_auth_username = "clbot";
-          # gerrit_ssh_auth_key = config.age.secrets.clbot-ssh-private-key.path;
-
-          irc_server = "irc.hackint.org:6697";
-          irc_tls = true;
-          irc_user = "snixbot";
-          irc_nick = "snixbot";
-
-          notify_branches = "canon,refs/meta/config";
-          notify_repo = "snix";
-
-          irc_pass = "$CLBOT_PASS";
-        };
-      };
-    };
   };
 
   services.irccat = {

@@ -134,32 +134,6 @@ in
       restic-bucket-credentials.file = secretFile "restic-bucket-credentials";
     };
 
-  # Start the Gerrit->IRC bot
-  # services.depot.clbot = {
-  #   enable = true;
-  #   channels = {
-  #     "#snix-dev" = { };
-  #   };
-
-  #   # See //fun/clbot for details.
-  #   flags = {
-  #     gerrit_host = "cl.tvl.fyi:29418";
-  #     gerrit_ssh_auth_username = "clbot";
-  #     gerrit_ssh_auth_key = config.age.secretsDir + "/clbot-ssh";
-
-  #     irc_server = "localhost:${toString config.services.znc.config.Listener.l.Port}";
-  #     irc_user = "tvlbot";
-  #     irc_nick = "tvlbot";
-
-  #     notify_branches = "canon,refs/meta/config";
-  #     notify_repo = "depot";
-
-  #     # This secret is read from an environment variable, which is
-  #     # populated by a systemd EnvironmentFile.
-  #     irc_pass = "$CLBOT_PASS";
-  #   };
-  # };
-
   services.fail2ban.enable = true;
 
   environment.systemPackages = with pkgs; [
