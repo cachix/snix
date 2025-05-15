@@ -99,7 +99,7 @@
     "nix-gerrit": {
         "branch": "main",
         "repo": "https://git.lix.systems/the-distro/nix-gerrit.git",
-        "rev": "86d04ec2e075c8c548acc6cb03eba08d8931c681",
+        "rev": "c82da888b0d3a26eaff103417c99f1c599803ca4",
         "type": "git"
     },
     "nixpkgs": {
