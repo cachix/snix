@@ -505,7 +505,7 @@ pub(crate) mod derivation_builtins {
                 ))),
         )));
 
-        // If the derivation is a fake derivation (builtins:fetchurl),
+        // If the derivation is a fake derivation (builtin:fetchurl),
         // synthesize a [Fetch] and add it there, too.
         if drv.builder == "builtin:fetchurl" {
             let (name, fetch) =
