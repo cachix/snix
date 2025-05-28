@@ -189,7 +189,15 @@ pub(crate) fn derivation_to_build_request(
         inputs_dir: nix_compat::store_path::STORE_DIR[1..].into(),
         constraints,
         working_dir: "build".into(),
-        scratch_paths: vec!["build".into(), "nix/store".into()],
+        scratch_paths: vec![
+            "build".into(),
+            // This is in here because Nix allows you to do
+            // `pkgs.runCommand "foo" {} "mkdir -p $out;touch /nix/store/aaaa"`
+            // (throwing away the /nix/store/aaaa post-build),
+            // not because it's a sane thing to do.
+            // FUTUREWORK: check if nothing exploits this.
+            "nix/store".into(),
+        ],
         additional_files: additional_files
             .into_iter()
             .map(|(path, contents)| AdditionalFile {
