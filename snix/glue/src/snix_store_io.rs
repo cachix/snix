@@ -307,6 +307,15 @@ impl SnixStoreIO {
     }
 }
 
+/// Helper function peeking at a [snix_castore::Node] and returning its [FileType]
+fn node_get_type(node: &Node) -> FileType {
+    match node {
+        Node::Directory { .. } => FileType::Directory,
+        Node::File { .. } => FileType::Regular,
+        Node::Symlink { .. } => FileType::Symlink,
+    }
+}
+
 impl EvalIO for SnixStoreIO {
     #[instrument(skip(self), ret(level = Level::TRACE), err)]
     fn path_exists(&self, path: &Path) -> io::Result<bool> {
@@ -389,11 +398,7 @@ impl EvalIO for SnixStoreIO {
                 .tokio_handle
                 .block_on(async { self.store_path_to_path_info(&store_path, sub_path).await })?
             {
-                match path_info.node {
-                    Node::Directory { .. } => Ok(FileType::Directory),
-                    Node::File { .. } => Ok(FileType::Regular),
-                    Node::Symlink { .. } => Ok(FileType::Symlink),
-                }
+                Ok(node_get_type(&path_info.node))
             } else {
                 self.std_io.file_type(path)
             }
@@ -412,31 +417,27 @@ impl EvalIO for SnixStoreIO {
                 match path_info.node {
                     Node::Directory { digest, .. } => {
                         // fetch the Directory itself.
-                        if let Some(directory) = self.tokio_handle.block_on({
-                            let digest = digest.clone();
-                            async move { self.directory_service.as_ref().get(&digest).await }
-                        })? {
-                            let mut children: Vec<(bytes::Bytes, FileType)> = Vec::new();
-                            for (name, node) in directory.into_nodes() {
-                                children.push(match node {
-                                    Node::Directory { .. } => (name.into(), FileType::Directory),
-                                    Node::File { .. } => (name.clone().into(), FileType::Regular),
-                                    Node::Symlink { .. } => (name.into(), FileType::Symlink),
-                                })
-                            }
-                            Ok(children)
-                        } else {
-                            // If we didn't get the directory node that's linked, that's a store inconsistency!
-                            error!(
-                                directory.digest = %digest,
-                                path = ?path,
-                                "directory not found",
-                            );
-                            Err(io::Error::new(
-                                io::ErrorKind::NotFound,
-                                format!("directory {digest} does not exist"),
-                            ))?
-                        }
+                        let directory = self
+                            .tokio_handle
+                            .block_on(async { self.directory_service.as_ref().get(&digest).await })?
+                            .ok_or_else(|| {
+                                // If we didn't get the directory node that's linked, that's a store inconsistency!
+                                error!(
+                                    directory.digest = %digest,
+                                    path = ?path,
+                                    "directory not found",
+                                );
+                                io::Error::new(
+                                    io::ErrorKind::NotFound,
+                                    format!("directory {digest} does not exist"),
+                                )
+                            })?;
+
+                        // construct children from nodes
+                        Ok(directory
+                            .into_nodes()
+                            .map(|(name, node)| (name.into(), node_get_type(&node)))
+                            .collect())
                     }
                     Node::File { .. } => {
                         // This would normally be a io::ErrorKind::NotADirectory (still unstable)
