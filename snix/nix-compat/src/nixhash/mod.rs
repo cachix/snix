@@ -40,14 +40,12 @@ impl PartialOrd for NixHash {
     }
 }
 
+// This provides a Display impl, which happens to be SRI right now.
+// If you explicitly care about the format, use [NixHash::to_sri_string]
+// or [NixHash::write_sri_str].
 impl Display for NixHash {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-        write!(
-            f,
-            "{}-{}",
-            self.algo(),
-            BASE64.encode(self.digest_as_bytes())
-        )
+        self.write_sri_str(f)
     }
 }
 
@@ -108,6 +106,24 @@ impl NixHash {
         )
     }
 
+    /// Writes a [NixHash] in SRI format to a [std::fmt::Write].
+    pub fn write_sri_str(&self, w: &mut impl std::fmt::Write) -> Result<(), std::fmt::Error> {
+        write!(
+            w,
+            "{}-{}",
+            self.algo(),
+            BASE64.encode(self.digest_as_bytes())
+        )
+    }
+
+    /// Formats a [NixHash] to an SRI string.
+    pub fn to_sri_string(&self) -> String {
+        let mut s = String::new();
+        self.write_sri_str(&mut s).unwrap();
+
+        s
+    }
+
     /// Returns the digest as a hex string -- without any algorithm prefix.
     pub fn to_plain_hex_string(&self) -> String {
         HEXLOWER.encode(self.digest_as_bytes())
@@ -143,9 +159,8 @@ impl Serialize for NixHash {
     where
         S: serde::Serializer,
     {
-        // encode as SRI
-        let string = format!("{}-{}", self.algo(), BASE64.encode(self.digest_as_bytes()));
-        string.serialize(serializer)
+        let sri = self.to_sri_string();
+        sri.serialize(serializer)
     }
 }
 
