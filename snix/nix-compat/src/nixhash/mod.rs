@@ -111,7 +111,7 @@ impl NixHash {
     /// the passed algo.
     pub fn from_algo_and_digest(algo: HashAlgo, digest: &[u8]) -> Result<NixHash, Error> {
         if digest.len() != algo.digest_length() {
-            return Err(Error::InvalidDigestLength(digest.len(), algo));
+            return Err(Error::InvalidDigestLength(algo));
         }
 
         Ok(match algo {
@@ -171,7 +171,7 @@ impl NixHash {
 
         // if the digest string is too small to fit even the BASE64_NOPAD version, bail out.
         if digest_str.len() < BASE64_NOPAD.encode_len(algo.digest_length()) {
-            return Err(Error::InvalidDigestLength(digest_str.len(), algo));
+            return Err(Error::InvalidDigestLength(algo));
         }
 
         // trim potential padding, and use a version that does not do trailing bit
@@ -271,8 +271,8 @@ pub enum Error {
     InvalidAlgo,
     #[error("invalid SRI string")]
     InvalidSRI,
-    #[error("invalid encoded digest length '{0}' for algo {1}")]
-    InvalidDigestLength(usize, HashAlgo),
+    #[error("invalid digest length for algo {0}")]
+    InvalidDigestLength(HashAlgo),
     #[error("invalid base16 encoding: {0}")]
     InvalidBase16Encoding(data_encoding::DecodeError),
     #[error("invalid base32 encoding: {0}")]
@@ -302,7 +302,7 @@ fn decode_digest(s: &[u8], algo: HashAlgo) -> Result<NixHash, Error> {
             .decode(s.as_ref())
             .map_err(Error::InvalidBase64Encoding)?
     } else {
-        Err(Error::InvalidDigestLength(s.len(), algo))?
+        Err(Error::InvalidDigestLength(algo))?
     };
 
     Ok(NixHash::from_algo_and_digest(algo, &digest).unwrap())
