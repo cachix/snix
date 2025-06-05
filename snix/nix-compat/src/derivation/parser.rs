@@ -79,7 +79,8 @@ pub fn parse_streaming(i: &[u8]) -> (Result<Derivation, Error<&[u8]>>, &[u8]) {
 
 /// Consume a string containing the algo, and optionally a `r:`
 /// prefix, and a digest (bytes), return a [CAHash::Nar] or [CAHash::Flat].
-// TODO: This maybe should belong in ca_hash.rs
+/// This does not live in CAHash, as its only possible to construct a subset of CAHash kinds,
+/// and only used inside Derivation ATerm.
 fn from_algo_and_mode_and_digest<B: AsRef<[u8]>>(
     algo_and_mode: &str,
     digest: B,
