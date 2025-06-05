@@ -77,25 +77,23 @@ impl CAHash {
     /// Formats a [CAHash] in the Nix default hash format, which is the format
     /// that's used in NARInfos for example.
     pub fn to_nix_nixbase32_string(&self) -> String {
-        format!(
-            "{}:{}",
-            match self.mode() {
-                HashMode::Flat => match self.hash().as_ref() {
-                    NixHash::Md5(_) => "fixed:md5",
-                    NixHash::Sha1(_) => "fixed:sha1",
-                    NixHash::Sha256(_) => "fixed:sha256",
-                    NixHash::Sha512(_) => "fixed:sha512",
-                },
-                HashMode::Nar => match self.hash().as_ref() {
-                    NixHash::Md5(_) => "fixed:r:md5",
-                    NixHash::Sha1(_) => "fixed:r:sha1",
-                    NixHash::Sha256(_) => "fixed:r:sha256",
-                    NixHash::Sha512(_) => "fixed:r:sha512",
-                },
-                HashMode::Text => "text:sha256",
+        let (algo, hash) = match self {
+            CAHash::Flat(h) => match h {
+                NixHash::Md5(h) => ("fixed:md5", &h[..]),
+                NixHash::Sha1(h) => ("fixed:sha1", &h[..]),
+                NixHash::Sha256(h) => ("fixed:sha256", &h[..]),
+                NixHash::Sha512(h) => ("fixed:sha512", &h[..]),
             },
-            nixbase32::encode(self.hash().digest_as_bytes())
-        )
+            CAHash::Nar(h) => match h {
+                NixHash::Md5(h) => ("fixed:r:md5", &h[..]),
+                NixHash::Sha1(h) => ("fixed:r:sha1", &h[..]),
+                NixHash::Sha256(h) => ("fixed:r:sha256", &h[..]),
+                NixHash::Sha512(h) => ("fixed:r:sha512", &h[..]),
+            },
+            CAHash::Text(h) => ("text:sha256", &h[..]),
+        };
+
+        format!("{}:{}", algo, nixbase32::encode(hash))
     }
 
     /// This takes a serde_json::Map and turns it into this structure. This is necessary to do such
