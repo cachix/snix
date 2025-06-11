@@ -197,7 +197,25 @@ impl SnixStoreIO {
                         // synthesize the build request.
                         let build_request = derivation_to_build_request(&drv, &resolved_inputs)?;
 
-                        let build_request_outputs = build_request.outputs.clone();
+                        // collect all store paths from the request, sorted.
+                        let output_paths: Vec<StorePath<String>> = build_request
+                            .outputs
+                            .iter()
+                            .map(|output_path| {
+                                // in the case of building nix store paths,
+                                // all outputs are in `inputs_dir`.
+                                // When stripping it, we end up with the store path
+                                // basename.
+                                StorePath::from_bytes(
+                                    output_path
+                                        .strip_prefix(&build_request.inputs_dir)
+                                        .expect("Snix bug: inputs_dir not prefix of request output")
+                                        .as_os_str()
+                                        .as_encoded_bytes(),
+                                )
+                                .expect("Snix bug: unable to parse output path as StorePath")
+                            })
+                            .collect();
 
                         // create a build
                         let build_result = self
@@ -211,18 +229,8 @@ impl SnixStoreIO {
 
                         // For each output, insert a PathInfo.
                         for (output, output_path) in
-                            build_result.outputs.into_iter().zip(build_request_outputs)
+                            build_result.outputs.into_iter().zip(output_paths)
                         {
-                            // convert output_path to StorePath
-                            let output_store_path: StorePath<String> = {
-                                use std::os::unix::ffi::OsStrExt;
-
-                                StorePath::from_bytes(output_path.as_path().as_os_str().as_bytes())
-                                    .map_err(|e| {
-                                        std::io::Error::new(std::io::ErrorKind::InvalidData, e)
-                                    })?
-                            };
-
                             // calculate the nar representation
                             let (nar_size, nar_sha256) = self
                                 .nar_calculation_service
@@ -231,7 +239,7 @@ impl SnixStoreIO {
 
                             // assemble the PathInfo to persist
                             let path_info = PathInfo {
-                                store_path: output_store_path.clone(),
+                                store_path: output_path.clone(),
                                 node: output.node,
                                 references: {
                                     let all_possible_refs: Vec<_> = drv
@@ -283,7 +291,7 @@ impl SnixStoreIO {
                                 .await
                                 .map_err(|e| std::io::Error::new(io::ErrorKind::Other, e))?;
 
-                            if store_path == &output_store_path {
+                            if store_path == &output_path {
                                 out_path_info = Some(path_info);
                             }
                         }
