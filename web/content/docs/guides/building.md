@@ -24,8 +24,7 @@ contribute after following this guide.
  - Ensure you have [Nix][] installed.
 
 ### Getting the sources
-Snix is hosted in its own Forgejo instance, hosted on [git.snix.dev](https://git.snix.dev/snix/snix), and a
-(read-only) mirror on [GitHub](https://github.com/snix-project/snix).
+Snix is hosted in its own Forgejo instance, hosted on [git.snix.dev](https://git.snix.dev/snix/snix).
 
 Check out the source code as follows:
 
@@ -89,5 +88,3 @@ to learn more about the project structure.
 [Nix]: https://nixos.org/nix/
 [mg]: https://code.tvl.fyi/tree/tools/magrathea
 [crate2nix]: https://github.com/nix-community/crate2nix/
-
-
