@@ -9,7 +9,7 @@ use super::oci::OCIBuildService;
 ///
 /// The following schemes are supported by the following services:
 /// - `dummy://` ([DummyBuildService])
-/// - `oci://` ([OCIBuildService])
+/// - `oci://` ([OCIBuildService]) - Uses libcontainer for container execution
 /// - `grpc+*://` ([GRPCBuildService])
 ///
 /// As some of these [BuildService] need to talk to a [BlobService] and

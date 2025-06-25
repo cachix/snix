@@ -1,5 +1,16 @@
+//! OCI (Open Container Initiative) build service implementation.
+//!
+//! This module provides a build service that uses libcontainer directly
+//! to execute builds in isolated container environments.
+//!
+//! # Example URLs
+//!
+//! - `oci:///var/lib/snix/bundles` - Use libcontainer for container execution
+
 use anyhow::Context;
-use bstr::BStr;
+use libcontainer::container::Container;
+use libcontainer::container::builder::ContainerBuilder;
+use libcontainer::syscall::syscall::SyscallType;
 use snix_castore::{
     blobservice::BlobService,
     directoryservice::DirectoryService,
@@ -7,14 +18,13 @@ use snix_castore::{
     import::fs::ingest_path,
     refscan::{ReferencePattern, ReferenceScanner},
 };
-use tokio::process::{Child, Command};
 use tonic::async_trait;
 use tracing::{Span, debug, instrument, warn};
 use uuid::Uuid;
 
 use crate::buildservice::{BuildOutput, BuildRequest, BuildResult};
 use crate::oci::{get_host_output_paths, make_bundle, make_spec};
-use std::{ffi::OsStr, path::PathBuf, process::Stdio};
+use std::path::PathBuf;
 
 use super::BuildService;
 
@@ -112,29 +122,26 @@ where
         .context("mounting")
         .map_err(std::io::Error::other)?;
 
-        debug!(bundle.path=?bundle_path, bundle.name=%bundle_name, "about to spawn bundle");
+        debug!(bundle.path=?bundle_path, bundle.name=%bundle_name, "about to create container");
 
-        // start the bundle as another process.
-        let child = spawn_bundle(bundle_path, &bundle_name.to_string())?;
-
-        // wait for the process to exit
-        // FUTUREWORK: change the trait to allow reporting progress / logs…
-        let child_output = child
-            .wait_with_output()
+        // Create and run the container using libcontainer
+        let exit_code = run_container(&bundle_path, &bundle_name.to_string())
             .await
-            .context("failed to run process")
+            .context("failed to run container")
             .map_err(std::io::Error::other)?;
 
-        // Check the exit code
-        if !child_output.status.success() {
-            let stdout = BStr::new(&child_output.stdout);
-            let stderr = BStr::new(&child_output.stderr);
+        // Clean up the bundle directory regardless of build outcome
+        if let Err(e) = tokio::fs::remove_dir_all(&bundle_path).await {
+            warn!(error=?e, bundle_path=?bundle_path, "failed to clean up bundle directory");
+        }
 
-            warn!(stdout=%stdout, stderr=%stderr, exit_code=%child_output.status, "build failed");
+        // Check the exit code
+        if exit_code != 0 {
+            warn!(exit_code=%exit_code, "build failed");
 
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                "nonzero exit code".to_string(),
+                format!("nonzero exit code: {}", exit_code),
             ));
         }
 
@@ -182,25 +189,107 @@ where
     }
 }
 
-/// Spawns runc with the bundle at bundle_path.
-/// On success, returns the child.
+/// Runs a container using libcontainer and waits for it to complete.
+/// Returns the exit code of the container.
 #[instrument(err)]
-fn spawn_bundle(
-    bundle_path: impl AsRef<OsStr> + std::fmt::Debug,
-    bundle_name: &str,
-) -> std::io::Result<Child> {
-    let mut command = Command::new("runc");
+async fn run_container(bundle_path: &PathBuf, container_id: &str) -> anyhow::Result<i32> {
+    // Run the container operation in a blocking task since libcontainer is synchronous
+    let bundle_path = bundle_path.clone();
+    let container_id = container_id.to_string();
 
-    command
-        .args(&[
-            "run".into(),
-            "--bundle".into(),
-            bundle_path.as_ref().to_os_string(),
-            bundle_name.into(),
-        ])
-        .stderr(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stdin(Stdio::null());
+    tokio::task::spawn_blocking(move || {
+        // Create the container
+        let mut container = ContainerBuilder::new(container_id.clone(), SyscallType::default())
+            .validate_id()?
+            .as_init(&bundle_path)
+            .with_systemd(false)
+            .build()
+            .context("failed to build container")?;
 
-    command.spawn()
+        // Verify container can be started
+        if !container.can_start() {
+            return Err(anyhow::anyhow!(
+                "container {} cannot be started in current state: {:?}",
+                container_id,
+                container.status()
+            ));
+        }
+
+        // Start the container
+        container.start().context("failed to start container")?;
+
+        // Wait for the container to complete and get exit status
+        // Since we're not detached, the container will wait for the process to exit
+        let exit_status = wait_for_container(&mut container)?;
+
+        // Clean up the container
+        if container.can_delete() {
+            if let Err(e) = container.delete(true) {
+                // Log but don't fail if cleanup fails
+                tracing::warn!(error=?e, container_id=%container_id, "failed to delete container");
+            }
+        }
+
+        Ok(exit_status)
+    })
+    .await
+    .context("container task panicked")?
+}
+
+/// Wait for the container to complete and return its exit code
+fn wait_for_container(container: &mut Container) -> anyhow::Result<i32> {
+    use libcontainer::container::ContainerStatus;
+    use std::{thread, time::Duration};
+
+    // Poll container status until it stops
+    loop {
+        // Refresh the container's status from the actual process state
+        container
+            .refresh_status()
+            .context("failed to refresh container status")?;
+
+        match container.status() {
+            ContainerStatus::Stopped => {
+                // Container has stopped, now we need to get the exit code
+                // Since libcontainer doesn't expose exit code directly, we still need waitpid
+                use nix::sys::wait::{WaitPidFlag, WaitStatus, waitpid};
+
+                if let Some(pid) = container.pid() {
+                    let pid = nix::unistd::Pid::from_raw(pid.as_raw());
+
+                    // Use WNOHANG to avoid blocking since process should already be done
+                    match waitpid(pid, Some(WaitPidFlag::WNOHANG))? {
+                        WaitStatus::Exited(_, code) => return Ok(code),
+                        WaitStatus::Signaled(_, signal, _) => {
+                            // Process was killed by a signal, return 128 + signal number
+                            return Ok(128 + signal as i32);
+                        }
+                        WaitStatus::StillAlive => {
+                            // Process marked as stopped but still alive, this shouldn't happen
+                            return Err(anyhow::anyhow!(
+                                "container stopped but process still alive"
+                            ));
+                        }
+                        _ => return Err(anyhow::anyhow!("unexpected wait status")),
+                    }
+                } else {
+                    // Container stopped but no PID available
+                    return Ok(0); // Assume success if we can't determine otherwise
+                }
+            }
+            ContainerStatus::Running => {
+                // Container still running, wait a bit before checking again
+                thread::sleep(Duration::from_millis(100));
+            }
+            ContainerStatus::Creating | ContainerStatus::Created => {
+                // Container still being created or just created, wait
+                thread::sleep(Duration::from_millis(100));
+            }
+            ContainerStatus::Paused => {
+                return Err(anyhow::anyhow!(
+                    "container unexpectedly paused during build"
+                ));
+            }
+        }
+    }
 }
