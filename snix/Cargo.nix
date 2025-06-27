@@ -13554,8 +13554,17 @@ rec {
             packageId = "prost";
           }
           {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+          {
             name = "serde_json";
             packageId = "serde_json";
+          }
+          {
+            name = "serde_qs";
+            packageId = "serde_qs";
           }
           {
             name = "snix-castore";
@@ -13627,7 +13636,7 @@ rec {
         features = {
           "tonic-reflection" = [ "dep:tonic-reflection" "snix-castore/tonic-reflection" ];
         };
-        resolvedDefaultFeatures = [ "default" "tonic-reflection" ];
+        resolvedDefaultFeatures = [ "default" "embedded-sandbox-shell" "tonic-reflection" ];
       };
       "snix-castore" = rec {
         crateName = "snix-castore";
