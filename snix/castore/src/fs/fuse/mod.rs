@@ -73,7 +73,7 @@ impl FuseDaemon {
     {
         let server = Arc::new(fuse_backend_rs::api::server::Server::new(Arc::new(fs)));
 
-        let mut session = FuseSession::new(mountpoint.as_ref(), "snix-store", "", true)
+        let mut session = FuseSession::new(mountpoint.as_ref(), "snix-castore", "", true)
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
 
         #[cfg(target_os = "linux")]

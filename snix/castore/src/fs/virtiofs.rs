@@ -226,9 +226,12 @@ where
 
     let listener = Listener::new(socket, true).unwrap();
 
-    let mut fs_daemon =
-        VhostUserDaemon::new(String::from("vhost-user-fs-snix-store"), backend, guest_mem)
-            .map_err(|_| Error::NewDaemon)?;
+    let mut fs_daemon = VhostUserDaemon::new(
+        String::from("vhost-user-fs-snix-castore"),
+        backend,
+        guest_mem,
+    )
+    .map_err(|_| Error::NewDaemon)?;
 
     fs_daemon.start(listener).map_err(|_| Error::StartDaemon)?;
 
