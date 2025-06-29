@@ -294,6 +294,10 @@ to a missing value in the attribute set(s) included via `with`."#
     /// or "sha512"
     #[error("unknown hash type '{0}'")]
     UnknownHashType(String),
+
+    /// An invalid regular expression was passed.
+    #[error("invalid regular expression '{0}'")]
+    InvalidRegex(String),
 }
 
 impl error::Error for Error {
@@ -688,6 +692,7 @@ impl Error {
             | ErrorKind::WithContext { .. }
             | ErrorKind::UnknownHashType(_)
             | ErrorKind::InvalidHash(_)
+            | ErrorKind::InvalidRegex(_)
             | ErrorKind::CatchableError(_) => return None,
         };
 
@@ -735,6 +740,7 @@ impl Error {
             ErrorKind::UnknownHashType(_) => "E039",
             ErrorKind::UnexpectedArgumentBuiltin { .. } => "E040",
             ErrorKind::InvalidHash(_) => "E041",
+            ErrorKind::InvalidRegex(_) => "E042",
 
             // Special error code for errors from other Snix
             // components. We may want to introduce a code namespacing

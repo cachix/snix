@@ -991,8 +991,9 @@ mod pure_builtins {
             return Ok(re);
         }
         let re = re.to_str()?;
-        let re: Regex =
-            cached_regex(&format!("^{}$", re.to_str()?)).expect("TODO(tazjin): propagate error");
+        let re = re.to_str()?;
+        let re: Regex = cached_regex(&format!("^{}$", re))
+            .map_err(|_| ErrorKind::InvalidRegex(re.to_string()))?;
 
         match re.captures(s.to_str()?) {
             Some(caps) => Ok(Value::List(
@@ -1213,7 +1214,8 @@ mod pure_builtins {
         let s = str.to_contextful_str()?;
         let text = s.to_str()?;
         let re = regex.to_str()?;
-        let re = cached_regex(re.to_str()?).unwrap();
+        let re = re.to_str()?;
+        let re = cached_regex(re).map_err(|_| ErrorKind::InvalidRegex(re.to_string()))?;
         let mut capture_locations = re.capture_locations();
         let num_captures = capture_locations.len();
         let mut ret = Vec::new();
