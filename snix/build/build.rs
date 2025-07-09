@@ -1,6 +1,29 @@
 use std::io::Result;
 
 fn main() -> Result<()> {
+    // SNIX_BUILD_SANDBOX_SHELL is required at compile time for Linux builds
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(shell_path) = std::env::var("SNIX_BUILD_SANDBOX_SHELL") {
+            // Tell cargo to rerun if the sandbox shell binary changes
+            println!("cargo:rerun-if-changed={}", shell_path);
+
+            // When embedded-sandbox-shell feature is enabled, verify the file exists
+            #[cfg(feature = "embedded-sandbox-shell")]
+            {
+                if !std::path::Path::new(&shell_path).exists() {
+                    panic!(
+                        "SNIX_BUILD_SANDBOX_SHELL points to non-existent file: {}",
+                        shell_path
+                    );
+                }
+            }
+        } else {
+            panic!(
+                "SNIX_BUILD_SANDBOX_SHELL environment variable must be set at compile time for Linux builds"
+            );
+        }
+    }
     #[allow(unused_mut)]
     let mut builder = tonic_build::configure();
 

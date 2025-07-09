@@ -1,5 +1,8 @@
+mod sandbox_shell;
+
 use anyhow::Context;
 use bstr::BStr;
+use serde::Deserialize;
 use snix_castore::{
     blobservice::BlobService,
     directoryservice::DirectoryService,
@@ -10,6 +13,7 @@ use snix_castore::{
 use tokio::process::{Child, Command};
 use tonic::async_trait;
 use tracing::{Span, debug, instrument, warn};
+use url::Url;
 use uuid::Uuid;
 
 use crate::buildservice::{BuildOutput, BuildRequest, BuildResult};
@@ -18,8 +22,43 @@ use std::{ffi::OsStr, path::PathBuf, process::Stdio};
 
 use super::BuildService;
 
-const SANDBOX_SHELL: &str = env!("SNIX_BUILD_SANDBOX_SHELL");
 const MAX_CONCURRENT_BUILDS: usize = 2; // TODO: make configurable
+
+/// Configuration for OCIBuildService
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OCIBuildServiceConfig {
+    /// Root path in which all bundles are created
+    pub bundle_root: PathBuf,
+
+    /// Path to the sandbox shell to use.
+    /// This needs to be a statically linked binary, or you must ensure all
+    /// dependencies are part of the build (which they usually are not).
+    #[serde(default = "sandbox_shell::default_sandbox_shell")]
+    pub sandbox_shell: PathBuf,
+    // TODO: make rootless_uid_gid configurable
+}
+
+impl TryFrom<Url> for OCIBuildServiceConfig {
+    type Error = Box<dyn std::error::Error + Send + Sync>;
+
+    fn try_from(mut url: Url) -> Result<Self, Self::Error> {
+        // oci wants a path in which it creates bundles
+        if url.path().is_empty() {
+            return Err("oci needs a bundle dir as path".into());
+        }
+
+        // Add the bundle_root from the URL path to the query parameters
+        let path = url.path().to_string();
+        url.query_pairs_mut().append_pair("bundle_root", &path);
+
+        // Parse the query string into the config struct using serde_qs
+        let config: OCIBuildServiceConfig = serde_qs::from_str(url.query().unwrap_or_default())
+            .map_err(|e| format!("failed to parse OCI service parameters: {}", e))?;
+
+        Ok(config)
+    }
+}
 
 pub struct OCIBuildService<BS, DS> {
     /// Root path in which all bundles are created in
@@ -30,13 +69,21 @@ pub struct OCIBuildService<BS, DS> {
     /// Handle to a [DirectoryService], used by filesystems spawned during builds.
     directory_service: DS,
 
+    /// Path to the sandbox shell to use
+    sandbox_shell: PathBuf,
+
     // semaphore to track number of concurrently running builds.
     // this is necessary, as otherwise we very quickly run out of open file handles.
     concurrent_builds: tokio::sync::Semaphore,
 }
 
 impl<BS, DS> OCIBuildService<BS, DS> {
-    pub fn new(bundle_root: PathBuf, blob_service: BS, directory_service: DS) -> Self {
+    pub fn new(
+        bundle_root: PathBuf,
+        blob_service: BS,
+        directory_service: DS,
+        sandbox_shell: PathBuf,
+    ) -> Self {
         // We map root inside the container to the uid/gid this is running at,
         // and allocate one for uid 1000 into the container from the range we
         // got in /etc/sub{u,g}id.
@@ -45,6 +92,7 @@ impl<BS, DS> OCIBuildService<BS, DS> {
             bundle_root,
             blob_service,
             directory_service,
+            sandbox_shell,
             concurrent_builds: tokio::sync::Semaphore::new(MAX_CONCURRENT_BUILDS),
         }
     }
@@ -66,7 +114,7 @@ where
         let span = Span::current();
         span.record("bundle_name", bundle_name.to_string());
 
-        let mut runtime_spec = make_spec(&request, true, SANDBOX_SHELL)
+        let mut runtime_spec = make_spec(&request, true, &self.sandbox_shell)
             .context("failed to create spec")
             .map_err(std::io::Error::other)?;
 

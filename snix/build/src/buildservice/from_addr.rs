@@ -3,7 +3,7 @@ use snix_castore::{blobservice::BlobService, directoryservice::DirectoryService}
 use url::Url;
 
 #[cfg(target_os = "linux")]
-use super::oci::OCIBuildService;
+use super::oci::{OCIBuildService, OCIBuildServiceConfig};
 
 /// Constructs a new instance of a [BuildService] from an URI.
 ///
@@ -32,17 +32,14 @@ where
         "dummy" => Box::<DummyBuildService>::default(),
         #[cfg(target_os = "linux")]
         "oci" => {
-            // oci wants a path in which it creates bundles.
-            if url.path().is_empty() {
-                Err(std::io::Error::other("oci needs a bundle dir as path"))?
-            }
-
-            // TODO: make sandbox shell and rootless_uid_gid
+            let config = OCIBuildServiceConfig::try_from(url)
+                .map_err(|e| std::io::Error::other(format!("invalid oci config: {}", e)))?;
 
             Box::new(OCIBuildService::new(
-                url.path().into(),
+                config.bundle_root,
                 blob_service,
                 directory_service,
+                config.sandbox_shell,
             ))
         }
         scheme => {

@@ -67,7 +67,8 @@ in
     inherit cargoDeps src;
     name = "snix-rust-docs";
     PROTO_ROOT = protos;
-    SNIX_BUILD_SANDBOX_SHELL = "/homeless-shelter";
+    # This path is resolved at build time in the Nix build environment
+    SNIX_BUILD_SANDBOX_SHELL = if pkgs.stdenv.isLinux then pkgs.busybox-sandbox-shell + "/bin/busybox" else "/bin/sh";
 
     nativeBuildInputs = with pkgs; [
       cargo
@@ -93,7 +94,8 @@ in
     inherit cargoDeps src;
     name = "snix-clippy";
     PROTO_ROOT = protos;
-    SNIX_BUILD_SANDBOX_SHELL = "/homeless-shelter";
+    # This path is resolved at build time in the Nix build environment
+    SNIX_BUILD_SANDBOX_SHELL = if pkgs.stdenv.isLinux then pkgs.busybox-sandbox-shell + "/bin/busybox" else "/bin/sh";
 
     buildInputs = [
       pkgs.fuse

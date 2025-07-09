@@ -43,7 +43,7 @@ pub enum SpecError {
 pub(crate) fn make_spec(
     request: &BuildRequest,
     rootless: bool,
-    sandbox_shell: &str,
+    sandbox_shell: &Path,
 ) -> Result<oci_spec::runtime::Spec, SpecError> {
     let allow_network = request
         .constraints
@@ -64,7 +64,7 @@ pub(crate) fn make_spec(
         .constraints
         .contains(&BuildConstraints::ProvideBinSh)
     {
-        ro_host_mounts.push((Path::new(sandbox_shell), Path::new("/bin/sh")))
+        ro_host_mounts.push((sandbox_shell, Path::new("/bin/sh")))
     }
 
     oci_spec::runtime::SpecBuilder::default()
