@@ -1,17 +1,4 @@
-# This file is shell.nix in the snix josh workspace,
-# *and* used to provide the //snix:shell attribute in a full depot checkout.
-# Hence, it may not use depot as a toplevel argument.
-
-{
-  # This falls back to the snix josh workspace-provided nixpkgs checkout.
-  # In the case of depot, it's always set explicitly.
-  pkgs ? (import ./nixpkgs {
-    depotOverlays = false;
-    depot.third_party.sources = import ./sources { };
-  })
-, withIntegration ? false
-, ...
-}:
+{ pkgs, ... }:
 
 pkgs.mkShell {
   name = "snix-rust-dev-env";
@@ -40,7 +27,6 @@ pkgs.mkShell {
     pkgs.protobuf
   ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
     pkgs.runc
-  ] ++ pkgs.lib.optionals withIntegration [
     pkgs.cbtemulator
     pkgs.google-cloud-bigtable-tool
   ];
