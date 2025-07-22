@@ -3,9 +3,6 @@ name = "nix-compat-derive-tests"
 version = "0.1.0"
 edition = "2024"
 
-[features]
-compile-tests = []
-
 [dev-dependencies]
 hex-literal.workspace = true
 pretty_assertions.workspace = true

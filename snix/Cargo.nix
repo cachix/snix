@@ -8489,8 +8489,7 @@ rec {
             packageId = "trybuild";
           }
         ];
-        features = { };
-        resolvedDefaultFeatures = [ "compile-tests" ];
+
       };
       "nix-daemon" = rec {
         crateName = "nix-daemon";
