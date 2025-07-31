@@ -215,8 +215,9 @@ impl ServiceBuilder for GRPCBlobServiceConfig {
         instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn BlobService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let client = proto::blob_service_client::BlobServiceClient::new(
+        let client = proto::blob_service_client::BlobServiceClient::with_interceptor(
             crate::tonic::channel_from_url(&self.url.parse()?).await?,
+            snix_tracing::propagate::tonic::send_trace,
         );
         Ok(Arc::new(GRPCBlobService::from_client(
             instance_name.to_string(),

@@ -173,8 +173,9 @@ impl ServiceBuilder for GRPCPathInfoServiceConfig {
         instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn PathInfoService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let client = proto::path_info_service_client::PathInfoServiceClient::new(
+        let client = proto::path_info_service_client::PathInfoServiceClient::with_interceptor(
             snix_castore::tonic::channel_from_url(&self.url.parse()?).await?,
+            snix_tracing::propagate::tonic::send_trace,
         );
         Ok(Arc::new(GRPCPathInfoService::from_client(
             instance_name.to_string(),

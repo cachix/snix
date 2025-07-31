@@ -243,8 +243,9 @@ impl ServiceBuilder for GRPCDirectoryServiceConfig {
         instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn DirectoryService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let client = proto::directory_service_client::DirectoryServiceClient::new(
+        let client = proto::directory_service_client::DirectoryServiceClient::with_interceptor(
             crate::tonic::channel_from_url(&self.url.parse()?).await?,
+            snix_tracing::propagate::tonic::send_trace,
         );
         Ok(Arc::new(GRPCDirectoryService::from_client(
             instance_name.to_string(),
