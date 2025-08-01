@@ -9,7 +9,7 @@ use nix_compat::nixhash::{HashAlgo, NixHash};
 use snix_eval::builtin_macros::builtins;
 use snix_eval::generators::Gen;
 use snix_eval::generators::GenCo;
-use snix_eval::{CatchableErrorKind, ErrorKind, Value};
+use snix_eval::{CatchableErrorKind, ErrorKind, Value, try_cek};
 use std::rc::Rc;
 use url::Url;
 
@@ -56,18 +56,10 @@ async fn extract_fetch_args(
         ));
     }
 
-    let url_str = match select_string(co, &attrs, "url").await? {
-        Ok(s) => s.ok_or_else(|| ErrorKind::AttributeNotFound { name: "url".into() })?,
-        Err(cek) => return Ok(Err(cek)),
-    };
-    let name = match select_string(co, &attrs, "name").await? {
-        Ok(s) => s,
-        Err(cek) => return Ok(Err(cek)),
-    };
-    let sha256_str = match select_string(co, &attrs, "sha256").await? {
-        Ok(s) => s,
-        Err(cek) => return Ok(Err(cek)),
-    };
+    let url_str = try_cek!(select_string(co, &attrs, "url").await?)
+        .ok_or_else(|| ErrorKind::AttributeNotFound { name: "url".into() })?;
+    let name = try_cek!(select_string(co, &attrs, "name").await?);
+    let sha256_str = try_cek!(select_string(co, &attrs, "sha256").await?);
 
     Ok(Ok(NixFetchArgs {
         url: Url::parse(&url_str).map_err(|e| ErrorKind::SnixError(Rc::new(e)))?,
@@ -89,6 +81,7 @@ async fn extract_fetch_args(
 pub(crate) mod fetcher_builtins {
     use bstr::ByteSlice;
     use nix_compat::{flakeref, nixhash::NixHash};
+    use snix_eval::try_cek_to_value;
     use std::collections::BTreeMap;
 
     use super::*;
@@ -137,10 +130,7 @@ pub(crate) mod fetcher_builtins {
         co: GenCo,
         args: Value,
     ) -> Result<Value, ErrorKind> {
-        let args = match extract_fetch_args(&co, args).await? {
-            Ok(args) => args,
-            Err(cek) => return Ok(Value::from(cek)),
-        };
+        let args = try_cek_to_value!(extract_fetch_args(&co, args).await?);
 
         // Derive the name from the URL basename if not set explicitly.
         let name = args
@@ -163,10 +153,7 @@ pub(crate) mod fetcher_builtins {
         co: GenCo,
         args: Value,
     ) -> Result<Value, ErrorKind> {
-        let args = match extract_fetch_args(&co, args).await? {
-            Ok(args) => args,
-            Err(cek) => return Ok(Value::from(cek)),
-        };
+        let args = try_cek_to_value!(extract_fetch_args(&co, args).await?);
 
         // Name defaults to "source" if not set explicitly.
         const DEFAULT_NAME_FETCH_TARBALL: &str = "source";

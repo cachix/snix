@@ -14,6 +14,7 @@ use crate::{
     builtins::coerce_value_to_path,
     generators::pin_generator,
     observer::NoOpObserver,
+    try_cek_to_value,
     value::{Builtin, Thunk},
     vm::generators::{self, GenCo},
 };
@@ -25,10 +26,7 @@ async fn import_impl(
     mut args: Vec<Value>,
 ) -> Result<Value, ErrorKind> {
     // TODO(sterni): canon_path()?
-    let mut path = match coerce_value_to_path(&co, args.pop().unwrap()).await? {
-        Err(cek) => return Ok(Value::Catchable(Box::new(cek))),
-        Ok(path) => path,
-    };
+    let mut path = try_cek_to_value!(coerce_value_to_path(&co, args.pop().unwrap()).await?);
 
     if path.is_dir() {
         path.push("default.nix");

@@ -176,7 +176,7 @@ pub(crate) mod derivation_builtins {
 
     use nix_compat::store_path::hash_placeholder;
     use snix_eval::generators::Gen;
-    use snix_eval::{NixContext, NixContextElement, NixString};
+    use snix_eval::{NixContext, NixContextElement, NixString, try_cek_to_value};
 
     use crate::builtins::utils::{select_string, strong_importing_coerce_to_string};
     use crate::fetchurl::fetchurl_derivation_to_fetch;
@@ -279,13 +279,10 @@ pub(crate) mod derivation_builtins {
                 // These are only set in drv.arguments.
                 "args" => {
                     for arg in value.to_list()? {
-                        match strong_importing_coerce_to_string(&co, arg).await {
-                            Err(cek) => return Ok(Value::from(cek)),
-                            Ok(s) => {
-                                input_context.mimic(&s);
-                                drv.arguments.push(s.to_str()?.to_owned())
-                            }
-                        }
+                        let s =
+                            try_cek_to_value!(strong_importing_coerce_to_string(&co, arg).await);
+                        input_context.mimic(&s);
+                        drv.arguments.push(s.to_str()?.to_owned())
                     }
                 }
 
@@ -338,28 +335,23 @@ pub(crate) mod derivation_builtins {
 
                 // handle builder and system.
                 "builder" | "system" => {
-                    match strong_importing_coerce_to_string(&co, value).await {
-                        Err(cek) => return Ok(Value::from(cek)),
-                        Ok(val_str) => {
-                            input_context.mimic(&val_str);
+                    let val_str =
+                        try_cek_to_value!(strong_importing_coerce_to_string(&co, value).await);
+                    input_context.mimic(&val_str);
 
-                            if arg_name == "builder" {
-                                val_str.to_str()?.clone_into(&mut drv.builder);
-                            } else {
-                                val_str.to_str()?.clone_into(&mut drv.system);
-                            }
+                    if arg_name == "builder" {
+                        val_str.to_str()?.clone_into(&mut drv.builder);
+                    } else {
+                        val_str.to_str()?.clone_into(&mut drv.system);
+                    }
 
-                            // Either populate drv.environment or structured_attrs.
-                            if let Some(ref mut structured_attrs) = structured_attrs {
-                                // No need to check for dups, we only iterate over every attribute name once
-                                structured_attrs.insert(
-                                    arg_name.to_owned(),
-                                    val_str.to_str()?.to_owned().into(),
-                                );
-                            } else {
-                                insert_env(&mut drv, arg_name, val_str.as_bytes().into())?;
-                            }
-                        }
+                    // Either populate drv.environment or structured_attrs.
+                    if let Some(ref mut structured_attrs) = structured_attrs {
+                        // No need to check for dups, we only iterate over every attribute name once
+                        structured_attrs
+                            .insert(arg_name.to_owned(), val_str.to_str()?.to_owned().into());
+                    } else {
+                        insert_env(&mut drv, arg_name, val_str.as_bytes().into())?;
                     }
                 }
 
@@ -384,14 +376,11 @@ pub(crate) mod derivation_builtins {
                         // No need to check for dups, we only iterate over every attribute name once
                         structured_attrs.insert(arg_name.to_owned(), val_json);
                     } else {
-                        match strong_importing_coerce_to_string(&co, value).await {
-                            Err(cek) => return Ok(Value::from(cek)),
-                            Ok(val_str) => {
-                                input_context.mimic(&val_str);
+                        let val_str =
+                            try_cek_to_value!(strong_importing_coerce_to_string(&co, value).await);
+                        input_context.mimic(&val_str);
 
-                                insert_env(&mut drv, arg_name, val_str.as_bytes().into())?;
-                            }
-                        }
+                        insert_env(&mut drv, arg_name, val_str.as_bytes().into())?;
                     }
                 }
             }
@@ -400,27 +389,21 @@ pub(crate) mod derivation_builtins {
 
         // Configure fixed-output derivations if required.
         {
-            let output_hash = match select_string(&co, &input, "outputHash")
-                .await
-                .context("evaluating the `outputHash` parameter")?
-            {
-                Err(cek) => return Ok(Value::from(cek)),
-                Ok(s) => s,
-            };
-            let output_hash_algo = match select_string(&co, &input, "outputHashAlgo")
-                .await
-                .context("evaluating the `outputHashAlgo` parameter")?
-            {
-                Err(cek) => return Ok(Value::from(cek)),
-                Ok(s) => s,
-            };
-            let output_hash_mode = match select_string(&co, &input, "outputHashMode")
-                .await
-                .context("evaluating the `outputHashMode` parameter")?
-            {
-                Err(cek) => return Ok(Value::from(cek)),
-                Ok(s) => s,
-            };
+            let output_hash = try_cek_to_value!(
+                select_string(&co, &input, "outputHash")
+                    .await
+                    .context("evaluating the `outputHash` parameter")?
+            );
+            let output_hash_algo = try_cek_to_value!(
+                select_string(&co, &input, "outputHashAlgo")
+                    .await
+                    .context("evaluating the `outputHashAlgo` parameter")?
+            );
+            let output_hash_mode = try_cek_to_value!(
+                select_string(&co, &input, "outputHashMode")
+                    .await
+                    .context("evaluating the `outputHashMode` parameter")?
+            );
 
             if let Some(warning) =
                 handle_fixed_output(&mut drv, output_hash, output_hash_algo, output_hash_mode)?

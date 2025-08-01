@@ -14,7 +14,6 @@ use std::collections::VecDeque;
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 
-use crate::arithmetic_op;
 use crate::value::PointerEquality;
 use crate::vm::generators::{self, GenCo};
 use crate::warnings::WarningKind;
@@ -24,6 +23,7 @@ use crate::{
     errors::{CatchableErrorKind, ErrorKind},
     value::{CoercionKind, NixAttrs, NixList, NixString, Thunk, Value},
 };
+use crate::{arithmetic_op, try_cek};
 
 use self::versions::{VersionPart, VersionPartsIter};
 
@@ -59,25 +59,23 @@ pub async fn coerce_value_to_path(
         return Ok(Ok(*p));
     }
 
-    match generators::request_string_coerce(
-        co,
-        value,
-        CoercionKind {
-            strong: false,
-            import_paths: false,
-        },
-    )
-    .await
-    {
-        Ok(vs) => {
-            let path = vs.to_path()?.to_owned();
-            if path.is_absolute() {
-                Ok(Ok(path))
-            } else {
-                Err(ErrorKind::NotAnAbsolutePath(path))
-            }
-        }
-        Err(cek) => Ok(Err(cek)),
+    let vs = try_cek!(
+        generators::request_string_coerce(
+            co,
+            value,
+            CoercionKind {
+                strong: false,
+                import_paths: false,
+            },
+        )
+        .await
+    );
+
+    let path = vs.to_path()?.to_owned();
+    if path.is_absolute() {
+        Ok(Ok(path))
+    } else {
+        Err(ErrorKind::NotAnAbsolutePath(path))
     }
 }
 
@@ -106,7 +104,9 @@ mod pure_builtins {
     use os_str_bytes::OsStringBytes;
     use rustc_hash::{FxHashMap, FxHashSet};
 
-    use crate::{AddContext, NixContext, NixContextElement, value::PointerEquality};
+    use crate::{
+        AddContext, NixContext, NixContextElement, try_cek_to_value, value::PointerEquality,
+    };
 
     use super::*;
 
@@ -302,23 +302,20 @@ mod pure_builtins {
             if i != 0 {
                 res.push_str(&separator);
             }
-            match generators::request_string_coerce(
-                &co,
-                val,
-                CoercionKind {
-                    strong: false,
-                    import_paths: true,
-                },
-            )
-            .await
-            {
-                Ok(mut s) => {
-                    res.push_str(&s);
-                    if let Some(other_context) = s.take_context() {
-                        context.extend(other_context.into_iter());
-                    }
-                }
-                Err(c) => return Ok(Value::Catchable(Box::new(c))),
+            let mut s = try_cek_to_value!(
+                generators::request_string_coerce(
+                    &co,
+                    val,
+                    CoercionKind {
+                        strong: false,
+                        import_paths: true,
+                    },
+                )
+                .await
+            );
+            res.push_str(&s);
+            if let Some(other_context) = s.take_context() {
+                context.extend(other_context.into_iter());
             }
         }
         // FIXME: pass immediately the string res.
@@ -372,11 +369,11 @@ mod pure_builtins {
     #[builtin("elem")]
     async fn builtin_elem(co: GenCo, x: Value, xs: Value) -> Result<Value, ErrorKind> {
         for val in xs.to_list()? {
-            match generators::check_equality(&co, x.clone(), val, PointerEquality::AllowAll).await?
-            {
-                Ok(true) => return Ok(true.into()),
-                Ok(false) => continue,
-                Err(cek) => return Ok(Value::from(cek)),
+            match try_cek_to_value!(
+                generators::check_equality(&co, x.clone(), val, PointerEquality::AllowAll).await?
+            ) {
+                true => return Ok(true.into()),
+                false => continue,
             }
         }
         Ok(false.into())
@@ -504,13 +501,10 @@ mod pure_builtins {
             let attrs = val.to_attrs()?;
             let key = attrs.select_required("key")?;
 
-            let value_missing = bgc_insert_key(&co, key.clone(), &mut done_keys).await?;
+            let value_missing =
+                try_cek_to_value!(bgc_insert_key(&co, key.clone(), &mut done_keys).await?);
 
-            if let Err(cek) = value_missing {
-                return Ok(Value::Catchable(Box::new(cek)));
-            }
-
-            if let Ok(false) = value_missing {
+            if !value_missing {
                 continue;
             }
 
@@ -909,10 +903,9 @@ mod pure_builtins {
     #[builtin("lessThan")]
     async fn builtin_less_than(co: GenCo, x: Value, y: Value) -> Result<Value, ErrorKind> {
         let span = generators::request_span(&co).await;
-        match x.nix_cmp_ordering(y, co, span).await? {
-            Err(cek) => Ok(Value::from(cek)),
-            Ok(Ordering::Less) => Ok(Value::Bool(true)),
-            Ok(_) => Ok(Value::Bool(false)),
+        match try_cek_to_value!(x.nix_cmp_ordering(y, co, span).await?) {
+            Ordering::Less => Ok(Value::Bool(true)),
+            _ => Ok(Value::Bool(false)),
         }
     }
 
@@ -1474,23 +1467,18 @@ mod pure_builtins {
             return Ok(s);
         }
 
-        match coerce_value_to_path(&co, s).await? {
-            Err(cek) => Ok(Value::from(cek)),
-            Ok(path) => {
-                let path: Value = crate::value::canon_path(path).into();
-                let span = generators::request_span(&co).await;
-                Ok(path
-                    .coerce_to_string(
-                        co,
-                        CoercionKind {
-                            strong: false,
-                            import_paths: false,
-                        },
-                        span,
-                    )
-                    .await?)
-            }
-        }
+        let path = try_cek_to_value!(coerce_value_to_path(&co, s).await?);
+        let path: Value = crate::value::canon_path(path).into();
+        let span = generators::request_span(&co).await;
+        path.coerce_to_string(
+            co,
+            CoercionKind {
+                strong: false,
+                import_paths: false,
+            },
+            span,
+        )
+        .await
     }
 
     #[builtin("tryEval")]
@@ -1521,18 +1509,17 @@ async fn bgc_insert_key(
     done: &mut Vec<Value>,
 ) -> Result<Result<bool, CatchableErrorKind>, ErrorKind> {
     for existing in done.iter() {
-        match generators::check_equality(
-            co,
-            existing.clone(),
-            key.clone(),
-            // TODO(tazjin): not actually sure which semantics apply here
-            PointerEquality::ForbidAll,
-        )
-        .await?
-        {
-            Ok(true) => return Ok(Ok(false)),
-            Ok(false) => (),
-            Err(cek) => return Ok(Err(cek)),
+        if try_cek!(
+            generators::check_equality(
+                co,
+                existing.clone(),
+                key.clone(),
+                // TODO(tazjin): not actually sure which semantics apply here
+                PointerEquality::ForbidAll,
+            )
+            .await?
+        ) {
+            return Ok(Ok(false));
         }
     }
 

@@ -2,6 +2,7 @@ use bstr::ByteSlice;
 use snix_eval::{
     CatchableErrorKind, CoercionKind, ErrorKind, NixAttrs, NixString, Value,
     generators::{self, GenCo},
+    try_cek,
 };
 
 pub(super) async fn strong_importing_coerce_to_string(
@@ -26,10 +27,8 @@ pub(super) async fn select_string(
     key: &str,
 ) -> Result<Result<Option<String>, CatchableErrorKind>, ErrorKind> {
     if let Some(attr) = attrs.select(key) {
-        match strong_importing_coerce_to_string(co, attr.clone()).await {
-            Err(cek) => return Ok(Err(cek)),
-            Ok(str) => return Ok(Ok(Some(str.to_str()?.to_owned()))),
-        }
+        let str = try_cek!(strong_importing_coerce_to_string(co, attr.clone()).await);
+        return Ok(Ok(Some(str.to_str()?.to_owned())));
     }
 
     Ok(Ok(None))

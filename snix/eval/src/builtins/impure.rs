@@ -16,7 +16,10 @@ mod impure_builtins {
     use std::os::unix::ffi::OsStrExt;
 
     use super::*;
-    use crate::builtins::{coerce_value_to_path, hash::hash_nix_string};
+    use crate::{
+        builtins::{coerce_value_to_path, hash::hash_nix_string},
+        try_cek_to_value,
+    };
 
     #[builtin("getEnv")]
     async fn builtin_get_env(co: GenCo, var: Value) -> Result<Value, ErrorKind> {
@@ -28,67 +31,52 @@ mod impure_builtins {
 
     #[builtin("hashFile")]
     async fn builtin_hash_file(co: GenCo, algo: Value, path: Value) -> Result<Value, ErrorKind> {
-        let path = match coerce_value_to_path(&co, path).await? {
-            Err(cek) => return Ok(Value::from(cek)),
-            Ok(p) => p,
-        };
+        let path = try_cek_to_value!(coerce_value_to_path(&co, path).await?);
         let r = generators::request_open_file(&co, path).await;
         hash_nix_string(algo.to_str()?, r).map(Value::from)
     }
 
     #[builtin("pathExists")]
     async fn builtin_path_exists(co: GenCo, path: Value) -> Result<Value, ErrorKind> {
-        match coerce_value_to_path(&co, path).await? {
-            Err(cek) => Ok(Value::from(cek)),
-            Ok(path) => Ok(generators::request_path_exists(&co, path).await),
-        }
+        let path = try_cek_to_value!(coerce_value_to_path(&co, path).await?);
+        Ok(generators::request_path_exists(&co, path).await)
     }
 
     #[builtin("readDir")]
     async fn builtin_read_dir(co: GenCo, path: Value) -> Result<Value, ErrorKind> {
-        match coerce_value_to_path(&co, path).await? {
-            Err(cek) => Ok(Value::from(cek)),
-            Ok(path) => {
-                let dir = generators::request_read_dir(&co, path).await;
-                let res = dir.into_iter().map(|(name, ftype)| {
-                    (
-                        // TODO: propagate Vec<u8> or bytes::Bytes into NixString.
-                        NixString::from(
-                            String::from_utf8(name.to_vec()).expect("parsing file name as string"),
-                        ),
-                        Value::from(ftype.to_string()),
-                    )
-                });
+        let path = try_cek_to_value!(coerce_value_to_path(&co, path).await?);
+        let dir = generators::request_read_dir(&co, path).await;
+        let res = dir.into_iter().map(|(name, ftype)| {
+            (
+                // TODO: propagate Vec<u8> or bytes::Bytes into NixString.
+                NixString::from(
+                    String::from_utf8(name.to_vec()).expect("parsing file name as string"),
+                ),
+                Value::from(ftype.to_string()),
+            )
+        });
 
-                Ok(Value::attrs(NixAttrs::from_iter(res)))
-            }
-        }
+        Ok(Value::attrs(NixAttrs::from_iter(res)))
     }
 
     #[builtin("readFile")]
     async fn builtin_read_file(co: GenCo, path: Value) -> Result<Value, ErrorKind> {
-        match coerce_value_to_path(&co, path).await? {
-            Err(cek) => Ok(Value::from(cek)),
-            Ok(path) => {
-                let mut buf = Vec::new();
-                generators::request_open_file(&co, path)
-                    .await
-                    .read_to_end(&mut buf)?;
-                Ok(Value::from(buf))
-            }
-        }
+        let path = try_cek_to_value!(coerce_value_to_path(&co, path).await?);
+        let mut buf = Vec::new();
+        generators::request_open_file(&co, path)
+            .await
+            .read_to_end(&mut buf)?;
+        Ok(Value::from(buf))
     }
 
     #[builtin("readFileType")]
     async fn builtin_read_file_type(co: GenCo, path: Value) -> Result<Value, ErrorKind> {
-        match coerce_value_to_path(&co, path).await? {
-            Err(cek) => Ok(Value::from(cek)),
-            Ok(path) => Ok(Value::from(
-                generators::request_read_file_type(&co, path)
-                    .await
-                    .to_string(),
-            )),
-        }
+        let path = try_cek_to_value!(coerce_value_to_path(&co, path).await?);
+        Ok(Value::from(
+            generators::request_read_file_type(&co, path)
+                .await
+                .to_string(),
+        ))
     }
 }
 

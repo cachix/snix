@@ -16,6 +16,81 @@ use crate::spans::ToSpan;
 use crate::value::{CoercionKind, NixString};
 use crate::{SourceCode, Value};
 
+/// Propagates a [catchable error](CatchableErrorKind) as `Ok(Err(_))` or returns the unwrapped value in `Ok`.
+///
+/// You should use the try operator (`?`) to propagate uncatchable errors before passing catchable
+/// errors to `try_cek`.
+///
+/// **Input type:** `Result<T, CatchableErrorKind>`
+///
+/// **Output type:** `T`
+///
+/// **Return type of containing function:** `Result<Result<_, CatchableErrorKind>, _>`
+///
+/// # Example
+///
+/// ```
+/// use snix_eval::{try_cek, CatchableErrorKind};
+///
+/// # #[derive(Debug)] struct MyUncatchableError;
+/// # fn example() -> Result<Result<(), CatchableErrorKind>, MyUncatchableError> {
+/// fn my_fn() -> Result<Result<i32, CatchableErrorKind>, MyUncatchableError> {
+///     Ok(Ok(42))
+/// }
+///
+/// let value: i32 = try_cek!(my_fn()?);
+/// assert_eq!(value, 42);
+///
+/// fn my_other_fn() -> Result<Result<i32, CatchableErrorKind>, MyUncatchableError> {
+///     Ok(Err(CatchableErrorKind::AssertionFailed))
+/// }
+///
+/// try_cek!(my_other_fn()?); // results in `return Ok(Err(cek))`
+/// unreachable!();
+///
+/// # Ok(Ok(()))
+/// # }
+/// # fn main() {
+/// #     pretty_assertions::assert_matches!(example().unwrap(), Err(CatchableErrorKind::AssertionFailed));
+/// # }
+/// ```
+#[macro_export]
+macro_rules! try_cek {
+    ($result:expr) => {
+        match $result {
+            Ok(s) => s,
+            Err(cek) => {
+                // Type-check to avoid accidental misuse
+                let cek: $crate::CatchableErrorKind = cek;
+                return Ok(Err(cek));
+            }
+        }
+    };
+}
+
+/// Propagates a [catchable error](CatchableErrorKind) as `Ok(Value::Catchable(_))` or returns the unwrapped value in `Ok`.
+///
+/// **Input type:** `Result<T, CatchableErrorKind>`
+///
+/// **Output type:** `T`
+///
+/// **Return type of containing function:** `Result<Value, _>`
+///
+/// See [`try_cek!`]'s documentation for more.
+#[macro_export]
+macro_rules! try_cek_to_value {
+    ($result:expr) => {
+        match $result {
+            Ok(s) => s,
+            Err(cek) => {
+                // Type-check to avoid accidental misuse
+                let cek: $crate::CatchableErrorKind = cek;
+                return Ok(Value::Catchable(Box::new(cek)));
+            }
+        }
+    };
+}
+
 /// "CatchableErrorKind" errors -- those which can be detected by
 /// `builtins.tryEval`.
 ///
