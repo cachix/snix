@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 #[cfg(any(feature = "fuse", feature = "virtiofs"))]
 use snix_castore::B3Digest;
-use snix_castore::Node;
 #[cfg(feature = "fs")]
 use snix_castore::fs::SnixStoreFs;
 #[cfg(feature = "fuse")]
@@ -9,6 +8,7 @@ use snix_castore::fs::fuse::FuseDaemon;
 #[cfg(feature = "virtiofs")]
 use snix_castore::fs::virtiofs::start_virtiofs_daemon;
 use snix_castore::import::{archive::ingest_archive, fs::ingest_path};
+use snix_castore::{Node, utils::ServiceUrls};
 use std::error::Error;
 use std::io::Write;
 use std::path::PathBuf;
@@ -30,21 +30,8 @@ enum Commands {
         #[arg(value_name = "INPUT")]
         input: PathBuf,
 
-        /// Address of the blob service
-        #[arg(
-            long,
-            env = "BLOB_SERVICE_ADDR",
-            default_value = "grpc+http://[::1]:8000"
-        )]
-        blob_service_addr: String,
-
-        /// Address of the directory service
-        #[arg(
-            long,
-            env = "DIRECTORY_SERVICE_ADDR",
-            default_value = "grpc+http://[::1]:8000"
-        )]
-        directory_service_addr: String,
+        #[clap(flatten)]
+        service_addrs: ServiceUrls,
     },
 
     #[cfg(feature = "fuse")]
@@ -58,21 +45,8 @@ enum Commands {
         #[arg(value_name = "OUTPUT")]
         output: PathBuf,
 
-        /// Address of the blob service
-        #[arg(
-            long,
-            env = "BLOB_SERVICE_ADDR",
-            default_value = "grpc+http://[::1]:8000"
-        )]
-        blob_service_addr: String,
-
-        /// Address of the directory service
-        #[arg(
-            long,
-            env = "DIRECTORY_SERVICE_ADDR",
-            default_value = "grpc+http://[::1]:8000"
-        )]
-        directory_service_addr: String,
+        #[clap(flatten)]
+        service_addrs: ServiceUrls,
     },
 
     #[cfg(feature = "virtiofs")]
@@ -86,21 +60,8 @@ enum Commands {
         #[arg(value_name = "OUTPUT")]
         output: PathBuf,
 
-        /// Address of the blob service
-        #[arg(
-            long,
-            env = "BLOB_SERVICE_ADDR",
-            default_value = "grpc+http://[::1]:8000"
-        )]
-        blob_service_addr: String,
-
-        /// Address of the directory service
-        #[arg(
-            long,
-            env = "DIRECTORY_SERVICE_ADDR",
-            default_value = "grpc+http://[::1]:8000"
-        )]
-        directory_service_addr: String,
+        #[clap(flatten)]
+        service_addrs: ServiceUrls,
     },
 }
 
@@ -124,12 +85,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             match cli.command {
                 Commands::Ingest {
                     input,
-                    blob_service_addr,
-                    directory_service_addr,
+                    service_addrs,
                 } => {
-                    let blob_service = snix_castore::blobservice::from_addr(&blob_service_addr).await?;
+                    let blob_service = snix_castore::blobservice::from_addr(&service_addrs.blob_service_addr).await?;
                     let directory_service =
-                        snix_castore::directoryservice::from_addr(&directory_service_addr).await?;
+                        snix_castore::directoryservice::from_addr(&service_addrs.directory_service_addr).await?;
                     let metadata = fs::metadata(&input).await?;
                     let node = if metadata.is_dir() {
                         ingest_path::<_, _, _, &[u8]>(&blob_service, &directory_service, &input, None)
@@ -150,12 +110,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 Commands::Mount {
                     digest,
                     output,
-                    blob_service_addr,
-                    directory_service_addr,
+                    service_addrs,
                 } => {
-                    let blob_service = snix_castore::blobservice::from_addr(&blob_service_addr).await?;
+                    let blob_service = snix_castore::blobservice::from_addr(&service_addrs.blob_service_addr).await?;
                     let directory_service =
-                        snix_castore::directoryservice::from_addr(&directory_service_addr).await?;
+                        snix_castore::directoryservice::from_addr(&service_addrs.directory_service_addr).await?;
                     let digest: B3Digest = digest.parse()?;
                     let root_nodes_provider = directory_service
                         .get(&digest)
@@ -186,12 +145,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 Commands::Virtiofs {
                     digest,
                     output,
-                    blob_service_addr,
-                    directory_service_addr,
+                    service_addrs,
                 } => {
-                    let blob_service = snix_castore::blobservice::from_addr(&blob_service_addr).await?;
+                    let blob_service = snix_castore::blobservice::from_addr(&service_addrs.blob_service_addr).await?;
                     let directory_service =
-                        snix_castore::directoryservice::from_addr(&directory_service_addr).await?;
+                        snix_castore::directoryservice::from_addr(&service_addrs.directory_service_addr).await?;
                     let digest: B3Digest = digest.parse()?;
                     let root_nodes_provider = directory_service
                         .get(&digest)
