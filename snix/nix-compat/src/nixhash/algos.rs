@@ -1,12 +1,14 @@
 use std::fmt::Display;
+use std::str::FromStr;
 
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde_with::{DeserializeFromStr, SerializeDisplay};
 
 use crate::nixhash::Error;
 
 /// This are the hash algorithms supported by cppnix.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, SerializeDisplay))]
 pub enum HashAlgo {
     Md5,
     Sha1,
@@ -37,37 +39,16 @@ impl Display for HashAlgo {
     }
 }
 
-#[cfg(feature = "serde")]
-impl Serialize for HashAlgo {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.collect_str(&self)
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'de> Deserialize<'de> for HashAlgo {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let s: &str = Deserialize::deserialize(deserializer)?;
-        HashAlgo::try_from(s).map_err(serde::de::Error::custom)
-    }
-}
-
 /// TODO(Raito): this could be automated via macros, I suppose.
 /// But this may be more expensive than just doing it by hand
 /// and ensuring that is kept in sync.
 #[cfg(feature = "serde")]
 pub const SUPPORTED_ALGOS: [&str; 4] = ["md5", "sha1", "sha256", "sha512"];
 
-impl TryFrom<&str> for HashAlgo {
-    type Error = Error;
+impl FromStr for HashAlgo {
+    type Err = Error;
 
-    fn try_from(algo_str: &str) -> Result<Self, Self::Error> {
+    fn from_str(algo_str: &str) -> Result<Self, Self::Err> {
         match algo_str {
             "md5" => Ok(Self::Md5),
             "sha1" => Ok(Self::Sha1),
@@ -75,5 +56,12 @@ impl TryFrom<&str> for HashAlgo {
             "sha512" => Ok(Self::Sha512),
             _ => Err(Error::InvalidAlgo),
         }
+    }
+}
+
+impl TryFrom<&str> for HashAlgo {
+    type Error = Error;
+    fn try_from(algo_str: &str) -> Result<Self, Self::Error> {
+        algo_str.parse()
     }
 }

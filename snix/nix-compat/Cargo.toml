@@ -16,7 +16,7 @@ flakeref = ["url"]
 # nix-daemon protocol handling
 daemon = ["tokio", "nix-compat-derive", "futures"]
 # serde support on types
-serde = ["dep:serde", "dep:serde_json"]
+serde = ["dep:serde", "dep:serde_json", "dep:serde_with"]
 test = []
 
 # Enable all features by default.
@@ -36,6 +36,7 @@ nom.workspace = true
 num-traits.workspace = true
 serde = { workspace = true, features = ["derive"], optional = true }
 serde_json = { workspace = true, optional = true }
+serde_with = { workspace = true, optional = true }
 sha2.workspace = true
 thiserror.workspace = true
 tracing.workspace = true

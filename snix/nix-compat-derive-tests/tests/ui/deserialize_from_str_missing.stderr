@@ -7,10 +7,10 @@ error[E0277]: the trait bound `Test: FromStr` is not satisfied
   = help: the following other types implement trait `FromStr`:
             ByteString
             CString
+            HashAlgo
             IpAddr
             Ipv4Addr
             Ipv6Addr
             NonZero<i128>
             NonZero<i16>
-            NonZero<i32>
           and $N others

@@ -4178,7 +4178,7 @@ rec {
           "futures" = [ "dep:futures" ];
           "nix-compat-derive" = [ "dep:nix-compat-derive" ];
           "pin-project-lite" = [ "dep:pin-project-lite" ];
-          "serde" = [ "dep:serde" "dep:serde_json" ];
+          "serde" = [ "dep:serde" "dep:serde_json" "dep:serde_with" ];
           "tokio" = [ "dep:tokio" ];
           "url" = [ "dep:url" ];
           "wire" = [ "tokio" "pin-project-lite" "bytes" ];
