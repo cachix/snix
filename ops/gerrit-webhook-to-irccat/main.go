@@ -21,10 +21,6 @@ import (
 	gerritStreams "github.com/andygrunwald/go-gerrit/streams"
 )
 
-// TODO:
-// {"submitter":{"name":"Florian Klink","email":"flokli@flokli.de","username":"flokli"},"refUpdate":{"oldRev":"6097f070f549df94339a2b90b2e8670195c99ec3","newRev":"b339defea41b329aa33d80dcaa22623daeb040b6","refName":"refs/changes/25/30525/meta","project":"snix"},"type":"ref-updated","eventCreatedOn":1747336314}
-// {"changer":{"name":"Florian Klink","email":"flokli@flokli.de","username":"flokli"},"patchSet":{"number":1,"revision":"ede307a009aa0b1eb62e9f18b7bf1f26e9fc98a9","parents":["9f8fb55318f2bafb37e4587fa4b6c793b2b540c0"],"ref":"refs/changes/25/30525/1","uploader":{"name":"Florian Klink","email":"flokli@flokli.de","username":"flokli"},"createdOn":1747335735,"author":{"name":"Florian Klink","email":"flokli@flokli.de","username":"flokli"},"kind":"REWORK","sizeInsertions":11,"sizeDeletions":1545},"change":{"project":"snix","branch":"canon","id":"If8faecdd018b45dd087b7332fe3d3a8280947358","number":30525,"subject":"fix(ops): drop clbot","owner":{"name":"Florian Klink","email":"flokli@flokli.de","username":"flokli"},"url":"https://cl.snix.dev/c/snix/+/30525","commitMessage":"fix(ops): drop clbot\n\nThis removes the old clbot, which kept an SSH connection to gerrit open.\n\nChange-Id: If8faecdd018b45dd087b7332fe3d3a8280947358\n","createdOn":1747335735,"status":"NEW"},"project":"snix","refName":"refs/heads/canon","changeKey":{"id":"If8faecdd018b45dd087b7332fe3d3a8280947358"},"type":"wip-state-changed","eventCreatedOn":1747336314}
-
 var logger *slog.Logger
 var tmplStr = `{{- if eq .Type "patchset-created" -}}
 {{- if (and (eq .PatchSet.Number 1) (eq .Change.Wip false) ) -}}
@@ -35,6 +31,10 @@ var tmplStr = `{{- if eq .Type "patchset-created" -}}
 #snix CL/{{.Change.Number}} by {{.Change.Owner.Username}} autosubmitted - {{.Change.Subject}} - {{.Change.URL}}
 {{- else -}}
 #snix CL/{{.Change.Number}} applied by {{.Change.Owner.Username}} - {{.Change.Subject}} - {{.Change.URL}}
+{{- end -}}
+{{- else if eq .Type "wip-state-changed" -}}
+{{- if eq .Change.Wip false -}}
+#snix CL/{{.Change.Number}} undrafted by {{.Changer.Username}} - {{.Change.Subject}} - {{.Change.URL}}
 {{- end -}}
 {{- end -}}`
 var tmpl = template.Must(template.New("msg").Parse(tmplStr))
