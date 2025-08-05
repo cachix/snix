@@ -14092,9 +14092,9 @@ rec {
       };
       "redb" = rec {
         crateName = "redb";
-        version = "2.4.0";
-        edition = "2021";
-        sha256 = "1ik3y8pdqrh4i378kv3qshh9r0dz7a43p0hqwg1rzpj0f76p42pa";
+        version = "2.6.2";
+        edition = "2024";
+        sha256 = "1xykri7izzgqw4fbcbxqc35mzhiya101csd4pq48yfcg082qpcsr";
         type = [
           "cdylib"
           "rlib"
