@@ -1,4 +1,7 @@
-use crate::{narinfo::SignatureRef, nixhash, store_path::StorePathRef};
+#[cfg(feature = "serde")]
+use crate::nixhash;
+use crate::{narinfo::SignatureRef, store_path::StorePathRef};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
@@ -7,26 +10,34 @@ use std::collections::BTreeSet;
 /// This is not to be confused with the format Nix uses in its `nix path-info` command.
 /// It includes some more fields, like `registrationTime`, `signatures` and `ultimate`,
 /// does not include the `closureSize` and encodes `narHash` as SRI.
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct ExportedPathInfo<'a> {
-    #[serde(rename = "closureSize")]
     pub closure_size: u64,
 
-    #[serde(
-        rename = "narHash",
-        serialize_with = "nixhash::serde::to_nix_nixbase32",
-        deserialize_with = "nixhash::serde::from_nix_nixbase32_or_sri"
+    #[cfg_attr(
+        feature = "serde",
+        serde(
+            rename = "narHash",
+            serialize_with = "nixhash::serde::to_nix_nixbase32",
+            deserialize_with = "nixhash::serde::from_nix_nixbase32_or_sri"
+        )
     )]
     pub nar_sha256: [u8; 32],
 
-    #[serde(rename = "narSize")]
     pub nar_size: u64,
 
-    #[serde(borrow)]
+    #[cfg_attr(feature = "serde", serde(borrow))]
     pub path: StorePathRef<'a>,
 
-    #[serde(borrow)]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "serde",
+        serde(borrow, skip_serializing_if = "Option::is_none")
+    )]
     pub deriver: Option<StorePathRef<'a>>,
 
     /// The list of other Store Paths this Store Path refers to.
@@ -34,7 +45,10 @@ pub struct ExportedPathInfo<'a> {
     pub references: BTreeSet<StorePathRef<'a>>,
     // more recent versions of Nix also have a `valid: true` field here, Nix 2.3 doesn't,
     // and nothing seems to use it.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Vec::is_empty")
+    )]
     pub signatures: Vec<SignatureRef<'a>>,
 }
 
@@ -53,11 +67,14 @@ impl PartialOrd for ExportedPathInfo<'_> {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "serde")]
     use hex_literal::hex;
 
+    #[cfg(feature = "serde")]
     use super::*;
 
     /// Ensure we can create the same JSON as the exportReferencesGraph feature
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_deserialize() {
         // JSON extracted from a build of
@@ -95,6 +112,7 @@ mod tests {
     }
 
     /// Ensure we can parse output from `nix path-info --json``
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_deserialize_from_path_info() {
         // JSON extracted from

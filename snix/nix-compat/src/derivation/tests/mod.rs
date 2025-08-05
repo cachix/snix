@@ -1,19 +1,28 @@
 use super::parse_error::ErrorKind;
 use crate::derivation::Derivation;
+#[cfg(feature = "serde")]
 use crate::derivation::output::Output;
 use crate::derivation::parse_error::NomError;
 use crate::derivation::parser::Error;
+#[cfg(feature = "serde")]
 use crate::store_path::StorePath;
+#[cfg(feature = "serde")]
 use bstr::{BStr, BString};
+#[cfg(feature = "serde")]
 use hex_literal::hex;
+#[cfg(feature = "serde")]
 use rstest::rstest;
+#[cfg(feature = "serde")]
 use std::collections::BTreeSet;
 use std::fs;
+#[cfg(feature = "serde")]
 use std::path::{Path, PathBuf};
+#[cfg(feature = "serde")]
 use std::str::FromStr;
 
 const RESOURCES_PATHS: &str = "src/derivation/tests/derivation_tests";
 
+#[cfg(feature = "serde")]
 #[rstest]
 fn check_serialization(
     #[files("src/derivation/tests/derivation_tests/ok/*.drv")]
@@ -33,6 +42,7 @@ fn check_serialization(
     assert_eq!(expected, BStr::new(&serialized_derivation));
 }
 
+#[cfg(feature = "serde")]
 #[rstest]
 fn validate(
     #[files("src/derivation/tests/derivation_tests/ok/*.drv")]
@@ -49,6 +59,7 @@ fn validate(
         .expect("derivation failed to validate")
 }
 
+#[cfg(feature = "serde")]
 #[rstest]
 fn check_to_aterm_bytes(
     #[files("src/derivation/tests/derivation_tests/ok/*.drv")]
@@ -68,6 +79,7 @@ fn check_to_aterm_bytes(
 /// Reads in derivations in ATerm representation, parses with that parser,
 /// then compares the structs with the ones obtained by parsing the JSON
 /// representations.
+#[cfg(feature = "serde")]
 #[rstest]
 fn from_aterm_bytes(
     #[files("src/derivation/tests/derivation_tests/ok/*.drv")] path_to_drv_file: PathBuf,
@@ -139,6 +151,7 @@ fn from_aterm_bytes_trailer() {
     Derivation::from_aterm_bytes(&buf).expect_err("must fail");
 }
 
+#[cfg(feature = "serde")]
 #[rstest]
 #[case::fixed_sha256("bar", "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv")]
 #[case::simple_sha256("foo", "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv")]
@@ -164,6 +177,7 @@ fn derivation_path(#[case] name: &str, #[case] expected_path: &str) {
 
 /// This trims all output paths from a Derivation struct,
 /// by setting outputs[$outputName].path and environment[$outputName] to the empty string.
+#[cfg(feature = "serde")]
 fn derivation_without_output_paths(derivation: &Derivation) -> Derivation {
     let mut trimmed_env = derivation.environment.clone();
     let mut trimmed_outputs = derivation.outputs.clone();
@@ -188,6 +202,7 @@ fn derivation_without_output_paths(derivation: &Derivation) -> Derivation {
     }
 }
 
+#[cfg(feature = "serde")]
 #[rstest]
 #[case::fixed_sha256("0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv", hex!("724f3e3634fce4cbbbd3483287b8798588e80280660b9a63fd13a1bc90485b33"))]
 #[case::fixed_sha1("ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv", hex!("c79aebd0ce3269393d4a1fde2cbd1d975d879b40f0bf40a48f550edc107fd5df"))]
@@ -204,6 +219,7 @@ fn hash_derivation_modulo_fixed(#[case] drv_path: &str, #[case] expected_digest:
 /// This reads a Derivation (in A-Term), trims out all fields containing
 /// calculated output paths, then triggers the output path calculation and
 /// compares the struct to match what was originally read in.
+#[cfg(feature = "serde")]
 #[rstest]
 #[case::fixed_sha256("bar", "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv")]
 #[case::simple_sha256("foo", "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv")]
@@ -298,6 +314,7 @@ fn output_paths(#[case] name: &str, #[case] drv_path_str: &str) {
 /// it, then continues with the foo derivation.
 ///
 /// The code ensures the resulting Derivations match our fixtures.
+#[cfg(feature = "serde")]
 #[test]
 fn output_path_construction() {
     // create the bar derivation

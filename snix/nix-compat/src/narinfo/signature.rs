@@ -4,6 +4,7 @@ use std::{
 };
 
 use data_encoding::BASE64;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 const SIGNATURE_LENGTH: usize = std::mem::size_of::<ed25519::SignatureBytes>();
@@ -100,6 +101,7 @@ where
     }
 }
 
+#[cfg(feature = "serde")]
 impl<'a, 'de, S> Deserialize<'de> for Signature<S>
 where
     S: Deref<Target = str> + From<&'a str>,
@@ -116,6 +118,7 @@ where
     }
 }
 
+#[cfg(feature = "serde")]
 impl<S: Display> Serialize for Signature<S>
 where
     S: Deref<Target = str>,
@@ -165,6 +168,7 @@ pub enum Error {
 mod test {
     use data_encoding::BASE64;
     use ed25519_dalek::VerifyingKey;
+    #[cfg(feature = "serde")]
     use hex_literal::hex;
     use std::sync::LazyLock;
 
@@ -221,6 +225,7 @@ mod test {
         Signature::<&str>::parse(input).expect_err("must fail");
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_deserialize() {
         let signature_actual = Signature {

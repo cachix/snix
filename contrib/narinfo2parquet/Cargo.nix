@@ -2868,15 +2868,6 @@ rec {
             optional = true;
           }
           {
-            name = "serde";
-            packageId = "serde";
-            features = [ "derive" ];
-          }
-          {
-            name = "serde_json";
-            packageId = "serde_json";
-          }
-          {
             name = "sha2";
             packageId = "sha2";
           }
@@ -2914,6 +2905,7 @@ rec {
           "futures" = [ "dep:futures" ];
           "nix-compat-derive" = [ "dep:nix-compat-derive" ];
           "pin-project-lite" = [ "dep:pin-project-lite" ];
+          "serde" = [ "dep:serde" "dep:serde_json" ];
           "tokio" = [ "dep:tokio" ];
           "url" = [ "dep:url" ];
           "wire" = [ "tokio" "pin-project-lite" "bytes" ];

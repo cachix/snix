@@ -1,20 +1,25 @@
 use crate::nixhash::CAHash;
 use crate::{derivation::OutputError, store_path::StorePath};
+#[cfg(feature = "serde")]
 use serde::de::Unexpected;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "serde")]
 use serde_json::Map;
 use std::borrow::Cow;
 
 /// References the derivation output.
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct Output {
     /// Store path of build result.
     pub path: Option<StorePath<String>>,
 
-    #[serde(flatten)]
+    #[cfg_attr(feature = "serde", serde(flatten))]
     pub ca_hash: Option<CAHash>, // we can only represent a subset here.
 }
 
+#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for Output {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -73,6 +78,7 @@ impl Output {
 
 /// This ensures that a potentially valid input addressed
 /// output is deserialized as a non-fixed output.
+#[cfg(feature = "serde")]
 #[test]
 fn deserialize_valid_input_addressed_output() {
     let json_bytes = r#"
@@ -86,6 +92,7 @@ fn deserialize_valid_input_addressed_output() {
 
 /// This ensures that a potentially valid fixed output
 /// output deserializes fine as a fixed output.
+#[cfg(feature = "serde")]
 #[test]
 fn deserialize_valid_fixed_output() {
     let json_bytes = r#"
@@ -101,6 +108,7 @@ fn deserialize_valid_fixed_output() {
 
 /// This ensures that parsing an input with the invalid hash encoding
 /// will result in a parsing failure.
+#[cfg(feature = "serde")]
 #[test]
 fn deserialize_with_error_invalid_hash_encoding_fixed_output() {
     let json_bytes = r#"
@@ -116,6 +124,7 @@ fn deserialize_with_error_invalid_hash_encoding_fixed_output() {
 
 /// This ensures that parsing an input with the wrong hash algo
 /// will result in a parsing failure.
+#[cfg(feature = "serde")]
 #[test]
 fn deserialize_with_error_invalid_hash_algo_fixed_output() {
     let json_bytes = r#"
@@ -131,6 +140,7 @@ fn deserialize_with_error_invalid_hash_algo_fixed_output() {
 
 /// This ensures that parsing an input with the missing hash algo but present hash will result in a
 /// parsing failure.
+#[cfg(feature = "serde")]
 #[test]
 fn deserialize_with_error_missing_hash_algo_fixed_output() {
     let json_bytes = r#"
@@ -145,6 +155,7 @@ fn deserialize_with_error_missing_hash_algo_fixed_output() {
 
 /// This ensures that parsing an input with the missing hash but present hash algo will result in a
 /// parsing failure.
+#[cfg(feature = "serde")]
 #[test]
 fn deserialize_with_error_missing_hash_fixed_output() {
     let json_bytes = r#"
@@ -157,6 +168,7 @@ fn deserialize_with_error_missing_hash_fixed_output() {
     assert!(output.is_err());
 }
 
+#[cfg(feature = "serde")]
 #[test]
 fn serialize_deserialize() {
     let json_bytes = r#"
@@ -171,6 +183,7 @@ fn serialize_deserialize() {
     assert_eq!(output, output2);
 }
 
+#[cfg(feature = "serde")]
 #[test]
 fn serialize_deserialize_fixed() {
     let json_bytes = r#"

@@ -1,13 +1,10 @@
 use crate::nixbase32;
-use crate::nixhash::{HashAlgo, NixHash};
-use serde::de::Unexpected;
-use serde::ser::SerializeMap;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use crate::nixhash::NixHash;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Unexpected, ser::SerializeMap};
+#[cfg(feature = "serde")]
 use serde_json::{Map, Value};
 use std::borrow::Cow;
-
-use super::algos::SUPPORTED_ALGOS;
-use super::decode_digest;
 
 /// A Nix CAHash describes a content-addressed hash of a path.
 ///
@@ -119,10 +116,15 @@ impl CAHash {
     ///
     /// This is to match how `nix show-derivation` command shows them in JSON
     /// representation.
+    #[cfg(feature = "serde")]
     pub(crate) fn from_map<'de, D>(map: &Map<String, Value>) -> Result<Option<Self>, D::Error>
     where
         D: Deserializer<'de>,
     {
+        use super::algos::SUPPORTED_ALGOS;
+        use super::decode_digest;
+        use crate::nixhash::HashAlgo;
+
         // If we don't have hash neither hashAlgo, let's just return None.
         if !map.contains_key("hash") && !map.contains_key("hashAlgo") {
             return Ok(None);
@@ -166,6 +168,7 @@ impl CAHash {
     }
 }
 
+#[cfg(feature = "serde")]
 impl Serialize for CAHash {
     /// map a CAHash into the serde data model.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -194,6 +197,7 @@ impl Serialize for CAHash {
     }
 }
 
+#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for CAHash {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -210,13 +214,16 @@ impl<'de> Deserialize<'de> for CAHash {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "serde")]
     use hex_literal::hex;
 
+    #[cfg(feature = "serde")]
     use crate::{
         derivation::CAHash,
         nixhash::{HashAlgo, NixHash},
     };
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_flat() {
         let json_bytes = r#"{
@@ -234,6 +241,7 @@ mod tests {
         assert_eq!(serialized, json_bytes);
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_nar() {
         let json_bytes = r#"{
@@ -251,6 +259,7 @@ mod tests {
         assert_eq!(serialized, json_bytes);
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_flat() {
         let json_bytes = r#"
@@ -272,6 +281,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_hex() {
         let json_bytes = r#"
@@ -293,6 +303,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_nixbase32() {
         let json_bytes = r#"
@@ -314,6 +325,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_base64() {
         let json_bytes = r#"
@@ -335,6 +347,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_deserialize_nar() {
         let json_bytes = r#"
@@ -350,6 +363,7 @@ mod tests {
         assert_eq!(hash, hash2);
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_deserialize_flat() {
         let json_bytes = r#"

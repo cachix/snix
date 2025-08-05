@@ -8218,7 +8218,7 @@ rec {
           {
             name = "drvfmt";
             path = "src/bin/drvfmt.rs";
-            requiredFeatures = [ ];
+            requiredFeatures = [ "serde" ];
           }
         ];
         src = lib.cleanSourceWith { filter = sourceFilter; src = ./nix-compat; };
@@ -8292,11 +8292,13 @@ rec {
           {
             name = "serde";
             packageId = "serde";
+            optional = true;
             features = [ "derive" ];
           }
           {
             name = "serde_json";
             packageId = "serde_json";
+            optional = true;
           }
           {
             name = "sha2";
@@ -8381,11 +8383,12 @@ rec {
           "futures" = [ "dep:futures" ];
           "nix-compat-derive" = [ "dep:nix-compat-derive" ];
           "pin-project-lite" = [ "dep:pin-project-lite" ];
+          "serde" = [ "dep:serde" "dep:serde_json" ];
           "tokio" = [ "dep:tokio" ];
           "url" = [ "dep:url" ];
           "wire" = [ "tokio" "pin-project-lite" "bytes" ];
         };
-        resolvedDefaultFeatures = [ "async" "bytes" "daemon" "default" "flakeref" "futures" "nix-compat-derive" "pin-project-lite" "test" "tokio" "url" "wire" ];
+        resolvedDefaultFeatures = [ "async" "bytes" "daemon" "default" "flakeref" "futures" "nix-compat-derive" "pin-project-lite" "serde" "test" "tokio" "url" "wire" ];
       };
       "nix-compat-derive" = rec {
         crateName = "nix-compat-derive";
@@ -14636,7 +14639,7 @@ rec {
           {
             name = "nix-compat";
             packageId = "nix-compat";
-            features = [ "async" ];
+            features = [ "async" "serde" ];
           }
           {
             name = "parking_lot";

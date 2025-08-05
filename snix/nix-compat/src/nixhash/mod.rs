@@ -7,6 +7,7 @@ use thiserror;
 
 mod algos;
 mod ca_hash;
+#[cfg(feature = "serde")]
 pub mod serde;
 
 pub use algos::HashAlgo;
@@ -537,6 +538,7 @@ mod tests {
         NixHash::from_str(weird_base64, Some(HashAlgo::Sha256)).expect_err("must fail");
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_deserialize() {
         let nixhash_actual = NixHash::Sha256(hex!(

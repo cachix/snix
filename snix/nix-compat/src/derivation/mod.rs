@@ -2,6 +2,7 @@ use crate::store_path::{
     self, StorePath, StorePathRef, build_ca_path, build_output_path, build_text_path,
 };
 use bstr::BString;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
@@ -26,22 +27,23 @@ pub use validate::validate_output_name;
 
 use self::write::AtermWriteable;
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Derivation {
-    #[serde(rename = "args")]
+    #[cfg_attr(feature = "serde", serde(rename = "args"))]
     pub arguments: Vec<String>,
 
     pub builder: String,
 
-    #[serde(rename = "env")]
+    #[cfg_attr(feature = "serde", serde(rename = "env"))]
     pub environment: BTreeMap<String, BString>,
 
     /// Map from drv path to output names used from this derivation.
-    #[serde(rename = "inputDrvs")]
+    #[cfg_attr(feature = "serde", serde(rename = "inputDrvs"))]
     pub input_derivations: BTreeMap<StorePath<String>, BTreeSet<String>>,
 
     /// Plain store paths of additional inputs.
-    #[serde(rename = "inputSrcs")]
+    #[cfg_attr(feature = "serde", serde(rename = "inputSrcs"))]
     pub input_sources: BTreeSet<StorePath<String>>,
 
     /// Maps output names to Output.

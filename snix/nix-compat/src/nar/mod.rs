@@ -1,6 +1,7 @@
 pub(crate) mod wire;
 
 mod copy;
+#[cfg(feature = "serde")]
 pub mod listing;
 pub mod reader;
 pub mod writer;

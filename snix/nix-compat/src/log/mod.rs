@@ -1,7 +1,9 @@
 //! Contains types Nix uses for its logging, visible in the "internal-json" log
 //! messages as well as in nix-daemon communication.
 
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "serde")]
 use tracing::warn;
 
 /// Every "internal-json" log line emitted by Nix has this prefix.
@@ -9,17 +11,13 @@ pub const AT_NIX_PREFIX: &str = "@nix ";
 
 /// The different verbosity levels Nix distinguishes.
 #[derive(
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    Serialize,
-    Deserialize,
-    num_enum::TryFromPrimitive,
-    num_enum::IntoPrimitive,
-    Default,
+    Clone, Debug, Eq, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive, Default,
 )]
-#[serde(try_from = "u64", into = "u64")]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(try_from = "u64", into = "u64")
+)]
 #[cfg_attr(
     feature = "daemon",
     derive(nix_compat_derive::NixDeserialize, nix_compat_derive::NixSerialize),
@@ -59,13 +57,14 @@ impl std::fmt::Display for VerbosityLevel {
 
 /// The different types of log messages Nix' `internal-json` format can
 /// represent.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "action" /*, deny_unknown_fields */)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(tag = "action", rename_all = "camelCase" /*, deny_unknown_fields */))]
 // TODO: deny_unknown_fields doesn't seem to work in the testcases below
 pub enum LogMessage<'a> {
-    #[serde(rename = "start")]
     Start {
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
         fields: Option<Vec<Field<'a>>>,
         id: u64,
         level: VerbosityLevel,
@@ -74,10 +73,10 @@ pub enum LogMessage<'a> {
         r#type: ActivityType,
     },
 
-    #[serde(rename = "stop")]
-    Stop { id: u64 },
+    Stop {
+        id: u64,
+    },
 
-    #[serde(rename = "result")]
     Result {
         fields: Vec<Field<'a>>,
         id: u64,
@@ -86,7 +85,6 @@ pub enum LogMessage<'a> {
 
     // FUTUREWORK: there sometimes seems to be column/file/line fields set to null, and a raw_msg field,
     // see msg_with_raw_msg testcase. These should be represented.
-    #[serde(rename = "msg")]
     Msg {
         level: VerbosityLevel,
         msg: std::borrow::Cow<'a, str>,
@@ -94,10 +92,12 @@ pub enum LogMessage<'a> {
 
     // Log lines like these are sent by nixpkgs stdenv, present in `nix log` outputs of individual builds.
     // They are also interpreted by Nix to re-emit [Self::Result]-style messages.
-    #[serde(rename = "setPhase")]
-    SetPhase { phase: &'a str },
+    SetPhase {
+        phase: &'a str,
+    },
 }
 
+#[cfg(feature = "serde")]
 fn serialize_bytes_as_string<S>(b: &[u8], serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
@@ -113,24 +113,22 @@ where
 
 /// Fields in a log message can be either ints or strings.
 /// Sometimes, Nix also uses invalid UTF-8 in here, so we use BStr.
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
-#[serde(untagged)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(untagged))]
 pub enum Field<'a> {
     Int(u64),
-    String(#[serde(serialize_with = "serialize_bytes_as_string")] std::borrow::Cow<'a, [u8]>),
+    String(
+        #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_bytes_as_string"))]
+        std::borrow::Cow<'a, [u8]>,
+    ),
 }
 
-#[derive(
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    Serialize,
-    Deserialize,
-    num_enum::TryFromPrimitive,
-    num_enum::IntoPrimitive,
+#[derive(Clone, Debug, Eq, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(try_from = "u8", into = "u8")
 )]
-#[serde(try_from = "u8", into = "u8")]
 #[repr(u8)]
 pub enum ActivityType {
     Unknown = 0,
@@ -174,17 +172,12 @@ impl std::fmt::Display for ActivityType {
     }
 }
 
-#[derive(
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    Serialize,
-    Deserialize,
-    num_enum::TryFromPrimitive,
-    num_enum::IntoPrimitive,
+#[derive(Clone, Debug, Eq, PartialEq, num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(try_from = "u8", into = "u8")
 )]
-#[serde(try_from = "u8", into = "u8")]
 #[repr(u8)]
 pub enum ResultType {
     FileLinked = 100,
@@ -200,6 +193,7 @@ pub enum ResultType {
 
 impl<'a> LogMessage<'a> {
     /// Parses a given log message string into a [LogMessage].
+    #[cfg(feature = "serde")]
     pub fn from_json_str(s: &'a str) -> Result<Self, Error> {
         let s = s.strip_prefix(AT_NIX_PREFIX).ok_or(Error::MissingPrefix)?;
 
@@ -207,6 +201,7 @@ impl<'a> LogMessage<'a> {
     }
 }
 
+#[cfg(feature = "serde")]
 impl std::fmt::Display for LogMessage<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -217,6 +212,7 @@ impl std::fmt::Display for LogMessage<'_> {
     }
 }
 
+#[cfg(feature = "serde")]
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("Missing @nix prefix")]
@@ -231,7 +227,10 @@ pub enum Error {
 // while it *is* compared.
 #[allow(unused_variables)]
 mod test {
-    use super::{ActivityType, Field, LogMessage, ResultType, VerbosityLevel};
+    use super::VerbosityLevel;
+    #[cfg(feature = "serde")]
+    use super::{ActivityType, Field, LogMessage, ResultType};
+    #[cfg(feature = "serde")]
     use rstest::rstest;
 
     #[test]
@@ -247,6 +246,7 @@ mod test {
         VerbosityLevel::try_from(42).expect_err("must fail parsing");
     }
 
+    #[cfg(feature = "serde")]
     #[rstest]
     #[case::start(
         r#"@nix {"action":"start","id":1264799149195466,"level":5,"parent":0,"text":"copying '/nix/store/rfqxfljma55x8ybmyg07crnarvqx62sr-nixpkgs-src/pkgs/development/compilers/llvm/18/llvm/lit-shell-script-runner-set-dyld-library-path.patch' to the store","type":0}"#,

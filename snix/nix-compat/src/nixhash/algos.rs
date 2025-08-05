@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::nixhash::Error;
@@ -36,6 +37,7 @@ impl Display for HashAlgo {
     }
 }
 
+#[cfg(feature = "serde")]
 impl Serialize for HashAlgo {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -45,6 +47,7 @@ impl Serialize for HashAlgo {
     }
 }
 
+#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for HashAlgo {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -58,6 +61,7 @@ impl<'de> Deserialize<'de> for HashAlgo {
 /// TODO(Raito): this could be automated via macros, I suppose.
 /// But this may be more expensive than just doing it by hand
 /// and ensuring that is kept in sync.
+#[cfg(feature = "serde")]
 pub const SUPPORTED_ALGOS: [&str; 4] = ["md5", "sha1", "sha256", "sha512"];
 
 impl TryFrom<&str> for HashAlgo {

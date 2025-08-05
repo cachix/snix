@@ -1,5 +1,6 @@
 use crate::nixbase32;
 use data_encoding::{BASE64, DecodeError};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{
     fmt,
@@ -236,6 +237,7 @@ impl FromStr for StorePath<String> {
     }
 }
 
+#[cfg(feature = "serde")]
 impl<'a, 'de: 'a, S> Deserialize<'de> for StorePath<S>
 where
     S: AsRef<str> + From<&'a str>,
@@ -258,6 +260,7 @@ where
     }
 }
 
+#[cfg(feature = "serde")]
 impl<S> Serialize for StorePath<S>
 where
     S: AsRef<str>,
@@ -345,11 +348,13 @@ mod tests {
     use hex_literal::hex;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
+    #[cfg(feature = "serde")]
     use serde::Deserialize;
 
-    #[derive(Deserialize)]
     /// An example struct, holding a StorePathRef.
     /// Used to test deserializing StorePathRef.
+    #[cfg(feature = "serde")]
+    #[derive(Deserialize)]
     struct Container<'a> {
         #[serde(borrow)]
         store_path: StorePathRef<'a>,
@@ -492,6 +497,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_ref() {
         let nixpath_actual = StorePathRef::from_bytes(
@@ -507,6 +513,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_owned() {
         let nixpath_actual = StorePathRef::from_bytes(
@@ -522,6 +529,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_ref() {
         let store_path_str_json =
@@ -536,6 +544,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_ref_container() {
         let str_json = "{\"store_path\":\"/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432\"}";
@@ -548,6 +557,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_owned() {
         let store_path_str_json =

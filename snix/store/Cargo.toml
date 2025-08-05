@@ -22,7 +22,7 @@ data-encoding.workspace = true
 ed25519.workspace = true
 ed25519-dalek.workspace = true
 futures.workspace = true
-nix-compat = { path = "../nix-compat", features = ["async"] }
+nix-compat = { path = "../nix-compat", features = ["async", "serde"] }
 pin-project-lite.workspace = true
 prost.workspace = true
 serde = { workspace = true, features = ["derive"] }
