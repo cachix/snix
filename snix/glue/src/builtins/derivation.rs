@@ -174,6 +174,7 @@ pub(crate) mod derivation_builtins {
 
     use bstr::ByteSlice;
 
+    use nix_compat::derivation::validate_output_name;
     use nix_compat::store_path::hash_placeholder;
     use snix_eval::generators::Gen;
     use snix_eval::{NixContext, NixContextElement, NixString, try_cek_to_value};
@@ -189,12 +190,17 @@ pub(crate) mod derivation_builtins {
             return Ok(input);
         }
 
-        let placeholder = hash_placeholder(
-            input
-                .to_str()
-                .context("looking at output name in builtins.placeholder")?
-                .to_str()?,
-        );
+        let nix_string = input
+            .to_str()
+            .context("looking at output name in builtins.placeholder")?;
+        let output_name = nix_string.to_str()?;
+
+        // Validate the output name using the same rules as derivations
+        validate_output_name(output_name).map_err(|e| {
+            ErrorKind::Abort(format!("invalid output name in builtins.placeholder: {e}"))
+        })?;
+
+        let placeholder = hash_placeholder(output_name);
 
         Ok(placeholder.into())
     }

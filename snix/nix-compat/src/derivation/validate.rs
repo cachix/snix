@@ -1,6 +1,24 @@
 use crate::derivation::{Derivation, DerivationError};
 use crate::store_path;
 
+/// Validates an output name using derivation output name rules.
+///
+/// Output names must:
+/// - Not be empty
+/// - Not be "drv" (reserved name that would conflict with the existing drvPath key in builtins.derivation)
+/// - Pass the `store_path::validate_name` check
+///
+/// This function is used by both derivation validation and builtins.placeholder.
+pub fn validate_output_name(output_name: &str) -> Result<(), DerivationError> {
+    if output_name.is_empty()
+        || output_name == "drv"
+        || store_path::validate_name(output_name.as_bytes()).is_err()
+    {
+        return Err(DerivationError::InvalidOutputName(output_name.to_string()));
+    }
+    Ok(())
+}
+
 impl Derivation {
     /// validate ensures a Derivation struct is properly populated,
     /// and returns a [DerivationError] if not.
@@ -18,21 +36,7 @@ impl Derivation {
 
         // Validate all outputs
         for (output_name, output) in &self.outputs {
-            // empty output names are invalid.
-            //
-            // `drv` is an invalid output name too, as this would cause
-            // a `builtins.derivation` call to return an attrset with a
-            // `drvPath` key (which already exists) and has a different
-            // meaning.
-            //
-            // Other output names that don't match the name restrictions from
-            // [StorePathRef] will fail the [StorePathRef::validate_name] check.
-            if output_name.is_empty()
-                || output_name == "drv"
-                || store_path::validate_name(output_name.as_bytes()).is_err()
-            {
-                return Err(DerivationError::InvalidOutputName(output_name.to_string()));
-            }
+            validate_output_name(output_name)?;
 
             if output.is_fixed() {
                 if self.outputs.len() != 1 {
@@ -66,18 +70,10 @@ impl Derivation {
             }
 
             for output_name in output_names.iter() {
-                // empty output names are invalid.
-                //
-                // `drv` is an invalid output name too, as this would cause
-                // a `builtins.derivation` call to return an attrset with a
-                // `drvPath` key (which already exists) and has a different
-                // meaning.
-                //
-                // Other output names that don't match the name restrictions from
-                // [StorePath] will fail the [StorePathRef::validate_name] check.
-                if output_name.is_empty()
-                    || output_name == "drv"
-                    || store_path::validate_name(output_name.as_bytes()).is_err()
+                // For input derivation output names, we use the same validation
+                // but map the error to the appropriate InputDerivationOutputName variant
+                if let Err(DerivationError::InvalidOutputName(_)) =
+                    validate_output_name(output_name)
                 {
                     return Err(DerivationError::InvalidInputDerivationOutputName(
                         input_derivation_path.to_string(),
@@ -113,7 +109,46 @@ impl Derivation {
 mod test {
     use std::collections::BTreeMap;
 
-    use crate::derivation::{CAHash, Derivation, Output};
+    use super::validate_output_name;
+    use crate::derivation::{CAHash, Derivation, DerivationError, Output};
+
+    /// Test the validate_output_name function with valid names
+    #[test]
+    fn test_validate_output_name_valid() {
+        // Valid output names should pass
+        assert!(validate_output_name("out").is_ok());
+        assert!(validate_output_name("dev").is_ok());
+        assert!(validate_output_name("lib").is_ok());
+        assert!(validate_output_name("bin").is_ok());
+        assert!(validate_output_name("debug").is_ok());
+    }
+
+    /// Test the validate_output_name function with invalid names
+    #[test]
+    fn test_validate_output_name_invalid() {
+        // Empty name should fail
+        assert!(matches!(
+            validate_output_name(""),
+            Err(DerivationError::InvalidOutputName(_))
+        ));
+
+        // "drv" is reserved and should fail
+        assert!(matches!(
+            validate_output_name("drv"),
+            Err(DerivationError::InvalidOutputName(_))
+        ));
+
+        // Invalid characters should fail
+        assert!(matches!(
+            validate_output_name("invalid/name"),
+            Err(DerivationError::InvalidOutputName(_))
+        ));
+
+        assert!(matches!(
+            validate_output_name("invalid name"),
+            Err(DerivationError::InvalidOutputName(_))
+        ));
+    }
 
     /// Regression test: produce a Derivation that's almost valid, except its
     /// fixed-output output has the wrong hash specified.

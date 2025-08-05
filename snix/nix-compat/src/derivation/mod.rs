@@ -22,6 +22,7 @@ pub use crate::nixhash::{CAHash, NixHash};
 pub use errors::{DerivationError, OutputError};
 pub use output::Output;
 pub use parser::Error as ParserError;
+pub use validate::validate_output_name;
 
 use self::write::AtermWriteable;
 
