@@ -906,14 +906,15 @@ impl Compiler<'_, '_> {
     /// Compile conditional expressions using jumping instructions in the VM.
     ///
     /// ```notrust
-    ///                        ┌────────────────────┐
-    ///                        │ 0  [ conditional ] │
-    ///                        │ 1   JUMP_IF_FALSE →┼─┐
-    ///                        │ 2  [  main body  ] │ │ Jump to else body if
-    ///                       ┌┼─3─←     JUMP       │ │ condition is false.
-    ///  Jump over else body  ││ 4  [  else body  ]←┼─┘
-    ///  if condition is true.└┼─5─→     ...        │
-    ///                        └────────────────────┘
+    ///                        ┌─────────────────────┐
+    ///                        │ 0  [ conditional ]  │
+    ///                        │ 1   JUMP_IF_CATCH  →┼───┐ Jump over else body
+    ///                        │ 2   JUMP_IF_FALSE  →┼─┐ │ if condition is catchable.
+    ///                        │ 3  [  main body  ]  │ │ ← Jump to else body if
+    ///                       ┌┼─4─←     JUMP        │ │ ← condition is false.
+    ///  Jump over else body  ││ 5  [  else body  ] ←┼─┘ │
+    ///  if condition is true.└┼─6─→     ...        ←┼───┘
+    ///                        └─────────────────────┘
     /// ```
     fn compile_if_else(&mut self, slot: LocalIdx, node: &ast::IfElse) {
         self.compile(slot, node.condition().unwrap());
