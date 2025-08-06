@@ -1,7 +1,7 @@
 //! This tool lossily converts a Sled database produced by crunch-v2 into a Parquet file for analysis.
-//! The resulting `crunch.parquet` has columns file_hash`, `nar_hash`, and `chunk`.
+//! The resulting `crunch.parquet` has columns `file_hash`, `nar_hash`, and `chunk`.
 //! The first two are SHA-256 hashes of the compressed file and the NAR it decompresses to.
-//! `chunk` is a struct array corresponding to [crunch_v2::proto::Chunk] messages.
+//! `chunk` is a struct array corresponding to [`crunch_v2::proto::Chunk`] messages.
 //! They are concatenated without any additional structure, so nothing but the chunk list is preserved.
 
 use anyhow::Result;
@@ -109,6 +109,7 @@ struct ChunkFrameBuilder {
 }
 
 impl ChunkFrameBuilder {
+    #[allow(clippy::new_ret_no_self)]
     fn new(node: proto::path::Node) -> Series {
         let mut this = Self {
             hash: BinaryChunkedBuilder::new("hash", 0, 0),

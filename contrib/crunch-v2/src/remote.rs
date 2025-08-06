@@ -8,7 +8,6 @@ use std::{
 use anyhow::{Result, bail};
 use bytes::{Buf, Bytes};
 use futures::{Future, FutureExt, Stream, StreamExt, future::BoxFuture};
-use lazy_static::lazy_static;
 use tokio::runtime::Handle;
 
 use nix_compat::nixbase32;
@@ -19,9 +18,8 @@ use rusoto_s3::{GetObjectOutput, GetObjectRequest, S3, S3Client};
 use bzip2::read::BzDecoder;
 use xz2::read::XzDecoder;
 
-lazy_static! {
-    static ref S3_CLIENT: S3Client = S3Client::new(Region::UsEast1);
-}
+static S3_CLIENT: std::sync::LazyLock<S3Client> =
+    std::sync::LazyLock::new(|| S3Client::new(Region::UsEast1));
 
 const BUCKET: &str = "nix-cache";
 
@@ -119,12 +117,7 @@ impl FileKey {
             ..Default::default()
         };
 
-        async {
-            S3_CLIENT
-                .get_object(input)
-                .await
-                .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
-        }
+        async { S3_CLIENT.get_object(input).await.map_err(io::Error::other) }
     }
 }
 

@@ -49,7 +49,7 @@ struct Args {
     /// Filter expression to filter elements in the parquet file for.
     filter: String,
 
-    /// Average chunk size for FastCDC, in KiB.
+    /// Average chunk size for `FastCDC`, in KiB.
     /// min value is half, max value double of that number.
     #[clap(long, default_value_t = 256)]
     avg_chunk_size: u32,
@@ -98,7 +98,7 @@ async fn main() -> Result<()> {
             let progress = progress.clone();
             let files_tree = files_tree.clone();
             async move {
-                if files_tree.contains_key(&file_hash)? {
+                if files_tree.contains_key(file_hash)? {
                     progress.inc(1);
                     return Ok(());
                 }
@@ -208,7 +208,7 @@ struct Sha256Reader<R> {
     buf: *const [u8],
 }
 
-const ZERO_BUF: *const [u8] = ptr::slice_from_raw_parts(1 as *const u8, 0);
+const ZERO_BUF: *const [u8] = ptr::slice_from_raw_parts(std::ptr::dangling::<u8>(), 0);
 
 unsafe impl<R: Send> Send for Sha256Reader<R> {}
 
@@ -235,7 +235,7 @@ impl<R: BufRead> BufRead for Sha256Reader<R> {
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         self.buf = ZERO_BUF;
         let buf = self.inner.fill_buf()?;
-        self.buf = buf as *const [u8];
+        self.buf = std::ptr::from_ref::<[u8]>(buf);
         Ok(buf)
     }
 
@@ -246,7 +246,7 @@ impl<R: BufRead> BufRead for Sha256Reader<R> {
         // we already buffer full chunks, so there's no pressing need to reuse the input buffers
         unsafe {
             let (head, buf) = (*self.buf).split_at(amt);
-            self.buf = buf as *const [u8];
+            self.buf = std::ptr::from_ref::<[u8]>(buf);
             self.hasher.update(head);
             self.inner.consume(amt);
         }
@@ -289,7 +289,7 @@ impl<R> B3Reader<R> {
 
 fn zstd_size(data: &[u8], level: i32) -> u64 {
     let mut w = zstd::Encoder::new(CountingWriter::default(), level).unwrap();
-    w.write_all(&data).unwrap();
+    w.write_all(data).unwrap();
     let CountingWriter(size) = w.finish().unwrap();
     size
 }
