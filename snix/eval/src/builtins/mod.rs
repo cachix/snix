@@ -8,11 +8,13 @@ use builtin_macros::builtins;
 use genawaiter::rc::Gen;
 use regex::Regex;
 use rustc_hash::FxHashMap;
+use std::cell::RefCell;
 use std::cmp::{self, Ordering};
 use std::collections::BTreeMap;
 use std::collections::VecDeque;
+use std::collections::hash_map::Entry;
 use std::path::PathBuf;
-use std::sync::{Mutex, OnceLock};
+use std::rc::Rc;
 
 use crate::value::PointerEquality;
 use crate::vm::generators::{self, GenCo};
@@ -79,23 +81,25 @@ pub async fn coerce_value_to_path(
     }
 }
 
-static REGEX_CACHE: OnceLock<Mutex<FxHashMap<String, Regex>>> = OnceLock::new();
+#[derive(Debug, Default)]
+struct BuiltinState {
+    regex_cache: RefCell<FxHashMap<String, Regex>>,
+}
 
-fn cached_regex(pattern: &str) -> Result<Regex, regex::Error> {
-    let cache = REGEX_CACHE.get_or_init(|| Mutex::new(Default::default()));
-    let mut map = cache.lock().unwrap();
-
-    match map.get(pattern) {
-        Some(regex) => Ok(regex.clone()),
-        None => {
-            let regex = Regex::new(pattern)?;
-            map.insert(pattern.to_string(), regex.clone());
-            Ok(regex)
-        }
+impl BuiltinState {
+    fn get_regex(&self, pattern: &str) -> Result<Regex, regex::Error> {
+        let mut map = self.regex_cache.borrow_mut();
+        Ok(match map.entry(pattern.to_string()) {
+            Entry::Occupied(occupied) => occupied.get().clone(),
+            Entry::Vacant(vacant) => {
+                let re = Regex::new(pattern)?;
+                vacant.insert(re).clone()
+            }
+        })
     }
 }
 
-#[builtins]
+#[builtins(state = "Rc<BuiltinState>")]
 mod pure_builtins {
     use std::ffi::OsString;
 
@@ -969,7 +973,12 @@ mod pure_builtins {
     }
 
     #[builtin("match")]
-    async fn builtin_match(co: GenCo, regex: Value, str: Value) -> Result<Value, ErrorKind> {
+    async fn builtin_match(
+        state: Rc<BuiltinState>,
+        co: GenCo,
+        regex: Value,
+        str: Value,
+    ) -> Result<Value, ErrorKind> {
         let s = str;
         if s.is_catchable() {
             return Ok(s);
@@ -981,7 +990,8 @@ mod pure_builtins {
         }
         let re = re.to_str()?;
         let re = re.to_str()?;
-        let re: Regex = cached_regex(&format!("^{re}$"))
+        let re = state
+            .get_regex(&format!("^{re}$"))
             .map_err(|_| ErrorKind::InvalidRegex(re.to_string()))?;
 
         match re.captures(s.to_str()?) {
@@ -1191,7 +1201,12 @@ mod pure_builtins {
     }
 
     #[builtin("split")]
-    async fn builtin_split(co: GenCo, regex: Value, str: Value) -> Result<Value, ErrorKind> {
+    async fn builtin_split(
+        state: Rc<BuiltinState>,
+        co: GenCo,
+        regex: Value,
+        str: Value,
+    ) -> Result<Value, ErrorKind> {
         if str.is_catchable() {
             return Ok(str);
         }
@@ -1204,7 +1219,9 @@ mod pure_builtins {
         let text = s.to_str()?;
         let re = regex.to_str()?;
         let re = re.to_str()?;
-        let re = cached_regex(re).map_err(|_| ErrorKind::InvalidRegex(re.to_string()))?;
+        let re = state
+            .get_regex(re)
+            .map_err(|_| ErrorKind::InvalidRegex(re.to_string()))?;
         let mut capture_locations = re.capture_locations();
         let num_captures = capture_locations.len();
         let mut ret = Vec::new();
@@ -1530,7 +1547,7 @@ async fn bgc_insert_key(
 /// The set of standard pure builtins in Nix, mostly concerned with
 /// data structure manipulation (string, attrs, list, etc. functions).
 pub fn pure_builtins() -> Vec<(&'static str, Value)> {
-    let mut result = pure_builtins::builtins();
+    let mut result = pure_builtins::builtins(Rc::new(BuiltinState::default()));
 
     // Pure-value builtins
     result.push(("nixVersion", Value::from("2.3.17-compat-snix-0.1")));
