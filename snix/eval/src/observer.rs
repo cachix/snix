@@ -101,10 +101,11 @@ impl<W: Write> DisassemblingObserver<W> {
     fn lambda_header(&mut self, kind: &str, lambda: &Rc<Lambda>) {
         let _ = writeln!(
             &mut self.writer,
-            "=== compiled {} @ {:p} ({} ops) ===",
+            "=== compiled {} @ {:p} ({} ops, {} length) ===",
             kind,
             *lambda,
-            lambda.chunk.code.len()
+            lambda.chunk.op_count(),
+            lambda.chunk.code.len(),
         );
     }
 

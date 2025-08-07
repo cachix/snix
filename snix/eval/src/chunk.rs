@@ -238,6 +238,53 @@ impl Chunk {
             },
         }
     }
+
+    /// Count the number of Opcodes. This function has O(n) time complexity.
+    pub fn op_count(&self) -> usize {
+        if self.code.is_empty() {
+            return 0;
+        }
+
+        let mut idx = 0;
+        let mut count = 0;
+        while idx <= self.last_op {
+            let op: Op = self.code[idx].into();
+            let op_len = match op.arg_type() {
+                OpArg::None => 1,
+                OpArg::Uvarint => {
+                    let (_, len) = self.read_uvarint(idx + 1);
+                    len + 1
+                }
+                OpArg::Fixed => 3,
+                OpArg::Custom => match op {
+                    Op::CoerceToString => 2,
+
+                    Op::Closure | Op::ThunkClosure | Op::ThunkSuspended => {
+                        let mut len = 1;
+
+                        let (_, size) = self.read_uvarint(idx + len);
+                        len += size;
+
+                        let (packed_count, size) = self.read_uvarint(idx + len);
+                        len += size;
+
+                        let count = packed_count >> 1;
+
+                        for _ in 0..count {
+                            let (_, size) = self.read_uvarint(idx + len);
+                            len += size;
+                        }
+
+                        len
+                    }
+                    _ => panic!("Snix bug: arg_type returned Custom for wrong Op"),
+                },
+            };
+            idx += op_len;
+            count += 1;
+        }
+        count
+    }
 }
 
 #[cfg(test)]
@@ -296,5 +343,26 @@ mod tests {
         ];
 
         assert_eq!(chunk.code, expected);
+    }
+
+    #[test]
+    fn op_count() {
+        let mut chunk = Chunk::default();
+        assert_eq!(chunk.op_count(), 0);
+
+        chunk.push_op(Op::Constant, dummy_span());
+        chunk.push_uvarint(0);
+
+        let idx = chunk.push_op(Op::Jump, dummy_span());
+        chunk.push_u16(0);
+
+        chunk.push_op(Op::Constant, dummy_span());
+        chunk.push_uvarint(1);
+
+        chunk.patch_jump(idx);
+        chunk.push_op(Op::Return, dummy_span());
+
+        assert_eq!(chunk.op_count(), 4);
+        assert_eq!(chunk.code.len(), 8);
     }
 }
