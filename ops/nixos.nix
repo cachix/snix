@@ -66,5 +66,6 @@ rec {
     "public01System"
     "build01System"
     "meta01System"
+    "nixosSnixCacheSystem"
   ];
 }
