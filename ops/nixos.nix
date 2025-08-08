@@ -53,12 +53,12 @@ rec {
     ) (throw "${hostname} is not a known NixOS host") (map nixosFor depot.ops.machines.all-systems));
 
   # Systems that should be built in CI
-  archivistEC2System = nixosFor depot.ops.machines.archivist-ec2;
-  gerrit01System = nixosFor depot.ops.machines.gerrit01;
-  public01System = nixosFor depot.ops.machines.public01;
-  build01System = nixosFor depot.ops.machines.build01;
-  meta01System = nixosFor depot.ops.machines.meta01;
-  nixosSnixCacheSystem = nixosFor depot.ops.machines.snix-cache;
+  archivistEC2System = (nixosFor depot.ops.machines.archivist-ec2).system;
+  gerrit01System = (nixosFor depot.ops.machines.gerrit01).system;
+  public01System = (nixosFor depot.ops.machines.public01).system;
+  build01System = (nixosFor depot.ops.machines.build01).system;
+  meta01System = (nixosFor depot.ops.machines.meta01).system;
+  nixosSnixCacheSystem = (nixosFor depot.ops.machines.snix-cache).system;
 
   meta.ci.targets = [
     "archivistEC2System"
