@@ -153,19 +153,6 @@ in
         allow_assign_grafana_admin = true;
         role_attribute_path = "contains(nb_grafana_roles[*], 'Admin') && 'Admin' || contains(nb_grafana_roles[*], 'Editor') && 'Editor' || 'Viewer'";
       };
-      "auth.github" = {
-        enabled = true;
-        client_id = "Ov23liAnuBwzWtJJ7gv4";
-        client_secret = "$__file{/run/credentials/grafana.service/github_auth_client_secret}";
-        scopes = "user:email,read:org";
-        auth_url = "https://github.com/login/oauth/authorize";
-        token_url = "https://github.com/login/oauth/access_token";
-        api_url = "https://api.github.com/user";
-        allow_sign_up = true;
-        auto_login = false;
-        allowed_organizations = [ "numtide" ];
-        role_attribute_path = "contains(groups[*], '@numtide/network') && 'GrafanaAdmin' || 'Viewer'";
-      };
     };
 
     provision = {
