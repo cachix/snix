@@ -46,6 +46,12 @@ in
           };
           replication_factor = 1;
         };
+        # TODO: Such a ugly hack.
+        frontend.instance_enable_ipv6 = true;
+        frontend.instance_interface_names = [
+          "enp1s0"
+          "lo"
+        ];
 
         memberlist = {
           advertise_addr = "127.0.0.1";
