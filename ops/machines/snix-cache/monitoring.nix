@@ -123,7 +123,10 @@ in
         serve_from_sub_path = true;
       };
       analytics.reporting_enabled = false;
-      "auth.anonymous".enabled = true;
+      "auth.anonymous" = {
+        enabled = true;
+        org_role = "Viewer";
+      };
       auth.disable_login_form = true;
       "auth.basic".enabled = false;
       "auth.generic_oauth" = {
