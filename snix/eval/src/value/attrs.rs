@@ -112,16 +112,14 @@ impl From<FxHashMap<NixString, Value>> for NixAttrs {
 
 impl TotalDisplay for NixAttrs {
     fn total_fmt(&self, f: &mut std::fmt::Formatter<'_>, set: &mut ThunkSet) -> std::fmt::Result {
-        if let Some(Value::String(s)) = self.select("type") {
-            if *s == "derivation" {
-                write!(f, "«derivation ")?;
-                if let Some(p) = self.select("drvPath") {
-                    p.total_fmt(f, set)?;
-                } else {
-                    write!(f, "???")?;
-                }
-                return write!(f, "»");
+        if self.is_derivation() {
+            write!(f, "«derivation ")?;
+            if let Some(p) = self.select("drvPath") {
+                p.total_fmt(f, set)?;
+            } else {
+                write!(f, "???")?;
             }
+            return write!(f, "»");
         }
 
         f.write_str("{ ")?;
@@ -487,6 +485,14 @@ impl NixAttrs {
             }
             (AttrsRep::KV { .. }, AttrsRep::KV { .. }) => other.clone(),
         }
+    }
+
+    /// Returns whether this attr set is a derivation.
+    pub fn is_derivation(&self) -> bool {
+        let Some(Value::String(kind)) = self.select("type") else {
+            return false;
+        };
+        *kind == "derivation"
     }
 }
 
