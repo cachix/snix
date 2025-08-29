@@ -33,7 +33,7 @@ mod hash;
 mod to_xml;
 mod versions;
 
-#[cfg(test)]
+// technically #[cfg(test)], but right now we need it for tests in other crates…
 pub use to_xml::value_to_xml;
 
 #[cfg(feature = "impure")]
