@@ -34,8 +34,8 @@ pub async fn get_head(
     }): axum::extract::State<AppState>,
 ) -> Result<impl axum::response::IntoResponse, StatusCode> {
     use prost::Message;
-    // We insist on the nar_size field being set.
-    // If it's not present, the client is misbehaving somehow.
+    // We insist on the nar_size field being set. If the client dropped it from
+    // the NARInfo we sent, it's misbehaving and we reject it.
     let nar_size = nar_size.ok_or_else(|| {
         warn!("no nar_size parameter set");
         StatusCode::BAD_REQUEST
@@ -76,6 +76,8 @@ pub async fn get_head(
         if method == axum::http::Method::HEAD {
             // If this is a HEAD request, construct a response returning back the
             // user-provided content-length, but don't actually talk to castore.
+            // If the client lied about it, we will echo back a wrong `Content-Length`,
+            // which is their problem.
             Response::builder()
                 .header("content-length", nar_size)
                 .body(Body::empty())
@@ -115,6 +117,8 @@ pub async fn get_head(
             });
 
             Response::builder()
+                // If the client lied about it, we will echo back a wrong `Content-Length`,
+                // which is their problem.
                 .header("content-length", nar_size)
                 .body(Body::from_stream(ReaderStream::new(r)))
                 .unwrap()
