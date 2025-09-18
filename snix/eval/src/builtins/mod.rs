@@ -1591,7 +1591,7 @@ pub fn pure_builtins() -> Vec<(&'static str, Value)> {
     let mut result = pure_builtins::builtins(Rc::new(BuiltinState::default()));
 
     // Pure-value builtins
-    result.push(("nixVersion", Value::from("2.3.17-compat-snix-0.1")));
+    result.push(("nixVersion", Value::from("2.18.3-compat-snix-0.1")));
     result.push(("langVersion", Value::Integer(6)));
     result.push(("null", Value::Null));
     result.push(("true", Value::Bool(true)));
