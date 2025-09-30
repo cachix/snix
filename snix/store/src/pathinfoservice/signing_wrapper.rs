@@ -31,15 +31,15 @@ pub struct SigningPathInfoService<T, S> {
     /// The inner [PathInfoService]
     inner: T,
     /// The key to sign narinfos
-    signing_key: Arc<SigningKey<S>>,
+    signing_key: SigningKey<S>,
 }
 
 impl<T, S> SigningPathInfoService<T, S> {
-    pub fn new(instance_name: String, inner: T, signing_key: Arc<SigningKey<S>>) -> Self {
+    pub fn new(instance_name: String, inner: T, signing_key: impl Into<SigningKey<S>>) -> Self {
         Self {
             instance_name,
             inner,
-            signing_key,
+            signing_key: signing_key.into(),
         }
     }
 }
@@ -59,7 +59,7 @@ where
         path_info.signatures.push({
             let mut nar_info = path_info.to_narinfo();
             nar_info.signatures.clear();
-            nar_info.add_signature(self.signing_key.as_ref());
+            nar_info.add_signature(&self.signing_key);
 
             let s = nar_info
                 .signatures
@@ -110,11 +110,9 @@ impl ServiceBuilder for KeyFileSigningPathInfoServiceConfig {
         context: &CompositionContext,
     ) -> Result<Arc<dyn PathInfoService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let inner = context.resolve::<Self::Output>(self.inner.clone()).await?;
-        let signing_key = Arc::new(
-            parse_keypair(tokio::fs::read_to_string(&self.keyfile).await?.trim())
-                .map_err(|e| Error::StorageError(e.to_string()))?
-                .0,
-        );
+        let signing_key = parse_keypair(tokio::fs::read_to_string(&self.keyfile).await?.trim())
+            .map_err(|e| Error::StorageError(e.to_string()))?
+            .0;
         Ok(Arc::new(SigningPathInfoService {
             instance_name: instance_name.to_string(),
             inner,
@@ -126,15 +124,13 @@ impl ServiceBuilder for KeyFileSigningPathInfoServiceConfig {
 #[cfg(test)]
 pub(crate) fn test_signing_service() -> Arc<dyn PathInfoService> {
     let memory_svc: Arc<dyn PathInfoService> = Arc::new(MemoryPathInfoService::default());
-    Arc::new(SigningPathInfoService {
-        instance_name: "test".into(),
-        inner: memory_svc,
-        signing_key: Arc::new(
-            parse_keypair(DUMMY_KEYPAIR)
-                .expect("DUMMY_KEYPAIR to be valid")
-                .0,
-        ),
-    })
+    Arc::new(SigningPathInfoService::new(
+        "test".into(),
+        memory_svc,
+        parse_keypair(DUMMY_KEYPAIR)
+            .expect("DUMMY_KEYPAIR to be valid")
+            .0,
+    ))
 }
 
 #[cfg(test)]
