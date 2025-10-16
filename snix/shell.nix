@@ -41,7 +41,7 @@ pkgs.mkShell {
     export SNIX_BUILD_SANDBOX_SHELL=${
       if pkgs.stdenv.isLinux then pkgs.busybox-sandbox-shell + "/bin/busybox" else "/bin/sh"
     }
-    export SNIX_BENCH_NIX_PATH=nixpkgs=${pkgs.path}
+    export SNIX_BENCH_NIX_PATH=nixpkgs=${toString pkgs.path}
 
     snixShellHook() {
       # Somewhat brute force check. Lix uses .this-is-lix in repo root.
