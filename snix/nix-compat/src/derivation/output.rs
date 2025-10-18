@@ -52,7 +52,7 @@ impl Output {
     }
 
     /// The output path as a string -- use `""` to indicate an unset output path.
-    pub fn path_str(&self) -> Cow<str> {
+    pub fn path_str(&self) -> Cow<'_, str> {
         match &self.path {
             None => Cow::Borrowed(""),
             Some(path) => Cow::Owned(path.to_absolute_path()),

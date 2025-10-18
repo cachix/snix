@@ -506,12 +506,11 @@ impl Value {
                 Value::Thunk(thunk) => {
                     // If both values are thunks, and thunk comparisons are allowed by
                     // pointer, do that and move on.
-                    if ptr_eq == PointerEquality::AllowAll {
-                        if let Value::Thunk(t1) = &b {
-                            if t1.ptr_eq(&thunk) {
-                                continue;
-                            }
-                        }
+                    if ptr_eq == PointerEquality::AllowAll
+                        && let Value::Thunk(t1) = &b
+                        && t1.ptr_eq(&thunk)
+                    {
+                        continue;
                     };
 
                     Thunk::force_(thunk, co, span).await?
@@ -580,38 +579,39 @@ impl Value {
                             let s1 = s1.to_str();
                             let s2 = s2.to_str();
 
-                            if let (Ok(s1), Ok(s2)) = (s1, s2) {
-                                if s1 == "derivation" && s2 == "derivation" {
-                                    // TODO(tazjin): are the outPaths really required,
-                                    // or should it fall through?
-                                    let out1 = a1
-                                        .select_required("outPath")
-                                        .context("comparing derivations")?
-                                        .clone();
+                            if let (Ok(s1), Ok(s2)) = (s1, s2)
+                                && s1 == "derivation"
+                                && s2 == "derivation"
+                            {
+                                // TODO(tazjin): are the outPaths really required,
+                                // or should it fall through?
+                                let out1 = a1
+                                    .select_required("outPath")
+                                    .context("comparing derivations")?
+                                    .clone();
 
-                                    let out2 = a2
-                                        .select_required("outPath")
-                                        .context("comparing derivations")?
-                                        .clone();
+                                let out2 = a2
+                                    .select_required("outPath")
+                                    .context("comparing derivations")?
+                                    .clone();
 
-                                    let out1 = out1.clone().force(co, span).await?;
-                                    let out2 = out2.clone().force(co, span).await?;
+                                let out1 = out1.clone().force(co, span).await?;
+                                let out2 = out2.clone().force(co, span).await?;
 
-                                    if out1.is_catchable() {
-                                        return Ok(out1);
-                                    }
+                                if out1.is_catchable() {
+                                    return Ok(out1);
+                                }
 
-                                    if out2.is_catchable() {
-                                        return Ok(out2);
-                                    }
+                                if out2.is_catchable() {
+                                    return Ok(out2);
+                                }
 
-                                    let result =
-                                        out1.to_contextful_str()? == out2.to_contextful_str()?;
-                                    if !result {
-                                        return Ok(Value::Bool(false));
-                                    } else {
-                                        continue;
-                                    }
+                                let result =
+                                    out1.to_contextful_str()? == out2.to_contextful_str()?;
+                                if !result {
+                                    return Ok(Value::Bool(false));
+                                } else {
+                                    continue;
                                 }
                             }
                         }

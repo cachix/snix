@@ -247,7 +247,7 @@ impl<W: Write> XmlEmitter<W> {
     }
 
     /// Escape the given attribute value, making sure we only actually clone the string if we needed to replace something.
-    fn escape_attr_value(s: &str) -> Cow<str> {
+    fn escape_attr_value(s: &str) -> Cow<'_, str> {
         let mut last_escape: usize = 0;
         let mut res: Cow<str> = Cow::Borrowed("");
         // iterating via char_indices gives us the ability to index the original string slice at character boundaries

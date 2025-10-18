@@ -762,11 +762,11 @@ impl Compiler<'_, '_> {
                 // unlikely that we'd have a static nested set.
                 if let (Some(attr), None) = (path_iter.next(), path_iter.next()) {
                     // Only do this optimisation for statically known attrs.
-                    if let Some(ident) = expr_static_attr_str(&attr) {
-                        if let Some(selected_value) = attrs.select(ident.as_bytes()) {
-                            *constant = selected_value.clone();
-                            return true;
-                        }
+                    if let Some(ident) = expr_static_attr_str(&attr)
+                        && let Some(selected_value) = attrs.select(ident.as_bytes())
+                    {
+                        *constant = selected_value.clone();
+                        return true;
                     }
                 }
             }
@@ -1673,11 +1673,11 @@ pub fn compile(
     // unevaluated state (though in practice, a value *containing* a
     // thunk might be returned).
     c.emit_force(expr);
-    if let Some(env) = env {
-        if !env.is_empty() {
-            c.push_op(Op::CloseScope, &root_span);
-            c.push_uvarint(env.len() as u64);
-        }
+    if let Some(env) = env
+        && !env.is_empty()
+    {
+        c.push_op(Op::CloseScope, &root_span);
+        c.push_uvarint(env.len() as u64);
     }
     c.push_op(Op::Return, &root_span);
 

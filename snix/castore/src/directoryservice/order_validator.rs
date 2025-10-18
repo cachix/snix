@@ -86,15 +86,14 @@ impl OrderValidator for LeavesToRootValidator {
                 digest: subdir_node_digest,
                 ..
             } = node
+                && !self.allowed_references.contains(subdir_node_digest)
             {
-                if !self.allowed_references.contains(subdir_node_digest) {
-                    warn!(
-                        directory.digest = %digest,
-                        subdirectory.digest = %subdir_node_digest,
-                        "unexpected directory reference"
-                    );
-                    return false;
-                }
+                warn!(
+                    directory.digest = %digest,
+                    subdirectory.digest = %subdir_node_digest,
+                    "unexpected directory reference"
+                );
+                return false;
             }
         }
 

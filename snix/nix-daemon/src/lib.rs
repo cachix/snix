@@ -43,10 +43,10 @@ impl NixDaemonIO for SnixDaemon {
         &self,
         path: &StorePath<String>,
     ) -> Result<Option<UnkeyedValidPathInfo>> {
-        if let Some(path_info) = self.path_info_service.get(*path.digest()).await? {
-            if path_info.store_path.name() == path.name() {
-                return Ok(Some(into_unkeyed_path_info(path_info)));
-            }
+        if let Some(path_info) = self.path_info_service.get(*path.digest()).await?
+            && path_info.store_path.name() == path.name()
+        {
+            return Ok(Some(into_unkeyed_path_info(path_info)));
         }
         Ok(None)
     }

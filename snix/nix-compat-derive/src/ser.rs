@@ -31,10 +31,12 @@ pub fn expand_nix_serialize_remote(
 ) -> syn::Result<TokenStream> {
     let cx = Context::new();
     let remote = Remote::from_ast(&cx, crate_path, input);
-    if let Some(attrs) = remote.as_ref().map(|r| &r.attrs) {
-        if attrs.display.is_none() && attrs.type_into.is_none() && attrs.type_try_into.is_none() {
-            cx.error_spanned(input, "Missing into, try_into or display attribute");
-        }
+    if let Some(attrs) = remote.as_ref().map(|r| &r.attrs)
+        && attrs.display.is_none()
+        && attrs.type_into.is_none()
+        && attrs.type_try_into.is_none()
+    {
+        cx.error_spanned(input, "Missing into, try_into or display attribute");
     }
     cx.check()?;
     let remote = remote.unwrap();

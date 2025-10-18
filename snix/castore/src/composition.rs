@@ -509,7 +509,7 @@ impl Composition {
         self.context().build_internal(entrypoint.to_string()).await
     }
 
-    pub fn context(&self) -> CompositionContext {
+    pub fn context(&self) -> CompositionContext<'_> {
         CompositionContext {
             registry: self.registry,
             stack: vec![],

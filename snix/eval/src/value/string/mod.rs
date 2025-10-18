@@ -656,7 +656,7 @@ impl NixString {
     /// This is used when printing out strings used as e.g. attribute
     /// set keys, as those are only escaped in the presence of special
     /// characters.
-    pub fn ident_str(&self) -> Cow<str> {
+    pub fn ident_str(&self) -> Cow<'_, str> {
         let escaped = match self.to_str_lossy() {
             Cow::Borrowed(s) => nix_escape_string(s),
             Cow::Owned(s) => nix_escape_string(&s).into_owned().into(),
@@ -821,7 +821,7 @@ fn is_valid_nix_identifier(s: &str) -> bool {
 /// are escaped strings.
 ///
 /// Note that this does not add the outer pair of surrounding quotes.
-fn nix_escape_string(input: &str) -> Cow<str> {
+fn nix_escape_string(input: &str) -> Cow<'_, str> {
     let mut iter = input.char_indices().peekable();
 
     while let Some((i, c)) = iter.next() {

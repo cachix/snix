@@ -218,10 +218,10 @@ impl<'de> de::Deserializer<'de> for NixDeserializer {
     where
         V: de::Visitor<'de>,
     {
-        if let Value::String(s) = &self.value {
-            if let Ok(s) = s.to_str() {
-                return visitor.visit_str(s);
-            }
+        if let Value::String(s) = &self.value
+            && let Ok(s) = s.to_str()
+        {
+            return visitor.visit_str(s);
         }
 
         Err(unexpected("string", &self.value))
@@ -231,10 +231,10 @@ impl<'de> de::Deserializer<'de> for NixDeserializer {
     where
         V: de::Visitor<'de>,
     {
-        if let Value::String(s) = &self.value {
-            if let Ok(s) = s.to_str() {
-                return visitor.visit_str(s);
-            }
+        if let Value::String(s) = &self.value
+            && let Ok(s) = s.to_str()
+        {
+            return visitor.visit_str(s);
         }
 
         Err(unexpected("string", &self.value))

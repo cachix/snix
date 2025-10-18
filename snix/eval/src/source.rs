@@ -20,12 +20,12 @@ pub struct SourceCode(Rc<RefCell<CodeMap>>);
 
 impl SourceCode {
     /// Access a read-only reference to the codemap.
-    pub fn codemap(&self) -> Ref<CodeMap> {
+    pub fn codemap(&self) -> Ref<'_, CodeMap> {
         self.0.borrow()
     }
 
     /// Access a writable reference to the codemap.
-    fn codemap_mut(&self) -> RefMut<CodeMap> {
+    fn codemap_mut(&self) -> RefMut<'_, CodeMap> {
         self.0.borrow_mut()
     }
 
@@ -44,7 +44,7 @@ impl SourceCode {
     }
 
     /// Returns the literal source slice of the given span.
-    pub fn source_slice(&self, span: Span) -> Ref<str> {
+    pub fn source_slice(&self, span: Span) -> Ref<'_, str> {
         Ref::map(self.codemap(), |c| {
             c.find_file(span.low()).source_slice(span)
         })

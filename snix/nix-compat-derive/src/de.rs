@@ -34,10 +34,12 @@ pub fn expand_nix_deserialize_remote(
 ) -> syn::Result<TokenStream> {
     let cx = Context::new();
     let remote = Remote::from_ast(&cx, crate_path, input);
-    if let Some(attrs) = remote.as_ref().map(|r| &r.attrs) {
-        if attrs.from_str.is_none() && attrs.type_from.is_none() && attrs.type_try_from.is_none() {
-            cx.error_spanned(input, "Missing from_str, from or try_from attribute");
-        }
+    if let Some(attrs) = remote.as_ref().map(|r| &r.attrs)
+        && attrs.from_str.is_none()
+        && attrs.type_from.is_none()
+        && attrs.type_try_from.is_none()
+    {
+        cx.error_spanned(input, "Missing from_str, from or try_from attribute");
     }
     cx.check()?;
     let remote = remote.unwrap();

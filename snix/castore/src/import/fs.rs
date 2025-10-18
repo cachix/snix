@@ -182,7 +182,7 @@ where
             digest,
         })
     } else {
-        return Err(Error::FileType(fs_path.to_path_buf(), file_type));
+        Err(Error::FileType(fs_path.to_path_buf(), file_type))
     }
 }
 

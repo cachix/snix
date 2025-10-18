@@ -738,17 +738,17 @@ mod pure_builtins {
             // - TODO: context_key must be a syntactically valid store path.
             // - Perform a deep force `context_element`.
             let context_element = context_element.to_attrs()?;
-            if let Some(path) = context_element.select("path") {
-                if path.as_bool()? {
-                    ctx_elements.insert(NixContextElement::Plain(context_key.to_string()));
-                }
+            if let Some(path) = context_element.select("path")
+                && path.as_bool()?
+            {
+                ctx_elements.insert(NixContextElement::Plain(context_key.to_string()));
             }
-            if let Some(all_outputs) = context_element.select("allOutputs") {
-                if all_outputs.as_bool()? {
-                    // TODO: check if `context_key` is a derivation path.
-                    // This may require realization.
-                    ctx_elements.insert(NixContextElement::Derivation(context_key.to_string()));
-                }
+            if let Some(all_outputs) = context_element.select("allOutputs")
+                && all_outputs.as_bool()?
+            {
+                // TODO: check if `context_key` is a derivation path.
+                // This may require realization.
+                ctx_elements.insert(NixContextElement::Derivation(context_key.to_string()));
             }
             if let Some(some_outputs) = context_element.select("outputs") {
                 let some_outputs = some_outputs.to_list()?;

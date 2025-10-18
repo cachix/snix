@@ -55,7 +55,7 @@ impl NixList {
         NixList(Rc::new(stack_slice))
     }
 
-    pub fn iter(&self) -> std::slice::Iter<Value> {
+    pub fn iter(&self) -> std::slice::Iter<'_, Value> {
         self.0.iter()
     }
 

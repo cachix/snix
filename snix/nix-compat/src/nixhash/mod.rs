@@ -227,10 +227,10 @@ impl NixHash {
         // Check for SRI hashes.
         if let Ok(parsed_nixhash) = Self::from_sri(s) {
             // ensure the algo matches with what has been passed externally, if so.
-            if let Some(algo) = want_algo {
-                if algo != parsed_nixhash.algo() {
-                    return Err(Error::ConflictingHashAlgos(algo, parsed_nixhash.algo()));
-                }
+            if let Some(algo) = want_algo
+                && algo != parsed_nixhash.algo()
+            {
+                return Err(Error::ConflictingHashAlgos(algo, parsed_nixhash.algo()));
             }
             return Ok(parsed_nixhash);
         }
@@ -250,10 +250,10 @@ impl NixHash {
             }
         } {
             // ensure the algo matches with what has been passed externally, if so.
-            if let Some(algo) = want_algo {
-                if algo != parsed_nixhash.algo() {
-                    return Err(Error::ConflictingHashAlgos(algo, parsed_nixhash.algo()));
-                }
+            if let Some(algo) = want_algo
+                && algo != parsed_nixhash.algo()
+            {
+                return Err(Error::ConflictingHashAlgos(algo, parsed_nixhash.algo()));
             }
 
             return Ok(parsed_nixhash);

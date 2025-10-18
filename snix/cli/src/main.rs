@@ -46,10 +46,10 @@ fn lint<E: Write + Clone + Send>(
     let eval = eval_builder.build();
     let result = eval.compile_only(code, path);
 
-    if args.display_ast {
-        if let Some(ref expr) = result.expr {
-            writeln!(stderr, "AST: {}", snix_eval::pretty_print_expr(expr)).unwrap();
-        }
+    if args.display_ast
+        && let Some(ref expr) = result.expr
+    {
+        writeln!(stderr, "AST: {}", snix_eval::pretty_print_expr(expr)).unwrap();
     }
 
     for error in &result.errors {

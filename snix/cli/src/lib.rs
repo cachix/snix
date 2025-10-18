@@ -167,10 +167,10 @@ pub fn evaluate<E: std::io::Write + Clone + Send>(
         return Err(IncompleteInput);
     }
 
-    if args.display_ast {
-        if let Some(ref expr) = result.expr {
-            writeln!(stderr, "AST: {}", snix_eval::pretty_print_expr(expr)).unwrap();
-        }
+    if args.display_ast
+        && let Some(ref expr) = result.expr
+    {
+        writeln!(stderr, "AST: {}", snix_eval::pretty_print_expr(expr)).unwrap();
     }
 
     for error in &result.errors {

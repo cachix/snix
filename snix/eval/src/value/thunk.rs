@@ -329,7 +329,7 @@ impl Thunk {
     // Note: Due to the interior mutability of thunks this is
     // difficult to represent in the type system without impacting the
     // API too much.
-    pub fn value(&self) -> Ref<Value> {
+    pub fn value(&self) -> Ref<'_, Value> {
         Ref::map(self.0.borrow(), |thunk| match thunk {
             ThunkRepr::Evaluated(value) => value,
             ThunkRepr::Blackhole { .. } => panic!("Thunk::value called on a black-holed thunk"),

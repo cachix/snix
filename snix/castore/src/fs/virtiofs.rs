@@ -123,10 +123,8 @@ where
             true
         };
 
-        if needs_notification {
-            if let Err(error) = vring.signal_used_queue() {
-                error!(?error, "failed to signal used queue");
-            }
+        if needs_notification && let Err(error) = vring.signal_used_queue() {
+            error!(?error, "failed to signal used queue");
         }
 
         Ok(used_descs)

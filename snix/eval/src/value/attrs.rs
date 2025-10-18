@@ -116,13 +116,12 @@ impl TotalDisplay for NixAttrs {
             write!(f, "«derivation")?;
             // We cant use the default TotalDisplay implementation, because nix doesn't put quotes
             // around the path here.
-            if let Some(Value::Thunk(p)) = self.select("drvPath") {
-                if p.is_forced()
-                    && let Ok(drv) = p.value().to_contextful_str()
-                {
-                    write!(f, " {}", drv.to_str_lossy())?;
-                };
-            }
+            if let Some(Value::Thunk(p)) = self.select("drvPath")
+                && p.is_forced()
+                && let Ok(drv) = p.value().to_contextful_str()
+            {
+                write!(f, " {}", drv.to_str_lossy())?;
+            };
             return write!(f, "»");
         }
 
@@ -356,7 +355,7 @@ impl NixAttrs {
     }
 
     /// Construct an iterator over all the keys of the attribute set
-    pub fn keys(&self) -> Keys {
+    pub fn keys(&self) -> Keys<'_> {
         Keys(match self.0.as_ref() {
             AttrsRep::Empty => KeysInner::Empty,
             AttrsRep::KV { .. } => KeysInner::KV(IterKV::default()),
@@ -368,7 +367,7 @@ impl NixAttrs {
 
     /// Same as [Self::keys], but marks call sites which rely on the
     /// iteration being lexicographic.
-    pub fn keys_sorted(&self) -> Keys {
+    pub fn keys_sorted(&self) -> Keys<'_> {
         Keys(match self.0.as_ref() {
             AttrsRep::Map(map) => KeysInner::Sorted(map.keys().sorted()),
             AttrsRep::Empty => KeysInner::Empty,
@@ -395,10 +394,10 @@ impl NixAttrs {
         }
 
         // Optimisation: KV pattern
-        if count == 2 {
-            if let Some(kv) = attempt_optimise_kv(&mut stack_slice) {
-                return Ok(Ok(kv));
-            }
+        if count == 2
+            && let Some(kv) = attempt_optimise_kv(&mut stack_slice)
+        {
+            return Ok(Ok(kv));
         }
 
         let mut attrs_map = FxHashMap::with_capacity_and_hasher(count, rustc_hash::FxBuildHasher);

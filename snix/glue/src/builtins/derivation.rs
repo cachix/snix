@@ -159,10 +159,10 @@ fn handle_fixed_output(
         // If it was a SRI hash, but is not using the correct length, this means
         // the padding was wrong. Emit a warning in that case.
         let sri_prefix = format!("{algo}-");
-        if let Some(rest) = hash_str.strip_prefix(&sri_prefix) {
-            if data_encoding::BASE64.encode_len(algo.digest_length()) != rest.len() {
-                return Ok(Some(WarningKind::SRIHashWrongPadding));
-            }
+        if let Some(rest) = hash_str.strip_prefix(&sri_prefix)
+            && data_encoding::BASE64.encode_len(algo.digest_length()) != rest.len()
+        {
+            return Ok(Some(WarningKind::SRIHashWrongPadding));
         }
     }
     Ok(None)

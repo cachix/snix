@@ -370,14 +370,14 @@ impl Scope {
                 }
 
                 // remove the by-name index if this was a named local
-                if let LocalName::Ident(name) = local.name {
-                    if let hash_map::Entry::Occupied(mut entry) = self.by_name.entry(name) {
-                        // If no removal occured through `remove_idx`
-                        // (i.e. there was no shadowing going on),
-                        // nuke the whole entry.
-                        if !entry.get_mut().remove_idx() {
-                            entry.remove();
-                        }
+                if let LocalName::Ident(name) = local.name
+                    && let hash_map::Entry::Occupied(mut entry) = self.by_name.entry(name)
+                {
+                    // If no removal occured through `remove_idx`
+                    // (i.e. there was no shadowing going on),
+                    // nuke the whole entry.
+                    if !entry.get_mut().remove_idx() {
+                        entry.remove();
                     }
                 }
             }

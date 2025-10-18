@@ -160,197 +160,193 @@ pub fn builtins(args: TokenStream, item: TokenStream) -> TokenStream {
 
     let mut builtins = vec![];
     for item in items.iter_mut() {
-        if let Item::Fn(f) = item {
-            if let Some(builtin_attr_pos) = f
+        if let Item::Fn(f) = item
+            && let Some(builtin_attr_pos) = f
                 .attrs
                 .iter()
                 .position(|attr| attr.path.get_ident().iter().any(|id| *id == "builtin"))
+        {
+            let builtin_attr = f.attrs.remove(builtin_attr_pos);
+            let name: LitStr = match builtin_attr.parse_args() {
+                Ok(args) => args,
+                Err(err) => return err.into_compile_error().into(),
+            };
+
+            if f.sig.inputs.len() <= 1 {
+                return (quote_spanned!(
+                    f.sig.inputs.span() =>
+                        compile_error!("Builtin functions must take at least two arguments")
+                ))
+                .into();
+            }
+
+            // Inspect the first argument to determine if this function is
+            // taking the state parameter.
+            // TODO(tazjin): add a test in //snix/eval that covers this
+            let mut captures_state = false;
+            if let FnArg::Typed(PatType { pat, .. }) = &f.sig.inputs[0]
+                && let Pat::Ident(PatIdent { ident, .. }) = pat.as_ref()
+                && *ident == "state"
             {
-                let builtin_attr = f.attrs.remove(builtin_attr_pos);
-                let name: LitStr = match builtin_attr.parse_args() {
-                    Ok(args) => args,
-                    Err(err) => return err.into_compile_error().into(),
-                };
-
-                if f.sig.inputs.len() <= 1 {
-                    return (quote_spanned!(
-                        f.sig.inputs.span() =>
-                            compile_error!("Builtin functions must take at least two arguments")
-                    ))
-                    .into();
+                if state_type.is_none() {
+                    panic!("builtin captures a `state` argument, but no state type was defined");
                 }
 
-                // Inspect the first argument to determine if this function is
-                // taking the state parameter.
-                // TODO(tazjin): add a test in //snix/eval that covers this
-                let mut captures_state = false;
-                if let FnArg::Typed(PatType { pat, .. }) = &f.sig.inputs[0] {
-                    if let Pat::Ident(PatIdent { ident, .. }) = pat.as_ref() {
-                        if *ident == "state" {
-                            if state_type.is_none() {
-                                panic!(
-                                    "builtin captures a `state` argument, but no state type was defined"
-                                );
-                            }
+                captures_state = true;
+            }
 
-                            captures_state = true;
-                        }
-                    }
-                }
+            let mut rewritten_args = std::mem::take(&mut f.sig.inputs)
+                .into_iter()
+                .collect::<Vec<_>>();
 
-                let mut rewritten_args = std::mem::take(&mut f.sig.inputs)
-                    .into_iter()
-                    .collect::<Vec<_>>();
+            // Split out the value arguments from the static arguments.
+            let split_idx = if captures_state { 2 } else { 1 };
+            let value_args = rewritten_args.split_off(split_idx);
 
-                // Split out the value arguments from the static arguments.
-                let split_idx = if captures_state { 2 } else { 1 };
-                let value_args = rewritten_args.split_off(split_idx);
-
-                let builtin_arguments = value_args
-                    .into_iter()
-                    .map(|arg| {
-                        let span = arg.span();
-                        let mut strict = true;
-                        let mut catch = false;
-                        let (name, ty) = match arg {
-                            FnArg::Receiver(_) => {
-                                return Err(quote_spanned!(span => {
-                                    compile_error!("unexpected receiver argument in builtin")
-                                }))
-                            }
-                            FnArg::Typed(PatType {
-                                mut attrs, pat, ty, ..
-                            }) => {
-                                attrs.retain(|attr| {
-                                    attr.path.get_ident().into_iter().any(|id| {
-                                        if id == "lazy" {
-                                            strict = false;
-                                            false
-                                        } else if id == "catch" {
-                                            catch = true;
-                                            false
-                                        } else {
-                                            true
-                                        }
-                                    })
-                                });
-                                match pat.as_ref() {
-                                    Pat::Ident(PatIdent { ident, .. }) => {
-                                        (ident.clone(), ty.clone())
-                                    }
-                                    _ => panic!("ignored value parameters must be named, e.g. `_x` and not just `_`"),
-                                }
-                            }
-                        };
-
-                        if catch && !strict {
+            let builtin_arguments = value_args
+                .into_iter()
+                .map(|arg| {
+                    let span = arg.span();
+                    let mut strict = true;
+                    let mut catch = false;
+                    let (name, ty) = match arg {
+                        FnArg::Receiver(_) => {
                             return Err(quote_spanned!(span => {
-                                compile_error!("Cannot mix both lazy and catch on the same argument")
-                            }));
+                                compile_error!("unexpected receiver argument in builtin")
+                            }))
                         }
-
-                        Ok(BuiltinArgument {
-                            strict,
-                            catch,
-                            span,
-                            name,
-                            ty,
-                        })
-                    })
-                    .collect::<Result<Vec<BuiltinArgument>, _>>();
-
-                let builtin_arguments = match builtin_arguments {
-                    Err(err) => return err.into(),
-
-                    // reverse argument order, as they are popped from the stack
-                    // slice in opposite order
-                    Ok(args) => args,
-                };
-
-                // Rewrite the argument to the actual function to take a
-                // `Vec<Value>`, which is then destructured into the
-                // user-defined values in the function header.
-                let sig_span = f.sig.span();
-                rewritten_args.push(parse_quote_spanned!(sig_span=> mut values: Vec<Value>));
-                f.sig.inputs = rewritten_args.into_iter().collect();
-
-                // Rewrite the body of the function to do said argument forcing.
-                //
-                // This is done by creating a new block for each of the
-                // arguments that evaluates it, and wraps the inner block.
-                for arg in &builtin_arguments {
-                    let block = &f.block;
-                    let ty = &arg.ty;
-                    let ident = &arg.name;
-
-                    f.block = Box::new(match arg {
-                        BuiltinArgument {
-                            strict: true,
-                            catch: true,
-                            ..
-                        } => parse_quote_spanned! {
-                            arg.span => {
-                                let #ident: #ty = snix_eval::generators::request_force(
-                                    &co, values.pop().expect("Snix bug: builtin called with incorrect number of arguments")
-                                ).await;
-                                #block
-                            }
-                        },
-                        BuiltinArgument {
-                            strict: true,
-                            catch: false,
-                            ..
-                        } => parse_quote_spanned! {
-                            arg.span => {
-                                let #ident: #ty = snix_eval::generators::request_force(
-                                    &co, values.pop().expect("Snix bug: builtin called with incorrect number of arguments")
-                                ).await;
-                                if #ident.is_catchable() {
-                                    return Ok(#ident);
+                        FnArg::Typed(PatType {
+                            mut attrs, pat, ty, ..
+                        }) => {
+                            attrs.retain(|attr| {
+                                attr.path.get_ident().into_iter().any(|id| {
+                                    if id == "lazy" {
+                                        strict = false;
+                                        false
+                                    } else if id == "catch" {
+                                        catch = true;
+                                        false
+                                    } else {
+                                        true
+                                    }
+                                })
+                            });
+                            match pat.as_ref() {
+                                Pat::Ident(PatIdent { ident, .. }) => {
+                                    (ident.clone(), ty.clone())
                                 }
-                                #block
+                                _ => panic!("ignored value parameters must be named, e.g. `_x` and not just `_`"),
                             }
-                        },
-                        BuiltinArgument {
-                            strict: false,
-                            catch: _,
-                            ..
-                        } => parse_quote_spanned! {
-                            arg.span => {
-                                let #ident: #ty = values.pop().expect("Snix bug: builtin called with incorrect number of arguments");
-                                #block
+                        }
+                    };
+
+                    if catch && !strict {
+                        return Err(quote_spanned!(span => {
+                            compile_error!("Cannot mix both lazy and catch on the same argument")
+                        }));
+                    }
+
+                    Ok(BuiltinArgument {
+                        strict,
+                        catch,
+                        span,
+                        name,
+                        ty,
+                    })
+                })
+                .collect::<Result<Vec<BuiltinArgument>, _>>();
+
+            let builtin_arguments = match builtin_arguments {
+                Err(err) => return err.into(),
+
+                // reverse argument order, as they are popped from the stack
+                // slice in opposite order
+                Ok(args) => args,
+            };
+
+            // Rewrite the argument to the actual function to take a
+            // `Vec<Value>`, which is then destructured into the
+            // user-defined values in the function header.
+            let sig_span = f.sig.span();
+            rewritten_args.push(parse_quote_spanned!(sig_span=> mut values: Vec<Value>));
+            f.sig.inputs = rewritten_args.into_iter().collect();
+
+            // Rewrite the body of the function to do said argument forcing.
+            //
+            // This is done by creating a new block for each of the
+            // arguments that evaluates it, and wraps the inner block.
+            for arg in &builtin_arguments {
+                let block = &f.block;
+                let ty = &arg.ty;
+                let ident = &arg.name;
+
+                f.block = Box::new(match arg {
+                    BuiltinArgument {
+                        strict: true,
+                        catch: true,
+                        ..
+                    } => parse_quote_spanned! {
+                        arg.span => {
+                            let #ident: #ty = snix_eval::generators::request_force(
+                                &co, values.pop().expect("Snix bug: builtin called with incorrect number of arguments")
+                            ).await;
+                            #block
+                        }
+                    },
+                    BuiltinArgument {
+                        strict: true,
+                        catch: false,
+                        ..
+                    } => parse_quote_spanned! {
+                        arg.span => {
+                            let #ident: #ty = snix_eval::generators::request_force(
+                                &co, values.pop().expect("Snix bug: builtin called with incorrect number of arguments")
+                            ).await;
+                            if #ident.is_catchable() {
+                                return Ok(#ident);
                             }
-                        },
-                    });
-                }
+                            #block
+                        }
+                    },
+                    BuiltinArgument {
+                        strict: false,
+                        catch: _,
+                        ..
+                    } => parse_quote_spanned! {
+                        arg.span => {
+                            let #ident: #ty = values.pop().expect("Snix bug: builtin called with incorrect number of arguments");
+                            #block
+                        }
+                    },
+                });
+            }
 
-                let fn_name = f.sig.ident.clone();
-                let arg_count = builtin_arguments.len();
-                let docstring = match extract_docstring(&f.attrs) {
-                    Some(docs) => quote!(Some(#docs)),
-                    None => quote!(None),
-                };
+            let fn_name = f.sig.ident.clone();
+            let arg_count = builtin_arguments.len();
+            let docstring = match extract_docstring(&f.attrs) {
+                Some(docs) => quote!(Some(#docs)),
+                None => quote!(None),
+            };
 
-                if captures_state {
-                    builtins.push(quote_spanned! { builtin_attr.span() => {
-                        let inner_state = state.clone();
-                        snix_eval::Builtin::new(
-                            #name,
-                            #docstring,
-                            #arg_count,
-                            move |values| Gen::new(|co| snix_eval::generators::pin_generator(#fn_name(inner_state.clone(), co, values))),
-                        )
-                    }});
-                } else {
-                    builtins.push(quote_spanned! { builtin_attr.span() => {
-                        snix_eval::Builtin::new(
-                            #name,
-                            #docstring,
-                            #arg_count,
-                            |values| Gen::new(|co| snix_eval::generators::pin_generator(#fn_name(co, values))),
-                        )
-                    }});
-                }
+            if captures_state {
+                builtins.push(quote_spanned! { builtin_attr.span() => {
+                    let inner_state = state.clone();
+                    snix_eval::Builtin::new(
+                        #name,
+                        #docstring,
+                        #arg_count,
+                        move |values| Gen::new(|co| snix_eval::generators::pin_generator(#fn_name(inner_state.clone(), co, values))),
+                    )
+                }});
+            } else {
+                builtins.push(quote_spanned! { builtin_attr.span() => {
+                    snix_eval::Builtin::new(
+                        #name,
+                        #docstring,
+                        #arg_count,
+                        |values| Gen::new(|co| snix_eval::generators::pin_generator(#fn_name(co, values))),
+                    )
+                }});
             }
         }
     }

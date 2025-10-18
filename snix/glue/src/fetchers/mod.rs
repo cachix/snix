@@ -385,14 +385,14 @@ where
                     )?,
                 };
 
-                if let Some(exp_hash) = exp_hash {
-                    if exp_hash != actual_hash {
-                        return Err(FetcherError::HashMismatch {
-                            url,
-                            wanted: exp_hash,
-                            got: actual_hash,
-                        });
-                    }
+                if let Some(exp_hash) = exp_hash
+                    && exp_hash != actual_hash
+                {
+                    return Err(FetcherError::HashMismatch {
+                        url,
+                        wanted: exp_hash,
+                        got: actual_hash,
+                    });
                 }
 
                 // Construct and return the FileNode describing the downloaded contents.
@@ -440,14 +440,14 @@ where
                         FetcherError::Io(e.into())
                     })?;
 
-                if let Some(exp_nar_sha256) = exp_nar_sha256 {
-                    if exp_nar_sha256 != actual_nar_sha256 {
-                        return Err(FetcherError::HashMismatch {
-                            url,
-                            wanted: NixHash::Sha256(exp_nar_sha256),
-                            got: NixHash::Sha256(actual_nar_sha256),
-                        });
-                    }
+                if let Some(exp_nar_sha256) = exp_nar_sha256
+                    && exp_nar_sha256 != actual_nar_sha256
+                {
+                    return Err(FetcherError::HashMismatch {
+                        url,
+                        wanted: NixHash::Sha256(exp_nar_sha256),
+                        got: NixHash::Sha256(actual_nar_sha256),
+                    });
                 }
 
                 Ok((

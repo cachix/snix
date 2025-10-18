@@ -223,14 +223,14 @@ mod import_builtins {
                         let actual_sha256 = h.finalize().into();
 
                         // If an expected hash was provided upfront, compare and bail out.
-                        if let Some(expected_sha256) = expected_sha256 {
-                            if actual_sha256 != expected_sha256 {
-                                return Err(ImportError::HashMismatch(
-                                    path.clone(),
-                                    NixHash::Sha256(expected_sha256),
-                                    NixHash::Sha256(actual_sha256),
-                                ));
-                            }
+                        if let Some(expected_sha256) = expected_sha256
+                            && actual_sha256 != expected_sha256
+                        {
+                            return Err(ImportError::HashMismatch(
+                                path.clone(),
+                                NixHash::Sha256(expected_sha256),
+                                NixHash::Sha256(actual_sha256),
+                            ));
                         }
                         Ok(CAHash::Flat(NixHash::Sha256(actual_sha256)))
                     })
@@ -286,15 +286,15 @@ mod import_builtins {
         let ca = match ca {
             None => {
                 // If an upfront-expected NAR hash was specified, compare.
-                if let Some(expected_nar_sha256) = expected_sha256 {
-                    if expected_nar_sha256 != nar_sha256 {
-                        return Err(ImportError::HashMismatch(
-                            path,
-                            NixHash::Sha256(expected_nar_sha256),
-                            NixHash::Sha256(nar_sha256),
-                        )
-                        .into());
-                    }
+                if let Some(expected_nar_sha256) = expected_sha256
+                    && expected_nar_sha256 != nar_sha256
+                {
+                    return Err(ImportError::HashMismatch(
+                        path,
+                        NixHash::Sha256(expected_nar_sha256),
+                        NixHash::Sha256(nar_sha256),
+                    )
+                    .into());
                 }
                 CAHash::Nar(NixHash::Sha256(nar_sha256))
             }

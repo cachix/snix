@@ -36,7 +36,7 @@ use std::io::{
 };
 
 /// Create a new NAR, writing the output to the specified writer.
-pub fn open<W: Write>(writer: &mut W) -> io::Result<Node<W>> {
+pub fn open<W: Write>(writer: &mut W) -> io::Result<Node<'_, W>> {
     let mut node = Node { writer };
     node.write(&wire::TOK_NAR)?;
     Ok(node)
