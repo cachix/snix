@@ -36,6 +36,13 @@ members = [
   "tracing",
 ]
 
+[workspace.package]
+# This is the Minimum Supported Rust Version (MSRV):
+# https://doc.rust-lang.org/cargo/reference/rust-version.html
+# Update with the Rust version in the pinned
+# (`../third_party/sources/sources.json`) Nixpkgs
+rust-version = "1.88.0"
+
 [workspace.dependencies]
 anyhow = "1.0.86"
 async-compression = "0.4.12"

@@ -3,6 +3,7 @@ name = "snix-eval-builtin-macros"
 version = "0.0.1"
 authors = ["Griffin Smith <root@gws.fyi>"]
 edition = "2024"
+rust-version.workspace = true
 
 [dependencies]
 syn = { version = "1.0.109", features = [
