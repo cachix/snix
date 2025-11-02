@@ -98,8 +98,9 @@ message BuildRequest {
   repeated EnvVar environment_vars = 7;
 
   message EnvVar {
-    // name of the environment variable. Must not contain =.
+    // name of the environment variable. Must not contain = or \0.
     string key = 1;
+    // value of the environment variable. Must not contain \0.
     bytes value = 2;
   }
 

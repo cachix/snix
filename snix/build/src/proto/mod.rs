@@ -237,7 +237,10 @@ impl TryFrom<BuildRequest> for crate::buildservice::BuildRequest {
 
         // validate environment_vars.
         for (i, e) in value.environment_vars.iter().enumerate() {
-            if e.key.is_empty() || e.key.contains('=') {
+            if e.key.is_empty() || e.key.contains('=') || e.key.contains('\0') {
+                Err(ValidateBuildRequestError::InvalidEnvVar(i))?
+            }
+            if e.value.contains(&0) {
                 Err(ValidateBuildRequestError::InvalidEnvVar(i))?
             }
         }
