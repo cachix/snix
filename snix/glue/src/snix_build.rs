@@ -259,10 +259,7 @@ fn handle_pass_as_file(
 fn calculate_pass_as_file_env(k: &str) -> (String, String) {
     (
         format!("{k}Path"),
-        format!(
-            "/build/.attr-{}",
-            nixbase32::encode(&Sha256::new_with_prefix(k).finalize())
-        ),
+        format!("/build/.attr-{}", nixbase32::encode(&Sha256::digest(k))),
     )
 }
 

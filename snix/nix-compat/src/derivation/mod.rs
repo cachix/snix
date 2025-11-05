@@ -164,20 +164,16 @@ impl Derivation {
         let out_output = self.outputs.get("out")?;
         let ca_hash = out_output.ca_hash.as_ref()?;
 
-        Some(
-            Sha256::new_with_prefix(format!(
-                "fixed:out:{}{}:{}",
-                ca_kind_prefix(ca_hash),
-                ca_hash.hash().to_nix_lowerhex_string(),
-                out_output
-                    .path
-                    .as_ref()
-                    .map(StorePath::to_absolute_path)
-                    .unwrap_or_default(),
-            ))
-            .finalize()
-            .into(),
-        )
+        Some(sha256!(
+            "fixed:out:{}{}:{}",
+            ca_kind_prefix(ca_hash),
+            ca_hash.hash().to_nix_lowerhex_string(),
+            out_output
+                .path
+                .as_ref()
+                .map(StorePath::to_absolute_path)
+                .unwrap_or_default(),
+        ))
     }
 
     /// Calculates the hash of a derivation modulo fixed-output subderivations.
@@ -221,7 +217,7 @@ impl Derivation {
             ));
 
             // write the ATerm of that to the hash function and return its digest.
-            Sha256::new_with_prefix(aterm_bytes).finalize().into()
+            Sha256::digest(aterm_bytes).into()
         })
     }
 

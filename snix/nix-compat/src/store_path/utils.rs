@@ -55,7 +55,7 @@ where
     C: AsRef<[u8]>,
 {
     // produce the sha256 digest of the contents
-    let content_digest = Sha256::new_with_prefix(content).finalize().into();
+    let content_digest = Sha256::digest(content.as_ref()).into();
 
     build_ca_path(name, &CAHash::Text(content_digest), references, false)
 }
@@ -79,9 +79,7 @@ where
 
     /// Helper function, used for the non-sha256 [CAHash::Nar] and all [CAHash::Flat].
     fn fixed_out_digest(prefix: &str, hash: &NixHash) -> [u8; 32] {
-        Sha256::new_with_prefix(format!("{}:{}:", prefix, hash.to_nix_lowerhex_string()))
-            .finalize()
-            .into()
+        sha256!("{}:{}:", prefix, hash.to_nix_lowerhex_string())
     }
 
     let (ty, inner_digest) = match &ca_hash {
@@ -156,15 +154,12 @@ fn build_store_path_from_fingerprint_parts<'a, SP>(
 where
     SP: AsRef<str> + std::convert::From<&'a str>,
 {
-    let fingerprint = format!(
+    let fingerprint_hash = sha256!(
         "{ty}:sha256:{}:{STORE_DIR}:{name}",
         HEXLOWER.encode(inner_digest)
     );
     // name validation happens in here.
-    StorePath::from_name_and_digest_fixed(
-        name,
-        compress_hash(&Sha256::new_with_prefix(fingerprint).finalize()),
-    )
+    StorePath::from_name_and_digest_fixed(name, compress_hash(&fingerprint_hash))
 }
 
 /// This contains the Nix logic to create "text hash strings", which are used
@@ -203,9 +198,7 @@ fn make_references_string<S: AsRef<str>, I: IntoIterator<Item = S>>(
 /// The actual placeholder is basically just a SHA256 hash encoded in
 /// cppnix format.
 pub fn hash_placeholder(name: &str) -> String {
-    let digest = Sha256::new_with_prefix(format!("nix-output:{name}")).finalize();
-
-    format!("/{}", nixbase32::encode(&digest))
+    format!("/{}", nixbase32::encode(&sha256!("nix-output:{name}")))
 }
 
 #[cfg(test)]
