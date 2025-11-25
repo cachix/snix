@@ -179,7 +179,7 @@ impl DirectoryService for ObjectStoreDirectoryService {
     }
 
     #[instrument(skip_all)]
-    fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + '_)>
+    fn put_multiple_start(&self) -> Box<dyn DirectoryPutter + '_>
     where
         Self: Clone,
     {

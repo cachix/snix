@@ -192,7 +192,7 @@ where
     }
 
     #[instrument(skip_all)]
-    fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + 'static)> {
+    fn put_multiple_start(&self) -> Box<dyn DirectoryPutter + 'static> {
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
 
         let task = spawn({
