@@ -7,7 +7,7 @@
 
 depot.nix.readTree.drvTargets rec {
   terraform = pkgs.terraform.withPlugins (p: [
-    p.hcloud
+    p.hetznercloud_hcloud
   ]);
 
   validate = depot.tools.checks.validateTerraform {

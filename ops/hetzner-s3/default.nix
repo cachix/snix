@@ -7,7 +7,7 @@
 
 depot.nix.readTree.drvTargets rec {
   terraform = pkgs.terraform.withPlugins (p: [
-    p.minio
+    p.aminueza_minio
   ]);
 
   validate = depot.tools.checks.validateTerraform {

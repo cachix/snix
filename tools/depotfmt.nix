@@ -27,7 +27,9 @@ let
     includes = [ "*.toml" ]
 
     [formatter.editorconfig]
+    # https://github.com/editorconfig-checker/editorconfig-checker/issues/505
     command = "${pkgs.editorconfig-checker}/bin/editorconfig-checker"
+    options = [ "-disable-charset" ]
     includes = [
       "*.c",
       "*.conf",

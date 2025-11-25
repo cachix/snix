@@ -363,7 +363,7 @@ async fn run_cli(
             let (blob_service, directory_service, path_info_service, _nar_calculation_service) =
                 snix_store::utils::construct_services(service_addrs).await?;
             // Parse the file at reference_graph_path.
-            let reference_graph_json = if reference_graph_path == PathBuf::from("-") {
+            let reference_graph_json = if &reference_graph_path == "-" {
                 let mut writer: Vec<u8> = vec![];
                 tokio::io::copy(&mut tokio::io::stdin(), &mut writer).await?;
                 writer

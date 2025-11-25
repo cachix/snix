@@ -29,7 +29,7 @@ impl RedbPathInfoService {
     /// Constructs a new instance using the specified file system path for
     /// storage.
     pub async fn new(instance_name: String, path: PathBuf) -> Result<Self, Error> {
-        if path == PathBuf::from("/") {
+        if &path == "/" {
             return Err(Error::StorageError(
                 "cowardly refusing to open / with redb".to_string(),
             ));

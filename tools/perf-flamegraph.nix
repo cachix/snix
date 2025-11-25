@@ -5,8 +5,8 @@
 pkgs.writeShellScriptBin "perf-flamegraph" ''
   set -euo pipefail
 
-  ${pkgs.linuxPackages.perf}/bin/perf record -g --call-graph dwarf -F max "$@"
-  ${pkgs.linuxPackages.perf}/bin/perf script \
+  ${pkgs.perf}/bin/perf record -g --call-graph dwarf -F max "$@"
+  ${pkgs.perf}/bin/perf script \
     | ${pkgs.flamegraph}/bin/stackcollapse-perf.pl \
     | ${pkgs.flamegraph}/bin/flamegraph.pl
 ''

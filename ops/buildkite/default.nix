@@ -7,7 +7,7 @@
 
 depot.nix.readTree.drvTargets rec {
   terraform = pkgs.terraform.withPlugins (p: [
-    p.buildkite
+    p.buildkite_buildkite
   ]);
 
   validate = depot.tools.checks.validateTerraform {

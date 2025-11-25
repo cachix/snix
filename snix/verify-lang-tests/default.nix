@@ -14,13 +14,14 @@
 let
   testRoot = ../eval/src/tests;
 
-  inherit (pkgs.nixVersions) nix_2_3;
+  inherit (pkgs) nix_2_3;
   # The latest Nix version we've verified to work for our testing suite.
   _nix_latest_verified = pkgs.nixVersions.nix_2_30;
   nix_latest_verified =
-    lib.warnIf (lib.versionOlder _nix_latest_verified.version pkgs.nixVersions.latest.version)
-      "The latest verified Nix version is out of date, consider updating the value of `nix_latest_verified` and verifying that the tests still pass."
-      _nix_latest_verified;
+    # https://github.com/NixOS/nix/issues/14642
+    # lib.warnIf (lib.versionOlder _nix_latest_verified.version pkgs.nixVersions.latest.version)
+    #   "The latest verified Nix version is out of date, consider updating the value of `nix_latest_verified` and verifying that the tests still pass."
+    _nix_latest_verified;
 
   parseTest =
     dir: baseName:

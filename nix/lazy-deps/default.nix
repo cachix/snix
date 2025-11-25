@@ -46,7 +46,7 @@ fix (
   # derivation.
   tools:
 
-  pkgs.runCommandNoCC "lazy-dispatch"
+  pkgs.runCommand "lazy-dispatch"
     {
       passthru.overrideDeps = newTools: self (tools // newTools);
       passthru.tools = tools;
