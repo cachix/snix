@@ -155,8 +155,47 @@ message BuildRequest {
   // TODO: allow describing something like "preferLocal", to influence composition?
 }
 
-// A BuildResponse is (one possible) outcome of executing a [BuildRequest].
-message BuildResponse {
+// BuildEvent represents a single event during a build process.
+// The stream of events will always end with either BuildCompleted or BuildFailed.
+message BuildEvent {
+  oneof event {
+    BuildStarted started = 1;
+    LogOutput log = 2;
+    RefscanResult refscan = 3;
+    BuildCompleted completed = 4;
+    BuildFailed failed = 5;
+  }
+}
+
+// Emitted at the start of a build.
+message BuildStarted {
+  // A unique identifier for this build.
+  string build_id = 1;
+}
+
+// A line of log output from the build process.
+message LogOutput {
+  enum Stream {
+    STREAM_UNSPECIFIED = 0;
+    STREAM_STDOUT = 1;
+    STREAM_STDERR = 2;
+  }
+  // Which output stream this line came from.
+  Stream stream = 1;
+  // The log line data (including newline).
+  bytes data = 2;
+}
+
+// Reference scanning result for a single output.
+message RefscanResult {
+  // Index of the output in the original BuildRequest.outputs.
+  uint32 output_index = 1;
+  // Indexes into [BuildRequest::refscan_needles] found in this output.
+  repeated uint64 found_needles = 2;
+}
+
+// Emitted when a build completes successfully.
+message BuildCompleted {
   // The outputs that were produced after successfully building.
   // They are provided in the same order as specified in the [BuildRequest].
   repeated Output outputs = 1;
@@ -170,8 +209,14 @@ message BuildResponse {
     // Indexes into the found [BuildRequest::refscan_needles] in this output.
     repeated uint64 needles = 2;
   }
+}
 
-  // TODO: where did this run, how long, logs, …
+// Emitted when a build fails.
+message BuildFailed {
+  // Human-readable error message.
+  string message = 1;
+  // Exit code of the build process, if available.
+  optional int32 exit_code = 2;
 }
 
 /// TODO: check remarkable notes on constraints again

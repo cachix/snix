@@ -146,3 +146,59 @@ pub struct BuildOutput {
     /// Indexes into the found [BuildRequest::refscan_needles] in that output.
     pub output_needles: BTreeSet<u64>,
 }
+
+/// An event emitted during a build process.
+#[derive(Debug, Clone)]
+pub enum BuildEvent {
+    /// Emitted at the start of a build.
+    Started(BuildStarted),
+    /// A line of log output from the build process.
+    Log(LogOutput),
+    /// Reference scanning result for an output.
+    RefscanResult(RefscanResultEvent),
+    /// The build completed successfully.
+    Completed(BuildResult),
+    /// The build failed.
+    Failed(BuildError),
+}
+
+/// Emitted at the start of a build.
+#[derive(Debug, Clone)]
+pub struct BuildStarted {
+    /// A unique identifier for this build.
+    pub build_id: String,
+}
+
+/// Which output stream a log line came from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LogStream {
+    Stdout,
+    Stderr,
+}
+
+/// A line of log output from the build process.
+#[derive(Debug, Clone)]
+pub struct LogOutput {
+    /// Which output stream this line came from.
+    pub stream: LogStream,
+    /// The log line data (including newline).
+    pub data: Bytes,
+}
+
+/// Reference scanning result for a single output.
+#[derive(Debug, Clone)]
+pub struct RefscanResultEvent {
+    /// Index of the output in the original BuildRequest.outputs.
+    pub output_index: usize,
+    /// Indexes into [BuildRequest::refscan_needles] found in this output.
+    pub found_needles: Vec<u64>,
+}
+
+/// Describes a build failure.
+#[derive(Debug, Clone)]
+pub struct BuildError {
+    /// Human-readable error message.
+    pub message: String,
+    /// Exit code of the build process, if available.
+    pub exit_code: Option<i32>,
+}

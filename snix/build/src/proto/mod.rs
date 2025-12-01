@@ -61,19 +61,6 @@ pub enum ValidateBuildRequestError {
     AdditionalFilesNotSorted,
 }
 
-/// Errors that occur during the validation of [BuildResult] messages.
-#[derive(Debug, thiserror::Error)]
-pub enum ValidateBuildResultError {
-    #[error("request field is unpopulated")]
-    MissingRequestField,
-    #[error("request is invalid")]
-    InvalidBuildRequest(ValidateBuildRequestError),
-    #[error("output entry {0} missing")]
-    MissingOutputEntry(usize),
-    #[error("output entry {0} invalid")]
-    InvalidOutputEntry(usize),
-}
-
 /// Checks a path to be without any '..' components, and clean (no superfluous
 /// slashes).
 fn is_clean_path<P: AsRef<Path>>(p: P) -> bool {
@@ -282,50 +269,6 @@ impl TryFrom<BuildRequest> for crate::buildservice::BuildRequest {
     }
 }
 
-impl From<BuildResult> for BuildResponse {
-    fn from(value: BuildResult) -> Self {
-        Self {
-            outputs: value
-                .outputs
-                .into_iter()
-                .map(|output| build_response::Output {
-                    output: Some(snix_castore::proto::Entry::from_name_and_node(
-                        "".into(),
-                        output.node,
-                    )),
-                    needles: output.output_needles.into_iter().collect(),
-                })
-                .collect(),
-        }
-    }
-}
-
-impl TryFrom<BuildResponse> for BuildResult {
-    type Error = ValidateBuildResultError;
-
-    fn try_from(value: BuildResponse) -> Result<Self, Self::Error> {
-        Ok(Self {
-            outputs: value
-                .outputs
-                .into_iter()
-                .enumerate()
-                .map(|(i, output)| {
-                    let node = output
-                        .output
-                        .ok_or(ValidateBuildResultError::MissingOutputEntry(i))?
-                        .try_into_anonymous_node()
-                        .map_err(|_| ValidateBuildResultError::InvalidOutputEntry(i))?;
-
-                    Ok::<_, ValidateBuildResultError>(crate::buildservice::BuildOutput {
-                        node,
-                        output_needles: BTreeSet::from_iter(output.needles),
-                    })
-                })
-                .try_collect()?,
-        })
-    }
-}
-
 /// Errors that occur during the validation of
 /// [build_request::BuildConstraints] messages.
 #[derive(Debug, thiserror::Error)]
@@ -418,6 +361,226 @@ impl TryFrom<build_request::BuildConstraints> for HashSet<crate::buildservice::B
     }
 }
 
+/// Errors that occur during the validation of [BuildEvent] messages.
+#[derive(Debug, thiserror::Error)]
+pub enum ValidateBuildEventError {
+    #[error("event field is not set")]
+    MissingEventField,
+    #[error("invalid log stream")]
+    InvalidLogStream,
+    #[error("invalid build completed")]
+    InvalidBuildCompleted(ValidateBuildCompletedError),
+}
+
+/// Errors that occur during the validation of [BuildCompleted] messages.
+#[derive(Debug, thiserror::Error)]
+pub enum ValidateBuildCompletedError {
+    #[error("output entry {0} missing")]
+    MissingOutputEntry(usize),
+    #[error("output entry {0} invalid")]
+    InvalidOutputEntry(usize),
+}
+
+// === BuildEvent conversions ===
+
+impl From<crate::buildservice::BuildEvent> for build_event::Event {
+    fn from(value: crate::buildservice::BuildEvent) -> Self {
+        use crate::buildservice::BuildEvent as BE;
+        match value {
+            BE::Started(started) => build_event::Event::Started(started.into()),
+            BE::Log(log) => build_event::Event::Log(log.into()),
+            BE::RefscanResult(result) => build_event::Event::Refscan(result.into()),
+            BE::Completed(result) => build_event::Event::Completed(result.into()),
+            BE::Failed(error) => build_event::Event::Failed(error.into()),
+        }
+    }
+}
+
+impl From<crate::buildservice::BuildEvent> for BuildEvent {
+    fn from(value: crate::buildservice::BuildEvent) -> Self {
+        Self {
+            event: Some(value.into()),
+        }
+    }
+}
+
+impl TryFrom<BuildEvent> for crate::buildservice::BuildEvent {
+    type Error = ValidateBuildEventError;
+
+    fn try_from(value: BuildEvent) -> Result<Self, Self::Error> {
+        let event = value.event.ok_or(ValidateBuildEventError::MissingEventField)?;
+        event.try_into()
+    }
+}
+
+impl TryFrom<build_event::Event> for crate::buildservice::BuildEvent {
+    type Error = ValidateBuildEventError;
+
+    fn try_from(value: build_event::Event) -> Result<Self, Self::Error> {
+        use crate::buildservice::BuildEvent as BE;
+        Ok(match value {
+            build_event::Event::Started(started) => BE::Started(started.into()),
+            build_event::Event::Log(log) => BE::Log(log.try_into()?),
+            build_event::Event::Refscan(result) => BE::RefscanResult(result.into()),
+            build_event::Event::Completed(completed) => {
+                BE::Completed(completed.try_into().map_err(ValidateBuildEventError::InvalidBuildCompleted)?)
+            }
+            build_event::Event::Failed(failed) => BE::Failed(failed.into()),
+        })
+    }
+}
+
+// === BuildStarted conversions ===
+
+impl From<crate::buildservice::BuildStarted> for BuildStarted {
+    fn from(value: crate::buildservice::BuildStarted) -> Self {
+        Self {
+            build_id: value.build_id,
+        }
+    }
+}
+
+impl From<BuildStarted> for crate::buildservice::BuildStarted {
+    fn from(value: BuildStarted) -> Self {
+        Self {
+            build_id: value.build_id,
+        }
+    }
+}
+
+// === LogOutput conversions ===
+
+impl From<crate::buildservice::LogStream> for log_output::Stream {
+    fn from(value: crate::buildservice::LogStream) -> Self {
+        use crate::buildservice::LogStream as LS;
+        match value {
+            LS::Stdout => log_output::Stream::Stdout,
+            LS::Stderr => log_output::Stream::Stderr,
+        }
+    }
+}
+
+impl TryFrom<log_output::Stream> for crate::buildservice::LogStream {
+    type Error = ValidateBuildEventError;
+
+    fn try_from(value: log_output::Stream) -> Result<Self, Self::Error> {
+        use crate::buildservice::LogStream as LS;
+        match value {
+            log_output::Stream::Unspecified => Err(ValidateBuildEventError::InvalidLogStream),
+            log_output::Stream::Stdout => Ok(LS::Stdout),
+            log_output::Stream::Stderr => Ok(LS::Stderr),
+        }
+    }
+}
+
+impl From<crate::buildservice::LogOutput> for LogOutput {
+    fn from(value: crate::buildservice::LogOutput) -> Self {
+        Self {
+            stream: log_output::Stream::from(value.stream).into(),
+            data: value.data,
+        }
+    }
+}
+
+impl TryFrom<LogOutput> for crate::buildservice::LogOutput {
+    type Error = ValidateBuildEventError;
+
+    fn try_from(value: LogOutput) -> Result<Self, Self::Error> {
+        let stream = log_output::Stream::try_from(value.stream)
+            .map_err(|_| ValidateBuildEventError::InvalidLogStream)?;
+        Ok(Self {
+            stream: stream.try_into()?,
+            data: value.data,
+        })
+    }
+}
+
+// === RefscanResultEvent conversions ===
+
+impl From<crate::buildservice::RefscanResultEvent> for RefscanResult {
+    fn from(value: crate::buildservice::RefscanResultEvent) -> Self {
+        Self {
+            output_index: value.output_index as u32,
+            found_needles: value.found_needles,
+        }
+    }
+}
+
+impl From<RefscanResult> for crate::buildservice::RefscanResultEvent {
+    fn from(value: RefscanResult) -> Self {
+        Self {
+            output_index: value.output_index as usize,
+            found_needles: value.found_needles,
+        }
+    }
+}
+
+// === BuildCompleted conversions ===
+
+impl From<BuildResult> for BuildCompleted {
+    fn from(value: BuildResult) -> Self {
+        Self {
+            outputs: value
+                .outputs
+                .into_iter()
+                .map(|output| build_completed::Output {
+                    output: Some(snix_castore::proto::Entry::from_name_and_node(
+                        "".into(),
+                        output.node,
+                    )),
+                    needles: output.output_needles.into_iter().collect(),
+                })
+                .collect(),
+        }
+    }
+}
+
+impl TryFrom<BuildCompleted> for BuildResult {
+    type Error = ValidateBuildCompletedError;
+
+    fn try_from(value: BuildCompleted) -> Result<Self, Self::Error> {
+        Ok(Self {
+            outputs: value
+                .outputs
+                .into_iter()
+                .enumerate()
+                .map(|(i, output)| {
+                    let node = output
+                        .output
+                        .ok_or(ValidateBuildCompletedError::MissingOutputEntry(i))?
+                        .try_into_anonymous_node()
+                        .map_err(|_| ValidateBuildCompletedError::InvalidOutputEntry(i))?;
+
+                    Ok::<_, ValidateBuildCompletedError>(crate::buildservice::BuildOutput {
+                        node,
+                        output_needles: BTreeSet::from_iter(output.needles),
+                    })
+                })
+                .try_collect()?,
+        })
+    }
+}
+
+// === BuildError conversions ===
+
+impl From<crate::buildservice::BuildError> for BuildFailed {
+    fn from(value: crate::buildservice::BuildError) -> Self {
+        Self {
+            message: value.message,
+            exit_code: value.exit_code,
+        }
+    }
+}
+
+impl From<BuildFailed> for crate::buildservice::BuildError {
+    fn from(value: BuildFailed) -> Self {
+        Self {
+            message: value.message,
+            exit_code: value.exit_code,
+        }
+    }
+}
+
 #[cfg(test)]
 // TODO: add testcases for constraints special cases. The default cases in the protos
 // should result in the constraints not being added. For example min_memory 0 can be omitted.
@@ -450,4 +613,177 @@ mod tests {
     }
 
     // TODO: add tests for BuildRequest validation itself
+
+    mod build_event_conversions {
+        use super::super::*;
+        use crate::buildservice::{
+            BuildError, BuildEvent as BE, BuildOutput, BuildResult, BuildStarted, LogOutput,
+            LogStream, RefscanResultEvent,
+        };
+        use bytes::Bytes;
+        use std::collections::BTreeSet;
+
+        #[test]
+        fn test_build_started_roundtrip() {
+            let started = BE::Started(BuildStarted {
+                build_id: "test-build-123".to_string(),
+            });
+
+            let proto: BuildEvent = started.clone().into();
+            let back: BE = proto.try_into().expect("conversion should succeed");
+
+            match back {
+                BE::Started(s) => assert_eq!(s.build_id, "test-build-123"),
+                _ => panic!("expected Started variant"),
+            }
+        }
+
+        #[test]
+        fn test_log_output_stdout_roundtrip() {
+            let log = BE::Log(LogOutput {
+                stream: LogStream::Stdout,
+                data: Bytes::from("hello stdout\n"),
+            });
+
+            let proto: BuildEvent = log.into();
+            let back: BE = proto.try_into().expect("conversion should succeed");
+
+            match back {
+                BE::Log(l) => {
+                    assert!(matches!(l.stream, LogStream::Stdout));
+                    assert_eq!(l.data, Bytes::from("hello stdout\n"));
+                }
+                _ => panic!("expected Log variant"),
+            }
+        }
+
+        #[test]
+        fn test_log_output_stderr_roundtrip() {
+            let log = BE::Log(LogOutput {
+                stream: LogStream::Stderr,
+                data: Bytes::from("error message\n"),
+            });
+
+            let proto: BuildEvent = log.into();
+            let back: BE = proto.try_into().expect("conversion should succeed");
+
+            match back {
+                BE::Log(l) => {
+                    assert!(matches!(l.stream, LogStream::Stderr));
+                    assert_eq!(l.data, Bytes::from("error message\n"));
+                }
+                _ => panic!("expected Log variant"),
+            }
+        }
+
+        #[test]
+        fn test_log_output_unspecified_fails() {
+            let proto = BuildEvent {
+                event: Some(build_event::Event::Log(super::super::LogOutput {
+                    stream: log_output::Stream::Unspecified.into(),
+                    data: Bytes::from("test"),
+                })),
+            };
+
+            let result: Result<BE, _> = proto.try_into();
+            assert!(result.is_err());
+        }
+
+        #[test]
+        fn test_refscan_result_roundtrip() {
+            let refscan = BE::RefscanResult(RefscanResultEvent {
+                output_index: 2,
+                found_needles: vec![0, 3, 5],
+            });
+
+            let proto: BuildEvent = refscan.into();
+            let back: BE = proto.try_into().expect("conversion should succeed");
+
+            match back {
+                BE::RefscanResult(r) => {
+                    assert_eq!(r.output_index, 2);
+                    assert_eq!(r.found_needles, vec![0, 3, 5]);
+                }
+                _ => panic!("expected RefscanResult variant"),
+            }
+        }
+
+        #[test]
+        fn test_build_completed_roundtrip() {
+            let digest = snix_castore::B3Digest::from(&[0u8; 32]);
+            let result = BuildResult {
+                outputs: vec![BuildOutput {
+                    node: snix_castore::Node::File {
+                        digest: digest.clone(),
+                        size: 100,
+                        executable: false,
+                    },
+                    output_needles: BTreeSet::from([1, 2, 3]),
+                }],
+            };
+
+            let proto: BuildCompleted = result.clone().into();
+            let back: BuildResult = proto.try_into().expect("conversion should succeed");
+
+            assert_eq!(back.outputs.len(), 1);
+            assert_eq!(back.outputs[0].output_needles, BTreeSet::from([1, 2, 3]));
+            match &back.outputs[0].node {
+                snix_castore::Node::File {
+                    digest: d,
+                    size,
+                    executable,
+                } => {
+                    assert_eq!(d, &digest);
+                    assert_eq!(*size, 100);
+                    assert!(!executable);
+                }
+                _ => panic!("expected File node"),
+            }
+        }
+
+        #[test]
+        fn test_build_failed_roundtrip() {
+            let failed = BE::Failed(BuildError {
+                message: "build failed with error".to_string(),
+                exit_code: Some(1),
+            });
+
+            let proto: BuildEvent = failed.into();
+            let back: BE = proto.try_into().expect("conversion should succeed");
+
+            match back {
+                BE::Failed(f) => {
+                    assert_eq!(f.message, "build failed with error");
+                    assert_eq!(f.exit_code, Some(1));
+                }
+                _ => panic!("expected Failed variant"),
+            }
+        }
+
+        #[test]
+        fn test_build_failed_no_exit_code() {
+            let failed = BE::Failed(BuildError {
+                message: "signal terminated".to_string(),
+                exit_code: None,
+            });
+
+            let proto: BuildEvent = failed.into();
+            let back: BE = proto.try_into().expect("conversion should succeed");
+
+            match back {
+                BE::Failed(f) => {
+                    assert_eq!(f.message, "signal terminated");
+                    assert_eq!(f.exit_code, None);
+                }
+                _ => panic!("expected Failed variant"),
+            }
+        }
+
+        #[test]
+        fn test_missing_event_field_fails() {
+            let proto = BuildEvent { event: None };
+            let result: Result<BE, _> = proto.try_into();
+            assert!(result.is_err());
+        }
+    }
 }

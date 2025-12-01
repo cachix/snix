@@ -219,13 +219,35 @@ impl SnixStoreIO {
                             })
                             .collect();
 
-                        // create a build
-                        let build_result = self
-                            .build_service
-                            .as_ref()
-                            .do_build(build_request)
-                            .await
-                            .map_err(std::io::Error::other)?;
+                        // create a build and consume the event stream
+                        use futures::StreamExt;
+                        use snix_build::buildservice::BuildEvent;
+
+                        let mut stream = self.build_service.as_ref().do_build(build_request);
+
+                        let build_result = loop {
+                            match stream.next().await {
+                                Some(Ok(BuildEvent::Completed(result))) => break result,
+                                Some(Ok(BuildEvent::Failed(err))) => {
+                                    return Err(std::io::Error::other(format!(
+                                        "build failed: {}",
+                                        err.message
+                                    )));
+                                }
+                                Some(Ok(_event)) => {
+                                    // Log events are currently ignored here
+                                    // FUTUREWORK: could be surfaced to the user
+                                }
+                                Some(Err(e)) => {
+                                    return Err(std::io::Error::other(e));
+                                }
+                                None => {
+                                    return Err(std::io::Error::other(
+                                        "build stream ended without result",
+                                    ));
+                                }
+                            }
+                        };
 
                         let mut out_path_info: Option<PathInfo> = None;
 

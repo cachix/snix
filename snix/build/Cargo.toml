@@ -21,6 +21,7 @@ mimalloc.workspace = true
 tonic-reflection = { workspace = true, optional = true }
 
 anyhow = "1.0.79"
+async-stream = "0.3"
 blake3 = "1.5.0"
 bstr = "1.6.0"
 data-encoding = "2.5.0"
