@@ -10,5 +10,7 @@ import "snix/build/protos/build.proto";
 option go_package = "snix.dev/build/proto;buildv1";
 
 service BuildService {
-  rpc DoBuild(BuildRequest) returns (BuildResponse);
+  // Execute a build and stream events back.
+  // Dropping the stream signals cancellation.
+  rpc DoBuild(BuildRequest) returns (stream BuildEvent);
 }
