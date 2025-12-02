@@ -30,7 +30,7 @@ impl RedbDirectoryService {
     /// Constructs a new instance using the specified filesystem path for
     /// storage.
     pub async fn new(instance_name: String, path: PathBuf) -> Result<Self, Error> {
-        if &path == "/" {
+        if path == std::path::Path::new("/") {
             return Err(Error::StorageError(
                 "cowardly refusing to open / with redb".to_string(),
             ));
